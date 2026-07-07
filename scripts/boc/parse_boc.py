@@ -235,7 +235,15 @@ def parse_bulletin(pdf_path: str) -> BocBulletin:
             month = months_full.index(month_name.lower()) + 1
             date_str = f"{year}-{month:02d}-{int(day):02d}"
         else:
+            # Repli sur la date système — trompeur pour un usage batch (voir
+            # backfill.py, qui impose la vraie date de calendrier plutôt que
+            # de faire confiance à ce regex). Signalé pour l'usage CLI direct.
             date_str = datetime.now().strftime("%Y-%m-%d")
+            print(
+                f"AVERTISSEMENT: date introuvable dans le texte du PDF, "
+                f"repli sur la date système ({date_str}) — probablement incorrect.",
+                file=sys.stderr,
+            )
 
         indices = parse_indices(first_page_text)
 
@@ -259,6 +267,16 @@ def parse_bulletin(pdf_path: str) -> BocBulletin:
         )
 
 
+def to_payload(bulletin: BocBulletin) -> dict:
+    return {
+        "date": bulletin.date,
+        "bulletinNumber": bulletin.bulletin_number,
+        "indices": [asdict(i) for i in bulletin.indices],
+        "stockCount": len(bulletin.stocks),
+        "stocks": [asdict(s) for s in bulletin.stocks],
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("pdf", help="Chemin vers le BOC (PDF)")
@@ -266,13 +284,7 @@ def main() -> None:
     args = parser.parse_args()
 
     bulletin = parse_bulletin(args.pdf)
-    payload = {
-        "date": bulletin.date,
-        "bulletinNumber": bulletin.bulletin_number,
-        "indices": [asdict(i) for i in bulletin.indices],
-        "stockCount": len(bulletin.stocks),
-        "stocks": [asdict(s) for s in bulletin.stocks],
-    }
+    payload = to_payload(bulletin)
     text = json.dumps(payload, ensure_ascii=False, indent=2)
     if args.out:
         with open(args.out, "w", encoding="utf-8") as f:

@@ -106,6 +106,13 @@ def main() -> None:
                 continue
 
             bulletin = parse_bulletin(str(tmp_pdf))
+            # La date de calendrier qu'on a explicitement demandée est plus
+            # fiable que le regex sur le texte du PDF, qui échoue parfois
+            # silencieusement (constaté sur 5/1745 bulletins du premier
+            # backfill complet — parse_bulletin retombe alors sur la date
+            # système du jour d'exécution, ce qui produit des doublons dans
+            # les séries agrégées). d est connu et vérifié : on l'impose.
+            bulletin.date = d.isoformat()
             if bulletin.stocks:
                 out_path.write_text(
                     json.dumps(to_payload(bulletin), ensure_ascii=False), encoding="utf-8"
