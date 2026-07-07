@@ -38,18 +38,28 @@ USER_AGENT = "AfriTerminal-backfill/1.0 (usage interne, projet non commercial)"
 
 
 def fetch_pdf(d: date, dest: Path) -> bool:
-    """Essaie les deux conventions de nommage connues. True si un PDF a été récupéré."""
+    """Essaie les deux conventions de nommage connues. True si un PDF a été récupéré.
+
+    OSError couvre TimeoutError/ConnectionError et tout ce qu'URLError peut
+    envelopper — un simple timeout réseau ne doit jamais faire planter tout
+    le backfill (vécu : un TimeoutError non catché a arrêté le process après
+    ~155 jours lors du premier run). Un essai de plus par suffixe absorbe les
+    timeouts transitoires avant de passer au suffixe suivant / à l'échec.
+    """
     for suffix in ("_2", ""):
         url = BOC_URL.format(date=d.strftime("%Y%m%d"), suffix=suffix)
-        try:
-            req = Request(url, headers={"User-Agent": USER_AGENT})
-            with urlopen(req, timeout=20) as resp:
-                dest.write_bytes(resp.read())
-                return True
-        except HTTPError:
-            continue
-        except URLError:
-            continue
+        for attempt in range(2):
+            try:
+                req = Request(url, headers={"User-Agent": USER_AGENT})
+                with urlopen(req, timeout=20) as resp:
+                    dest.write_bytes(resp.read())
+                    return True
+            except HTTPError:
+                break  # 404 etc. : inutile de réessayer, on passe au suffixe suivant
+            except (URLError, OSError):
+                if attempt == 0:
+                    time.sleep(2)
+                continue
     return False
 
 
@@ -77,7 +87,7 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     tmp_pdf = Path("/tmp/afriterminal-backfill-current.pdf")
 
-    ok = missing = unsupported = skipped_existing = 0
+    ok = missing = unsupported = errors = skipped_existing = 0
 
     for d in business_days(start, end):
         out_path = out_dir / f"{d.isoformat()}.json"
@@ -85,34 +95,36 @@ def main() -> None:
             skipped_existing += 1
             continue
 
-        if not fetch_pdf(d, tmp_pdf):
-            missing += 1
-            print(f"{d} — aucun bulletin trouvé (jour férié probable)", file=sys.stderr)
-            time.sleep(args.delay)
-            continue
-
+        # Filet de sécurité : une exception vraiment imprévue sur un jour ne
+        # doit plus jamais arrêter tout le backfill (cf. le crash du premier
+        # run après 155 jours à cause d'un TimeoutError non catché ailleurs).
         try:
-            bulletin = parse_bulletin(str(tmp_pdf))
-        except Exception as exc:  # un PDF corrompu ou inattendu ne doit pas arrêter le backfill
-            print(f"{d} — erreur de parsing: {exc}", file=sys.stderr)
-            time.sleep(args.delay)
-            continue
+            if not fetch_pdf(d, tmp_pdf):
+                missing += 1
+                print(f"{d} — aucun bulletin trouvé (jour férié probable)", file=sys.stderr)
+                time.sleep(args.delay)
+                continue
 
-        if bulletin.stocks:
-            out_path.write_text(
-                json.dumps(to_payload(bulletin), ensure_ascii=False), encoding="utf-8"
-            )
-            ok += 1
-            print(f"{d} — {len(bulletin.stocks)} actions", file=sys.stderr)
-        else:
-            unsupported += 1
-            print(f"{d} — 0 action extraite (format non supporté ?)", file=sys.stderr)
+            bulletin = parse_bulletin(str(tmp_pdf))
+            if bulletin.stocks:
+                out_path.write_text(
+                    json.dumps(to_payload(bulletin), ensure_ascii=False), encoding="utf-8"
+                )
+                ok += 1
+                print(f"{d} — {len(bulletin.stocks)} actions", file=sys.stderr)
+            else:
+                unsupported += 1
+                print(f"{d} — 0 action extraite (format non supporté ?)", file=sys.stderr)
+        except Exception as exc:
+            errors += 1
+            print(f"{d} — erreur inattendue: {exc}", file=sys.stderr)
 
         time.sleep(args.delay)
 
     print(
         f"\nTerminé — ok: {ok} · déjà présents: {skipped_existing} · "
-        f"sans bulletin: {missing} · format non supporté: {unsupported}",
+        f"sans bulletin: {missing} · format non supporté: {unsupported} · "
+        f"erreurs inattendues: {errors}",
         file=sys.stderr,
     )
 
