@@ -6,9 +6,10 @@ Le BOC est un PDF quotidien publié sur brvm.org. Ce script extrait le
 marché des actions (pages "MARCHE DES ACTIONS") en JSON structuré, prêt
 à remplacer les données mockées de lib/mock/stocks.ts et lib/mock/series.ts.
 
-Hors scope volontairement : obligations, marché des droits, OPCVM, avis
-divers (pages suivant "TOTAL - MARCHE DES ACTIONS"). À couvrir plus tard
-si un besoin produit apparaît.
+Couverture validée : ~2019 -> aujourd'hui (deux schémas de table gérés
+automatiquement selon le nombre de colonnes détecté, voir README.md).
+Hors scope volontairement : marché des obligations, marché des droits,
+OPCVM, avis divers, et l'ère ~2016-2018 (schéma de table différent).
 
 Usage :
     python3 parse_boc.py bulletin.pdf [--out sortie.json]
@@ -38,7 +39,14 @@ SECTOR_LABELS = {
     "SPU": "Services publics",
 }
 
-EQUITY_TABLE_COLS = 16
+# Deux schémas de table observés dans les BOC réels :
+#  - 16 colonnes, avec code secteur en tête : ~2022 -> aujourd'hui.
+#  - 15 colonnes, identique mais SANS le code secteur : ~2019 -> nov. 2021.
+# Le schéma le plus ancien (~2016-2018, 18 colonnes, ordre différent,
+# secteur en ligne bannière) n'est pas géré ici — voir README.md.
+EQUITY_TABLE_COLS_MODERN = 16
+EQUITY_TABLE_COLS_LEGACY = 15
+EQUITY_TABLE_COLS = {EQUITY_TABLE_COLS_MODERN, EQUITY_TABLE_COLS_LEGACY}
 MONTH_FR = {
     "janv": 1, "févr": 2, "mars": 3, "avr": 4, "mai": 5, "juin": 6,
     "juil": 7, "août": 8, "sept": 9, "oct": 10, "nov": 11, "déc": 12,
@@ -141,14 +149,14 @@ def parse_indices(first_page_text: str) -> list[BocIndex]:
 
 
 def find_equity_pages(pdf: pdfplumber.PDF) -> list[int]:
-    """Pages contenant des tables à 16 colonnes, avant 'TOTAL - MARCHE DES ACTIONS'."""
+    """Pages contenant des tables actions (15 ou 16 col.), avant 'TOTAL - MARCHE DES ACTIONS'."""
     pages = []
     for i, page in enumerate(pdf.pages):
         text = page.extract_text() or ""
-        has_16col = any(
-            len(t[0]) == EQUITY_TABLE_COLS for t in page.extract_tables() if t
+        has_equity_table = any(
+            len(t[0]) in EQUITY_TABLE_COLS for t in page.extract_tables() if t
         )
-        if has_16col:
+        if has_equity_table:
             pages.append(i)
         if "TOTAL - MARCHE DES ACTIONS" in text:
             break
@@ -156,13 +164,19 @@ def find_equity_pages(pdf: pdfplumber.PDF) -> list[int]:
 
 
 def parse_equity_row(row: list[str | None]) -> BocStock | None:
-    if len(row) != EQUITY_TABLE_COLS:
+    ncols = len(row)
+    if ncols == EQUITY_TABLE_COLS_MODERN:
+        sector, ticker, name = row[0], row[1], row[2]
+        rest = row[4:]  # row[3] est une colonne vide (fusion de cellule)
+    elif ncols == EQUITY_TABLE_COLS_LEGACY:
+        sector, ticker, name = "", row[0], row[1]
+        rest = row[3:]  # même schéma, sans la colonne code secteur
+    else:
         return None
-    sector, ticker, name = row[0], row[1], row[2]
+
     if not ticker or not re.match(r"^[A-Z0-9]{3,6}$", ticker):
         return None
     (
-        _blank,
         prev_close,
         open_,
         close,
@@ -175,7 +189,7 @@ def parse_equity_row(row: list[str | None]) -> BocStock | None:
         div_date,
         net_yield,
         per,
-    ) = row[3:]
+    ) = rest
 
     close_v = fr_number(close)
     if close_v is None:
@@ -229,7 +243,7 @@ def parse_bulletin(pdf_path: str) -> BocBulletin:
         seen_tickers: set[str] = set()
         for page_idx in find_equity_pages(pdf):
             for table in pdf.pages[page_idx].extract_tables():
-                if not table or len(table[0]) != EQUITY_TABLE_COLS:
+                if not table or len(table[0]) not in EQUITY_TABLE_COLS:
                     continue
                 for row in table:
                     stock = parse_equity_row(row)
