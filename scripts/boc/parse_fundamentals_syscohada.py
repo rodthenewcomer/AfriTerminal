@@ -14,7 +14,12 @@ brut) : les nombres français groupés par espaces ("10 074 573 973")
 sont ambigus une fois aplatis en texte, mais restent des cellules
 distinctes dans les tables détectées par pdfplumber.
 
-Validé sur ERIUM CI (ex Air Liquide) et Palm CI.
+Validé sur ERIUM CI, Palm CI et CIE CI (CA + résultat net corrects,
+vérifiés à la main). Le résultat des activités ordinaires de CIE CI
+n'est volontairement PAS extrait : sa ligne partage un fragment de texte
+avec "Report à nouveau" d'une colonne voisine (mise en page à 3 sections
+côte à côte), ce qui déclenche le garde-fou anti-bilan — préférable à un
+faux positif. Absence de donnée plutôt que donnée fausse.
 
 Usage :
     python3 parse_fundamentals_syscohada.py etats_financiers.pdf
@@ -54,26 +59,73 @@ def fr_number(raw: str) -> float | None:
         return None
 
 
+# Termes qui n'apparaissent QUE dans le bilan, jamais dans le compte de
+# résultat — une ligne qui les mentionne ne peut pas être la bonne, même
+# si elle matche aussi "resultat net" (ex. bilan PALC : "Résultat net
+# 15 508 655 15 861 643" dans la section capitaux propres, en report à
+# nouveau — mêmes valeurs que le compte de résultat par coïncidence
+# comptable, mais toujours la mauvaise ligne à cibler par principe).
+BILAN_ONLY_TERMS = re.compile(
+    r"capitaux propres|report à nouveau|primes et réserves|capital social", re.IGNORECASE
+)
+
+
+NUMERIC_RE = re.compile(r"^-?[\d\s,]+$")
+
+
+def _values_after(row: list[str | None], label_idx: int) -> tuple[float, float] | None:
+    """
+    Les 2 premières cellules numériques APRÈS le libellé — pas les 2
+    dernières de toute la ligne. Certaines mises en page (CIEC) placent
+    3 sections côte à côte sur une même ligne de tableau (bilan, compte
+    de résultat, flux de trésorerie) : prendre "les 2 dernières cellules
+    de la ligne" attrapait les valeurs de la section suivante par erreur.
+    On s'arrête à la première cellule non vide et non numérique
+    rencontrée après le libellé (= début d'une autre section).
+    """
+    nums: list[str] = []
+    for cell in row[label_idx + 1 :]:
+        if cell is None or cell.strip() == "":
+            continue
+        if NUMERIC_RE.match(cell.strip()):
+            nums.append(cell)
+            if len(nums) == 2:
+                break
+        else:
+            break
+    if len(nums) < 2:
+        return None
+    a, b = fr_number(nums[0]), fr_number(nums[1])
+    if a is None or b is None:
+        return None
+    return a, b
+
+
 def find_in_tables(tables: list[list[list[str | None]]], label_pattern: str) -> tuple[float, float] | None:
-    # Volontairement sensible à la casse et aux accents : une version
-    # insensible fait remonter par erreur la ligne "Résultat net" du bilan
-    # (report à nouveau) au lieu de celle du compte de résultat — cf.
-    # scripts/boc/README.md pour le détail de cette régression constatée
-    # sur CIEC. Un vrai fix demanderait de restreindre la recherche à la
-    # section "COMPTE DE RESULTAT" du document, pas juste ignorer casse/accents.
-    regex = re.compile(label_pattern)
-    for table in tables:
-        for row in table:
-            for cell in row:
-                if cell and regex.search(cell):
-                    # Les deux dernières cellules non vides de la ligne sont
-                    # les valeurs N et N-1 (le nombre de cellules vides avant
-                    # varie selon la mise en page, donc pas d'index fixe).
-                    values = [c for c in row if c and re.match(r"^-?[\d\s,]+$", c.strip())]
-                    if len(values) >= 2:
-                        a, b = fr_number(values[-2]), fr_number(values[-1])
-                        if a is not None and b is not None:
-                            return a, b
+    """
+    Cherche d'abord une correspondance stricte (casse/accents exacts) — le
+    cas normal, validé sur ERIUM CI et Palm CI. Si rien ne matche (ex.
+    CIEC utilise "Chiffre d'affaires"/"RÉSULTAT NET" au lieu de la casse
+    SYSCOHADA standard), retente en ignorant casse/accents mais rejette
+    toute ligne qui mentionne aussi un terme propre au bilan — ça évite
+    de confondre le "Résultat net" du bilan (report à nouveau) avec celui
+    du compte de résultat.
+    """
+    strict = re.compile(label_pattern)
+    loose = re.compile(strip_accents(label_pattern), re.IGNORECASE)
+
+    for regex, guarded in ((strict, False), (loose, True)):
+        for table in tables:
+            for row in table:
+                row_text = " ".join(c for c in row if c)
+                if guarded and BILAN_ONLY_TERMS.search(row_text):
+                    continue
+                for idx, cell in enumerate(row):
+                    haystack = strip_accents(cell) if (cell and guarded) else cell
+                    if cell and regex.search(haystack):
+                        found = _values_after(row, idx)
+                        if found:
+                            return found
     return None
 
 

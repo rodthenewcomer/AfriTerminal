@@ -167,17 +167,28 @@ historique git).
    nombres français groupés par espaces ("10 074 573 973") deviennent
    ambigus une fois aplatis en texte, mais restent des cellules
    distinctes dans les tables détectées.
-   - **Validé** sur ERIUM CI (ex Air Liquide) et Palm CI : CA, résultat
-     des activités ordinaires, résultat net, tous corrects (vérifiés à
-     la main contre le PDF).
-   - **Casse/accents non résolus** : CIEC utilise "Chiffre d'affaires"
-     et "RÉSULTAT NET" (accentué) au lieu de "CHIFFRE D'AFFAIRES" /
-     "RESULTAT NET". Une tentative de recherche insensible à la
-     casse/aux accents a été essayée et **rejetée** : elle fait
-     remonter par erreur la ligne "Résultat net" du bilan (report à
-     nouveau) au lieu de celle du compte de résultat — un vrai fix
-     demanderait de restreindre la recherche à la section "COMPTE DE
-     RESULTAT" du document, pas juste ignorer casse/accents. Non fait.
+   - **Validé** sur ERIUM CI (ex Air Liquide), Palm CI et CIE CI : CA et
+     résultat net corrects (vérifiés à la main contre le PDF) sur les 3.
+   - **Résolu** : CIEC utilise "Chiffre d'affaires"/"RÉSULTAT NET"
+     (casse/accents différents de la norme SYSCOHADA en capitales sans
+     accent). Stratégie à 2 niveaux : essai strict d'abord (le cas
+     normal), puis repli insensible à la casse/aux accents **avec
+     garde-fou** — toute ligne qui mentionne aussi un terme propre au
+     bilan ("capitaux propres", "report à nouveau"...) est rejetée,
+     pour ne pas confondre le "Résultat net" du bilan (report à
+     nouveau) avec celui du compte de résultat.
+   - Un deuxième piège a été trouvé et corrigé au passage : certaines
+     mises en page (CIEC) placent 3 sections côte à côte sur une même
+     ligne de tableau (bilan, compte de résultat, flux de trésorerie).
+     Prendre "les 2 dernières cellules numériques de la ligne" attrapait
+     par erreur les valeurs de la section suivante (le CA de CIEC
+     ressortait à 43 912 au lieu de 302 320). Corrigé en prenant les 2
+     premières cellules numériques *après* la cellule du libellé, pas
+     les 2 dernières de toute la ligne.
+   - **Limite restante assumée** : le résultat des activités ordinaires
+     de CIEC n'est pas extrait (le garde-fou anti-bilan rejette sa
+     ligne, qui partage un fragment "Report à nouveau" d'une colonne
+     voisine) — absence de donnée préférée à une donnée fausse.
 
 2. **Banques** — `parse_fundamentals_bank.py`. Les indicateurs clés
    (PNB, résultat net, coefficient d'exploitation, coût du risque)
