@@ -113,9 +113,20 @@ dépend de fondamentaux d'états financiers, qu'aucun pipeline ne
 collecte. Ces sections sont masquées avec une explication, pas
 remplies avec les anciens chiffres inventés.
 
-**Pas encore branché** : dashboard, marchés, screener, watchlist
-affichent encore les prix mockés — incohérent avec la page action tant
-qu'une passe suivante ne les branche pas aussi.
+**Mis à jour (2026-07-08)** : dashboard, marchés, screener et watchlist
+sont maintenant branchés aussi (`lib/data.ts` centralise le remplacement
+prix/volume/PER/dividende réel pour toute l'app via `StockSnapshot.real`).
+Capitalisation/P-B/ROE/scores affichent "—" avec une infobulle plutôt que
+les anciens chiffres inventés ; le screener a perdu ses filtres
+fondamentaux (P/B, ROE, croissance, qualité, risque) au profit de
+critères réels (PER, rendement, YTD, volume).
+
+Documents et alertes ont aussi été audités contre les vraies données :
+les affirmations vérifiables (dividendes, prix, volumes) ont été
+corrigées quand elles étaient fausses (ex. ORAC : 950 FCFA inventé vs
+704 FCFA réel), et chaque carte affiche désormais un badge "Données
+réelles" ou "Scénario illustratif" (`ContentBasis` dans `lib/types.ts`)
+— rien ne se présente plus comme vérifié sans l'être.
 
 **Limite connue à ne pas oublier** : le BOC ne publie que l'ouverture et
 la clôture par action, jamais de plus haut/bas intraday. Tant que
