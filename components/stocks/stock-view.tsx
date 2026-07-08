@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Bell, Sparkles } from "lucide-react";
 import { getSectorStats, getSnapshot } from "@/lib/data";
 import { getRealQuote } from "@/lib/real-data";
+import { getRealFundamentals, growthPct } from "@/lib/real-fundamentals";
 import { docsForTicker } from "@/lib/mock/documents";
 import { DIVIDEND_MAP } from "@/lib/mock/dividends";
 import type { DocItem } from "@/lib/types";
@@ -32,6 +33,7 @@ import { DocumentViewerModal } from "@/components/documents/document-viewer-moda
 export function StockView({ ticker }: { ticker: string }) {
   const stock = useMemo(() => getSnapshot(ticker), [ticker]);
   const real = useMemo(() => getRealQuote(ticker), [ticker]);
+  const realFund = useMemo(() => getRealFundamentals(ticker), [ticker]);
   const [openDoc, setOpenDoc] = useState<DocItem | null>(null);
 
   if (!stock) return null;
@@ -157,12 +159,82 @@ export function StockView({ ticker }: { ticker: string }) {
                 value={real.lastDividendNet ? fcfa(real.lastDividendNet) : "—"}
                 hint={real.lastDividendDate ? `Payé le ${dateFr(real.lastDividendDate)}` : undefined}
               />
+              {realFund ? (
+                <>
+                  <MetricCard
+                    label={`${realFund.revenueLabel} ${realFund.fiscalYear}`}
+                    value={millions(realFund.revenueM)}
+                    hint={(() => {
+                      const g = growthPct(realFund.revenueM, realFund.revenuePrevM);
+                      return g !== null ? `${pct(g, { digits: 1 })} vs ${realFund.fiscalYear - 1}` : undefined;
+                    })()}
+                  />
+                  <MetricCard
+                    label={`Résultat net ${realFund.fiscalYear}`}
+                    value={millions(realFund.netIncomeM)}
+                    hint={(() => {
+                      const g = growthPct(realFund.netIncomeM, realFund.netIncomePrevM);
+                      return g !== null ? `${pct(g, { digits: 1 })} vs ${realFund.fiscalYear - 1}` : undefined;
+                    })()}
+                  />
+                  <MetricCard
+                    label="Marge nette"
+                    value={pct((realFund.netIncomeM / realFund.revenueM) * 100, { signed: false, digits: 1 })}
+                  />
+                  {realFund.ordinaryIncomeM !== null ? (
+                    <MetricCard
+                      label="Résultat ordinaire"
+                      value={millions(realFund.ordinaryIncomeM)}
+                      tone={realFund.ordinaryIncomeM < 0 ? "down" : undefined}
+                    />
+                  ) : null}
+                  {realFund.cirPct !== null ? (
+                    <MetricCard
+                      label="Coefficient d'exploitation"
+                      value={pct(realFund.cirPct, { signed: false, digits: 1 })}
+                      hint={realFund.cirPrevPct !== null ? `${pct(realFund.cirPrevPct, { signed: false, digits: 1 })} en ${realFund.fiscalYear - 1}` : undefined}
+                    />
+                  ) : null}
+                  {realFund.costOfRiskM !== null ? (
+                    <MetricCard
+                      label="Coût du risque"
+                      value={millions(realFund.costOfRiskM)}
+                      hint={realFund.costOfRiskM < 0 ? "Négatif = reprise nette" : undefined}
+                    />
+                  ) : null}
+                  {realFund.proposedGrossDividend !== null ? (
+                    <MetricCard
+                      label="Dividende brut proposé"
+                      value={fcfa(realFund.proposedGrossDividend)}
+                      hint={`Au titre de ${realFund.fiscalYear}, soumis à l'AG`}
+                    />
+                  ) : null}
+                </>
+              ) : null}
             </div>
-            <p className="mt-2.5 text-[11px] text-ink-3">
-              Capitalisation, P/B, ROE, résultat net et payout ne sont pas
-              disponibles : la BRVM ne publie pas les états financiers dans le
-              bulletin quotidien — seulement les cours et les dividendes.
-            </p>
+            {realFund ? (
+              <p className="mt-2.5 text-[11px] text-ink-3">
+                États financiers exercice {realFund.fiscalYear} publiés le{" "}
+                {dateFr(realFund.publishedOn)} —{" "}
+                <a
+                  href={realFund.source}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-ink"
+                >
+                  document source (BRVM)
+                </a>
+                , extraction vérifiée manuellement. Capitalisation, P/B et ROE
+                restent indisponibles (nombre d&apos;actions et capitaux
+                propres non intégrés).
+              </p>
+            ) : (
+              <p className="mt-2.5 text-[11px] text-ink-3">
+                Capitalisation, P/B, ROE, résultat net et payout ne sont pas
+                disponibles : la BRVM ne publie pas les états financiers dans le
+                bulletin quotidien — seulement les cours et les dividendes.
+              </p>
+            )}
           </>
         ) : (
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
@@ -216,11 +288,9 @@ export function StockView({ ticker }: { ticker: string }) {
           <CardBody className="flex items-start gap-3 py-4">
             <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-ink-3" />
             <p className="text-xs leading-relaxed text-ink-2">
-              L&apos;analyse IA, les signaux et la comparaison sectorielle ne
-              sont pas disponibles pour cette valeur : ils reposent sur des
-              données d&apos;états financiers (résultat net, ROE, coût du
-              risque...) qu&apos;aucun pipeline ne collecte encore. Seuls les
-              cours, volumes, PER et dividendes affichés ici sont réels.
+              {realFund
+                ? `L'analyse IA, les signaux et la comparaison sectorielle ne sont pas encore calculés sur données réelles — les états financiers ${realFund.fiscalYear} de cette société sont intégrés (voir Fondamentaux), mais scores et signaux exigent des données que le pipeline ne couvre pas encore (ROE, capitaux propres, historique pluriannuel).`
+                : "L'analyse IA, les signaux et la comparaison sectorielle ne sont pas disponibles pour cette valeur : ils reposent sur des données d'états financiers (résultat net, ROE, coût du risque...) que le pipeline ne collecte pas encore pour cette société. Seuls les cours, volumes, PER et dividendes affichés ici sont réels."}
             </p>
           </CardBody>
         </Card>

@@ -249,9 +249,16 @@ historique git).
      avoir son propre template — un extracteur par société serait
      probablement nécessaire, pas un extracteur par secteur.
 
-**Conclusion à ce stade** : faisable, mais l'ampleur réelle est
-supérieure aux estimations initiales — potentiellement un extracteur
-sur mesure par société plutôt qu'un par format. 2 des ~10 sociétés
-non-bancaires sont pleinement validées, aucune des 5 banques ne l'est
-de façon fiable. Rien de tout ceci n'est branché dans l'app — chantier
-à reprendre séparément.
+**Branché dans l'app le 2026-07-08** via `fundamentals.py` : registre
+curé société par société (PDF épinglé + unité vérifiée manuellement +
+extracteur validé), normalisation en millions de FCFA, sortie
+`data/real/fundamentals.json` consommée par la fiche action (avec lien
+vers le document source). **6 sociétés en production** sur l'exercice
+2025 : SPHC, PALC, CIEC, ONTBF, SIVC (SYSCOHADA) et NSBC (banque).
+Vérifications d'unités documentées dans le docstring de
+`fundamentals.py` (dont la triangulation PALC par le PER officiel du
+BOC : 8,82 publié vs 8,86 implicite). Exécution à la main quand de
+nouveaux états sortent — ajouter une société = validation, pas de la
+configuration. Restent hors production : SNTS/ORAC (rapports longs,
+mauvaise page ciblée), UNXC (PDF scanné, OCR), TTLC (détection de
+tableau sans traits), et les 4 autres banques (un gabarit par banque).
