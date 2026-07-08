@@ -13,3 +13,8 @@ next-env.d.ts
 
 # Cache local du backfill BOC — régénérable via scripts/boc/backfill.py
 data/boc/raw/
+
+# Fichiers internes d'outillage / cache Python — pas du code projet
+.claude/
+scripts/boc/__pycache__/
+**/__pycache__/

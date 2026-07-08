@@ -218,6 +218,34 @@ export interface SectorStats {
   count: number;
 }
 
+/**
+ * Cotation réelle BRVM (pipeline scripts/boc/), pour les tickers où on a
+ * un historique réel. Volontairement plus pauvre qu'un StockSnapshot mocké :
+ * pas de fondamentaux (revenu, résultat net, ROE...) — la BRVM ne les publie
+ * pas dans le bulletin quotidien. Donc pas de scores/signaux/analyse IA pour
+ * ces tickers tant qu'un pipeline fondamentaux séparé n'existe pas.
+ */
+export interface RealQuote {
+  ticker: string;
+  name: string;
+  sectorCode: string | null;
+  asOfDate: string;
+  lastClose: number;
+  prevClose: number;
+  dayChangePct: number;
+  weekChangePct: number;
+  monthChangePct: number;
+  ytdChangePct: number;
+  yearChangePct: number;
+  dayVolume: number;
+  avgVolume30d: number;
+  volumeRatio: number;
+  per: number | null;
+  netYieldPct: number | null;
+  lastDividendNet: number | null;
+  lastDividendDate: string | null;
+}
+
 export interface IndexInfo {
   code: string;
   name: string;

@@ -104,7 +104,7 @@ function round2(n: number): number {
   return n >= 1000 ? Math.round(n) : Math.round(n * 100) / 100;
 }
 
-function aggregate(data: OHLCV[], size: number): OHLCV[] {
+export function aggregate(data: OHLCV[], size: number): OHLCV[] {
   const out: OHLCV[] = [];
   for (let i = 0; i < data.length; i += size) {
     const chunk = data.slice(i, i + size);

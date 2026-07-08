@@ -1,14 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Bell } from "lucide-react";
+import { Bell, Sparkles } from "lucide-react";
 import { getSectorStats, getSnapshot } from "@/lib/data";
+import { getRealQuote } from "@/lib/real-data";
 import { docsForTicker } from "@/lib/mock/documents";
 import { DIVIDEND_MAP } from "@/lib/mock/dividends";
 import type { DocItem } from "@/lib/types";
 import {
   compactFcfa,
   compactVolume,
+  dateFr,
   fcfa,
   millions,
   pct,
@@ -29,6 +31,7 @@ import { DocumentViewerModal } from "@/components/documents/document-viewer-moda
 
 export function StockView({ ticker }: { ticker: string }) {
   const stock = useMemo(() => getSnapshot(ticker), [ticker]);
+  const real = useMemo(() => getRealQuote(ticker), [ticker]);
   const [openDoc, setOpenDoc] = useState<DocItem | null>(null);
 
   if (!stock) return null;
@@ -36,6 +39,9 @@ export function StockView({ ticker }: { ticker: string }) {
   const dividend = DIVIDEND_MAP.get(ticker);
   const sectorStats = getSectorStats().find((s) => s.sector === stock.sector);
   const f = stock.fundamentals;
+
+  const lastPrice = real?.lastClose ?? stock.lastPrice;
+  const dayChange = real?.dayChangePct ?? stock.dayChange;
 
   return (
     <div className="space-y-4 fade-in">
@@ -49,15 +55,22 @@ export function StockView({ ticker }: { ticker: string }) {
             <h1 className="truncate text-base font-bold tracking-tight text-ink sm:text-lg">
               {stock.name}
             </h1>
-            <p className="text-[11px] text-ink-3">
+            <p className="flex flex-wrap items-center gap-1.5 text-[11px] text-ink-3">
               BRVM · {stock.sector} · {stock.country}
+              {real ? (
+                <Badge tone="positive" title={`Données réelles BRVM au ${dateFr(real.asOfDate)}`}>
+                  Données réelles
+                </Badge>
+              ) : (
+                <Badge tone="gold">Démo simulée</Badge>
+              )}
             </p>
           </div>
           <div className="text-right">
             <p className="num text-xl font-bold text-ink sm:text-2xl">
-              {fcfa(stock.lastPrice)}
+              {fcfa(lastPrice)}
             </p>
-            <PriceChange value={stock.dayChange} className="text-sm" />
+            <PriceChange value={dayChange} className="text-sm" />
           </div>
           <div className="flex w-full items-center gap-2 sm:w-auto">
             <WatchlistButton ticker={stock.ticker} />
@@ -78,18 +91,20 @@ export function StockView({ ticker }: { ticker: string }) {
           <Card>
             <CardHeader title="Résumé" />
             <CardBody className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <ScoreBadge kind="quality" value={stock.scores.quality} />
-                <ScoreBadge kind="valuation" value={stock.scores.valuation} />
-                <ScoreBadge kind="momentum" value={stock.scores.momentum} />
-                <ScoreBadge kind="risk" value={stock.scores.risk} />
-              </div>
+              {!real ? (
+                <div className="grid grid-cols-2 gap-2">
+                  <ScoreBadge kind="quality" value={stock.scores.quality} />
+                  <ScoreBadge kind="valuation" value={stock.scores.valuation} />
+                  <ScoreBadge kind="momentum" value={stock.scores.momentum} />
+                  <ScoreBadge kind="risk" value={stock.scores.risk} />
+                </div>
+              ) : null}
               <dl className="space-y-1.5 text-xs">
                 {[
-                  ["Variation 1 semaine", <PriceChange key="w" value={stock.weekChange} arrow={false} />],
-                  ["Variation 1 mois", <PriceChange key="m" value={stock.monthChange} arrow={false} />],
-                  ["Variation YTD", <PriceChange key="y" value={stock.ytdChange} arrow={false} />],
-                  ["Variation 1 an", <PriceChange key="a" value={stock.yearChange} arrow={false} />],
+                  ["Variation 1 semaine", <PriceChange key="w" value={real?.weekChangePct ?? stock.weekChange} arrow={false} />],
+                  ["Variation 1 mois", <PriceChange key="m" value={real?.monthChangePct ?? stock.monthChange} arrow={false} />],
+                  ["Variation YTD", <PriceChange key="y" value={real?.ytdChangePct ?? stock.ytdChange} arrow={false} />],
+                  ["Variation 1 an", <PriceChange key="a" value={real?.yearChangePct ?? stock.yearChange} arrow={false} />],
                 ].map(([label, node], i) => (
                   <div key={i} className="flex items-center justify-between">
                     <dt className="text-ink-3">{label}</dt>
@@ -98,13 +113,13 @@ export function StockView({ ticker }: { ticker: string }) {
                 ))}
                 <div className="flex items-center justify-between">
                   <dt className="text-ink-3">Volume du jour</dt>
-                  <dd className={`num font-medium ${stock.volumeRatio >= 3 ? "text-warn" : "text-ink"}`}>
-                    {compactVolume(stock.dayVolume)}{" "}
-                    <span className="text-ink-3">({stock.volumeRatio.toFixed(1)}×)</span>
+                  <dd className={`num font-medium ${(real?.volumeRatio ?? stock.volumeRatio) >= 3 ? "text-warn" : "text-ink"}`}>
+                    {compactVolume(real?.dayVolume ?? stock.dayVolume)}{" "}
+                    <span className="text-ink-3">({(real?.volumeRatio ?? stock.volumeRatio).toFixed(1)}×)</span>
                   </dd>
                 </div>
               </dl>
-              {stock.signals.length > 0 ? (
+              {!real && stock.signals.length > 0 ? (
                 <div className="border-t border-line pt-3">
                   <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-ink-3">
                     Signaux détectés
@@ -127,58 +142,97 @@ export function StockView({ ticker }: { ticker: string }) {
       {/* Métriques */}
       <section>
         <h2 className="mb-2.5 text-sm font-semibold text-ink">Fondamentaux</h2>
-        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
-          <MetricCard label="Capitalisation" value={compactFcfa(stock.marketCap)} />
-          <MetricCard
-            label="PER"
-            value={stock.per > 0 ? ratio(stock.per) : "—"}
-            hint={sectorStats ? `Secteur : ${ratio(sectorStats.avgPer)}` : undefined}
-          />
-          <MetricCard label="P/B" value={ratio(f.pb)} />
-          <MetricCard label="ROE" value={pct(f.roe, { signed: false, digits: 1 })} />
-          <MetricCard
-            label="Rendement net"
-            value={pct(stock.yieldNet, { signed: false, digits: 2 })}
-            tone={stock.yieldNet >= 6 ? "up" : undefined}
-          />
-          <MetricCard
-            label="Payout"
-            value={pct(f.payout, { signed: false, digits: 0 })}
-            tone={f.payout > 90 ? "warn" : undefined}
-          />
-          <MetricCard
-            label={`${f.revenueLabel} ${f.revenueLabel === "PNB" ? "" : "annuel"}`}
-            value={millions(f.revenue)}
-            hint={`${pct(stock.revenueGrowth, { digits: 1 })} vs N-1`}
-          />
-          <MetricCard
-            label="Résultat net"
-            value={millions(f.netIncome)}
-            hint={`${pct(stock.netIncomeGrowth, { digits: 1 })} vs N-1`}
-            tone={f.ordinaryIncome < 0 ? "warn" : undefined}
-          />
-          <MetricCard
-            label="Résultat ordinaire"
-            value={millions(f.ordinaryIncome)}
-            tone={f.ordinaryIncome < 0 ? "down" : undefined}
-            hint={f.ordinaryIncome < 0 ? "Cœur d'activité déficitaire" : undefined}
-          />
-          <MetricCard
-            label="Vol. moyen 30 j"
-            value={compactVolume(stock.avgVolume30d)}
-            hint={`Aujourd'hui : ${stock.volumeRatio.toFixed(1)}×`}
-          />
-        </div>
+        {real ? (
+          <>
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+              <MetricCard label="PER" value={real.per ? ratio(real.per) : "—"} />
+              <MetricCard
+                label="Rendement net"
+                value={real.netYieldPct ? pct(real.netYieldPct, { signed: false, digits: 2 }) : "—"}
+                tone={real.netYieldPct && real.netYieldPct >= 6 ? "up" : undefined}
+              />
+              <MetricCard label="Vol. moyen 30 j" value={compactVolume(real.avgVolume30d)} />
+              <MetricCard
+                label="Dernier dividende net"
+                value={real.lastDividendNet ? fcfa(real.lastDividendNet) : "—"}
+                hint={real.lastDividendDate ? `Payé le ${dateFr(real.lastDividendDate)}` : undefined}
+              />
+            </div>
+            <p className="mt-2.5 text-[11px] text-ink-3">
+              Capitalisation, P/B, ROE, résultat net et payout ne sont pas
+              disponibles : la BRVM ne publie pas les états financiers dans le
+              bulletin quotidien — seulement les cours et les dividendes.
+            </p>
+          </>
+        ) : (
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
+            <MetricCard label="Capitalisation" value={compactFcfa(stock.marketCap)} />
+            <MetricCard
+              label="PER"
+              value={stock.per > 0 ? ratio(stock.per) : "—"}
+              hint={sectorStats ? `Secteur : ${ratio(sectorStats.avgPer)}` : undefined}
+            />
+            <MetricCard label="P/B" value={ratio(f.pb)} />
+            <MetricCard label="ROE" value={pct(f.roe, { signed: false, digits: 1 })} />
+            <MetricCard
+              label="Rendement net"
+              value={pct(stock.yieldNet, { signed: false, digits: 2 })}
+              tone={stock.yieldNet >= 6 ? "up" : undefined}
+            />
+            <MetricCard
+              label="Payout"
+              value={pct(f.payout, { signed: false, digits: 0 })}
+              tone={f.payout > 90 ? "warn" : undefined}
+            />
+            <MetricCard
+              label={`${f.revenueLabel} ${f.revenueLabel === "PNB" ? "" : "annuel"}`}
+              value={millions(f.revenue)}
+              hint={`${pct(stock.revenueGrowth, { digits: 1 })} vs N-1`}
+            />
+            <MetricCard
+              label="Résultat net"
+              value={millions(f.netIncome)}
+              hint={`${pct(stock.netIncomeGrowth, { digits: 1 })} vs N-1`}
+              tone={f.ordinaryIncome < 0 ? "warn" : undefined}
+            />
+            <MetricCard
+              label="Résultat ordinaire"
+              value={millions(f.ordinaryIncome)}
+              tone={f.ordinaryIncome < 0 ? "down" : undefined}
+              hint={f.ordinaryIncome < 0 ? "Cœur d'activité déficitaire" : undefined}
+            />
+            <MetricCard
+              label="Vol. moyen 30 j"
+              value={compactVolume(stock.avgVolume30d)}
+              hint={`Aujourd'hui : ${stock.volumeRatio.toFixed(1)}×`}
+            />
+          </div>
+        )}
       </section>
 
       {/* Analyse IA + dividendes */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <AIInsightCard insight={stock.insight} />
-        <div className="space-y-4">
-          <DividendPanel stock={stock} dividend={dividend} />
-          <SectorComparison stock={stock} stats={sectorStats} />
+      {real ? (
+        <Card>
+          <CardBody className="flex items-start gap-3 py-4">
+            <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-ink-3" />
+            <p className="text-xs leading-relaxed text-ink-2">
+              L&apos;analyse IA, les signaux et la comparaison sectorielle ne
+              sont pas disponibles pour cette valeur : ils reposent sur des
+              données d&apos;états financiers (résultat net, ROE, coût du
+              risque...) qu&apos;aucun pipeline ne collecte encore. Seuls les
+              cours, volumes, PER et dividendes affichés ici sont réels.
+            </p>
+          </CardBody>
+        </Card>
+      ) : (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <AIInsightCard insight={stock.insight} />
+          <div className="space-y-4">
+            <DividendPanel stock={stock} dividend={dividend} />
+            <SectorComparison stock={stock} stats={sectorStats} />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Documents */}
       <section>
@@ -200,9 +254,10 @@ export function StockView({ ticker }: { ticker: string }) {
       </section>
 
       <p className="text-[10px] text-ink-3">
-        Les informations présentées sont fournies à titre éducatif et informatif
-        sur données simulées. Elles ne constituent pas un conseil en
-        investissement.
+        {real
+          ? `Cours, volumes, PER et dividendes réels (source : bulletins officiels de la cote BRVM, au ${dateFr(real.asOfDate)}). Documents et alertes ci-dessus restent simulés à titre de démonstration.`
+          : "Les informations présentées sont fournies à titre éducatif et informatif sur données simulées."}{" "}
+        Ceci ne constitue pas un conseil en investissement.
       </p>
 
       <DocumentViewerModal doc={openDoc} onClose={() => setOpenDoc(null)} />
