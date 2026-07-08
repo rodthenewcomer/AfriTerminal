@@ -3,20 +3,23 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #eef1f6;
+  /* Neutres zinc + accent or/ambre — identité 2026 : un seul accent
+     de marque, surfaces pleines, zéro teinte bleue parasite. */
+  --background: #f4f4f5;
   --surface: #ffffff;
-  --surface-2: #f6f8fb;
-  --line: rgba(15, 23, 42, 0.09);
-  --ink: #0f172a;
-  --ink-2: #475569;
-  --ink-3: #94a3b8;
-  --glow-a: rgba(56, 189, 248, 0.06);
-  --glow-b: rgba(139, 92, 246, 0.05);
+  --surface-2: #fafafa;
+  --line: rgba(24, 24, 27, 0.08);
+  --ink: #18181b;
+  --ink-2: #52525b;
+  --ink-3: #a1a1aa;
+  --accent: #a16207;
+  --gold: #8f6a1a;
+  --warn: #c2410c;
+  --up: #15803d;
+  --down: #dc2626;
 }
 
 .dark {
-  /* Vrai dark neutre (base zinc, sans dominante bleue) — les halos
-     de marque restent mais très atténués pour ne pas teinter le fond. */
   --background: #09090b;
   --surface: #111113;
   --surface-2: #18181b;
@@ -24,8 +27,11 @@
   --ink: #fafafa;
   --ink-2: #a1a1aa;
   --ink-3: #63636b;
-  --glow-a: rgba(56, 189, 248, 0.03);
-  --glow-b: rgba(139, 92, 246, 0.025);
+  --accent: #e2a63d;
+  --gold: #d2a13c;
+  --warn: #fb923c;
+  --up: #22c55e;
+  --down: #ef4444;
 }
 
 @theme inline {
@@ -36,15 +42,16 @@
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-ink-3: var(--ink-3);
-  --color-up: #22c55e;
-  --color-down: #ef4444;
-  --color-warn: #f59e0b;
-  --color-accent: #38bdf8;
-  --color-violet: #8b5cf6;
-  --color-gold: #d4af37;
+  --color-up: var(--up);
+  --color-down: var(--down);
+  --color-warn: var(--warn);
+  --color-accent: var(--accent);
+  --color-gold: var(--gold);
+  --radius-lg: 0.4375rem;
+  --radius-xl: 0.5625rem;
+  --radius-2xl: 0.75rem;
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-  --radius-2xl: 1rem;
 }
 
 html {
@@ -52,11 +59,9 @@ html {
 }
 
 body {
+  /* Fond plein : les halos radiaux et background-attachment: fixed
+     (saccadé sur mobile) ont été retirés — surfaces plates, perf d'abord. */
   background-color: var(--background);
-  background-image:
-    radial-gradient(1100px 500px at 85% -10%, var(--glow-a), transparent 60%),
-    radial-gradient(900px 500px at -10% 30%, var(--glow-b), transparent 55%);
-  background-attachment: fixed;
   color: var(--ink);
   font-feature-settings: "cv02", "cv03";
 }
@@ -82,17 +87,12 @@ body {
   background: transparent;
 }
 
-/* Carte "verre" signature */
+/* Ex-carte « verre » : le blur décoratif coûtait cher sur les Android
+   milieu de gamme (marché UEMOA) et datait — surface pleine, bord fin. */
 .card-glass {
-  background:
-    linear-gradient(
-      160deg,
-      color-mix(in oklab, var(--surface) 92%, transparent),
-      color-mix(in oklab, var(--surface) 78%, transparent)
-    );
+  background: var(--surface);
   border: 1px solid var(--line);
-  backdrop-filter: blur(10px);
-  border-radius: 1rem;
+  border-radius: 0.75rem;
 }
 
 .fade-in {

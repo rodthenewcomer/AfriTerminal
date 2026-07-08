@@ -204,7 +204,7 @@ export default function DashboardPage() {
           <CardHeader
             title={
               <span className="inline-flex items-center gap-1.5">
-                <Radar className="h-3.5 w-3.5 text-violet" /> Actions à surveiller cette semaine
+                <Radar className="h-3.5 w-3.5 text-accent" /> Actions à surveiller cette semaine
               </span>
             }
             subtitle="Plus forte amplitude (semaine × volume)"
@@ -339,7 +339,7 @@ export default function DashboardPage() {
                 <p className="mt-1 text-[11px] text-ink-3 line-clamp-2">{op.summary}</p>
               </Link>
             ))}
-            <div className="rounded-xl border border-accent/25 bg-gradient-to-br from-accent/10 to-violet/10 p-3.5">
+            <div className="rounded-xl border border-accent/25 bg-gradient-to-br from-accent/10 to-gold/10 p-3.5">
               <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink">
                 <Flame className="h-3.5 w-3.5 text-accent" /> Comprendre le marché avant le marché
               </p>

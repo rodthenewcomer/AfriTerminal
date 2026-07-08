@@ -57,7 +57,7 @@ export function StockView({ ticker }: { ticker: string }) {
       {/* Sticky price header */}
       <div className="sticky top-14 z-20 -mx-4 border-b border-line bg-background/85 px-4 py-2.5 backdrop-blur-xl sm:-mx-6 sm:px-6 lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-accent/20 to-violet/20 text-[10px] font-black text-accent border border-accent/20">
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-accent/20 to-gold/20 text-[10px] font-black text-accent border border-accent/20">
             {stock.ticker}
           </span>
           <div className="min-w-0 flex-1">

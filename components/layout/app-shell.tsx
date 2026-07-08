@@ -41,7 +41,7 @@ const MOBILE_NAV = [
 function Logo() {
   return (
     <Link href="/dashboard" className="flex items-center gap-2.5 px-1">
-      <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-violet text-sm font-black text-white shadow-lg shadow-accent/20">
+      <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-gold text-sm font-black text-white shadow-lg shadow-accent/20">
         A
       </span>
       <span className="text-[15px] font-bold tracking-tight text-ink">

@@ -47,8 +47,8 @@ export function DocumentViewerModal({
             ) : null}
           </header>
 
-          <section className="rounded-xl border border-violet/20 bg-violet/5 p-3.5">
-            <p className="mb-1.5 inline-flex items-center gap-1.5 text-xs font-semibold text-violet">
+          <section className="rounded-xl border border-accent/20 bg-accent/5 p-3.5">
+            <p className="mb-1.5 inline-flex items-center gap-1.5 text-xs font-semibold text-accent">
               <Sparkles className="h-3.5 w-3.5" /> Résumé IA
             </p>
             <p className="text-sm leading-relaxed text-ink-2">{doc.summary}</p>

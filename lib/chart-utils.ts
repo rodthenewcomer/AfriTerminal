@@ -1,17 +1,20 @@
 import type { OHLCV } from "./types";
 import { DIVIDEND_MAP } from "./mock/dividends";
 
+// Couleurs de SÉRIES (canvas lightweight-charts : littéraux requis, pas
+// de variables CSS). L'accent de marque est l'or/ambre ; les moyennes
+// mobiles gardent une palette variée (personnalisable par l'utilisateur).
 export const CHART_COLORS = {
   up: "#22c55e",
   down: "#ef4444",
-  accent: "#38bdf8",
+  accent: "#e2a63d",
   violet: "#8b5cf6",
-  gold: "#d4af37",
-  warn: "#f59e0b",
+  gold: "#d2a13c",
+  warn: "#fb923c",
   sma20: "#38bdf8",
   sma50: "#8b5cf6",
-  sma100: "#f59e0b",
-  sma200: "#d4af37",
+  sma100: "#fb923c",
+  sma200: "#94a3b8",
   ema20: "#ec4899",
 } as const;
 

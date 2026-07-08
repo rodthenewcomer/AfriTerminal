@@ -179,8 +179,8 @@ export function MainChart({ ticker }: { ticker: string }) {
       } else if (chartType === "area") {
         mainSeries = c.addSeries(AreaSeries, {
           lineColor: CHART_COLORS.accent,
-          topColor: "rgba(56,189,248,0.25)",
-          bottomColor: "rgba(56,189,248,0.02)",
+          topColor: "rgba(226,166,61,0.22)",
+          bottomColor: "rgba(226,166,61,0.02)",
           lineWidth: 2,
         });
         mainSeries.setData(bars.map((b) => ({ time: toTime(b.time), value: b.close })));

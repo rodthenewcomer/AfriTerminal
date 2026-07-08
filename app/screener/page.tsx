@@ -110,7 +110,7 @@ export default function ScreenerPage() {
             className={cn(
               "rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap cursor-pointer transition-colors",
               preset === p.id
-                ? "border-violet/40 bg-violet/15 text-violet"
+                ? "border-accent/40 bg-accent/15 text-accent"
                 : "border-line bg-surface/60 text-ink-2 hover:bg-surface-2"
             )}
           >

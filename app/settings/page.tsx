@@ -68,7 +68,7 @@ export default function SettingsPage() {
       <Card>
         <CardHeader title="Profil" />
         <CardBody className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-accent/25 to-violet/25 text-accent">
+          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-accent/25 to-gold/25 text-accent">
             <User className="h-5 w-5" />
           </span>
           <div className="flex-1">
