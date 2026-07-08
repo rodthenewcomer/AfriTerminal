@@ -1,5 +1,13 @@
 import type { DocItem } from "../types";
 
+// basis: "réel" = chiffres cohérents avec data/real/snapshot.json (vérifié
+// 2026-07-08). basis: "illustratif" = scénario construit sur des
+// fondamentaux (résultat net, PNB, ROE, coût du risque, propositions
+// d'AGO à venir...) qu'aucun pipeline ne collecte réellement.
+//
+// Les documents de dividende (ORAC, BOAB, TTLC) ont été corrigés le
+// 2026-07-08 : les montants/dates inventés ne correspondaient pas aux
+// vrais dividendes versés (ex. ORAC : 950 FCFA inventé vs 704 FCFA réel).
 export const DOCUMENTS: DocItem[] = [
   {
     id: "unxc-fy2025",
@@ -26,6 +34,7 @@ export const DOCUMENTS: DocItem[] = [
       "CA en recul pour la 2e année consécutive",
     ],
     greenFlags: ["Trésorerie renforcée"],
+    basis: "illustratif",
   },
   {
     id: "nsbc-s1-2026",
@@ -51,28 +60,29 @@ export const DOCUMENTS: DocItem[] = [
       "Levier opérationnel positif",
       "Croissance portée par l'activité cœur",
     ],
+    basis: "illustratif",
   },
   {
     id: "orac-div-2026",
     ticker: "ORAC",
-    title: "Orange CI — Avis de mise en paiement du dividende 2025",
+    title: "Orange CI — Dividende versé au titre de 2025",
     type: "Dividende",
-    date: "2026-07-01",
+    date: "2026-06-08",
     importance: 2,
     summary:
-      "Dividende de 950 FCFA brut par action (855 FCFA net après IRVM). Détachement le 21 juillet 2026, mise en paiement le 5 août 2026.",
+      "Dividende net de 704 FCFA par action (rendement net 4,32 % au cours du 8 juillet 2026), détaché le 8 juin 2026.",
     keyPoints: [
-      "Dividende brut : 950 FCFA / action",
-      "Date de détachement : 21 juillet 2026",
-      "Mise en paiement : 5 août 2026",
+      "Dividende net : 704 FCFA / action",
+      "Date de détachement : 8 juin 2026",
+      "Rendement net au cours actuel : 4,32 %",
     ],
     figures: [
-      { label: "Dividende brut", value: "950 FCFA" },
-      { label: "Dividende net", value: "855 FCFA" },
-      { label: "Rendement net", value: "5,8 %" },
+      { label: "Dividende net", value: "704 FCFA" },
+      { label: "Rendement net", value: "4,32 %" },
     ],
     redFlags: [],
-    greenFlags: ["9e hausse consécutive du dividende"],
+    greenFlags: ["Dividende confirmé et versé"],
+    basis: "réel",
   },
   {
     id: "cbibf-t1-2026",
@@ -95,6 +105,7 @@ export const DOCUMENTS: DocItem[] = [
     ],
     redFlags: ["Coût du risque en forte hausse"],
     greenFlags: ["Rentabilité maintenue (ROE 24 %)"],
+    basis: "illustratif",
   },
   {
     id: "snts-s1-2026",
@@ -116,6 +127,7 @@ export const DOCUMENTS: DocItem[] = [
     ],
     redFlags: [],
     greenFlags: ["Croissance régulière", "Guidance confirmée"],
+    basis: "illustratif",
   },
   {
     id: "sgbc-ago-2026",
@@ -125,15 +137,16 @@ export const DOCUMENTS: DocItem[] = [
     date: "2026-06-15",
     importance: 1,
     summary:
-      "AGO convoquée le 28 juillet 2026 à Abidjan. À l'ordre du jour : approbation des comptes 2025 et distribution d'un dividende de 1 450 FCFA brut par action.",
+      "AGO convoquée le 28 juillet 2026 à Abidjan. À l'ordre du jour : approbation des comptes 2025 et proposition de dividende. Pour mémoire, le dernier dividende versé (exercice précédent) était de 1 645,78 FCFA net, détaché le 5 août 2025.",
     keyPoints: [
       "AGO le 28 juillet 2026",
-      "Dividende proposé : 1 450 FCFA brut",
+      "Dernier dividende versé (référence) : 1 645,78 FCFA net",
       "Renouvellement de deux administrateurs",
     ],
-    figures: [{ label: "Dividende proposé", value: "1 450 FCFA" }],
+    figures: [{ label: "Dernier dividende net versé", value: "1 645,78 FCFA" }],
     redFlags: [],
     greenFlags: [],
+    basis: "illustratif",
   },
   {
     id: "sphc-fy2025",
@@ -143,18 +156,18 @@ export const DOCUMENTS: DocItem[] = [
     date: "2026-06-20",
     importance: 2,
     summary:
-      "Après une perte de 12 Mds FCFA en 2024, SAPH renoue avec un bénéfice de 6,5 Mds FCFA grâce au redressement des cours du caoutchouc. Pas de dividende proposé.",
+      "Après une perte de 12 Mds FCFA en 2024, SAPH renoue avec un bénéfice de 6,5 Mds FCFA grâce au redressement des cours du caoutchouc.",
     keyPoints: [
       "Résultat net : 6,5 Mds FCFA (vs -12 Mds)",
       "CA : 481 Mds FCFA (+5,5 %)",
-      "Pas de dividende au titre de 2025",
     ],
     figures: [
       { label: "Résultat net", value: "6,5 Mds FCFA" },
       { label: "CA", value: "481 Mds FCFA" },
     ],
-    redFlags: ["Pas de dividende", "Rentabilité encore faible"],
+    redFlags: ["Rentabilité encore faible"],
     greenFlags: ["Turnaround engagé", "Effet prix hévéa favorable"],
+    basis: "illustratif",
   },
   {
     id: "bridge-ipo-2026",
@@ -177,27 +190,28 @@ export const DOCUMENTS: DocItem[] = [
     ],
     redFlags: ["Valorisation supérieure à la moyenne des banques cotées"],
     greenFlags: ["Croissance du PNB supérieure au secteur"],
+    basis: "illustratif",
   },
   {
     id: "boab-div-2026",
     ticker: "BOAB",
-    title: "BOA Burkina — Avis de dividende 2025",
+    title: "BOA Burkina — Dividende versé au titre de 2025",
     type: "Dividende",
-    date: "2026-06-10",
+    date: "2026-05-26",
     importance: 2,
     summary:
-      "Dividende maintenu à 430 FCFA brut (387 FCFA net), soit un rendement net d'environ 8,4 %. Le payout atteint 92 % du résultat : la marge de sécurité se réduit.",
+      "Dividende net de 585 FCFA par action, soit un rendement net de 6,43 % au cours du 8 juillet 2026 — l'un des rendements les plus élevés de la cote.",
     keyPoints: [
-      "Dividende brut : 430 FCFA",
-      "Rendement net : ~8,4 %",
-      "Payout : 92 %",
+      "Dividende net : 585 FCFA / action",
+      "Rendement net au cours actuel : 6,43 %",
     ],
     figures: [
-      { label: "Dividende brut", value: "430 FCFA" },
-      { label: "Payout", value: "92 %" },
+      { label: "Dividende net", value: "585 FCFA" },
+      { label: "Rendement net", value: "6,43 %" },
     ],
-    redFlags: ["Payout supérieur à 90 %"],
-    greenFlags: ["Historique de distribution régulier"],
+    redFlags: [],
+    greenFlags: ["Rendement net élevé"],
+    basis: "réel",
   },
   {
     id: "etit-t1-2026",
@@ -207,7 +221,7 @@ export const DOCUMENTS: DocItem[] = [
     date: "2026-05-30",
     importance: 2,
     summary:
-      "Résultat net attribuable en hausse de 15 % en FCFA malgré la volatilité du naira. Le ROE consolidé remonte à 15,2 %. La décote sur fonds propres reste importante (P/B 0,5).",
+      "Résultat net attribuable en hausse de 15 % en FCFA malgré la volatilité du naira. Le ROE consolidé remonte à 15,2 %.",
     keyPoints: [
       "Résultat net : +15 % en FCFA",
       "ROE consolidé : 15,2 %",
@@ -219,6 +233,7 @@ export const DOCUMENTS: DocItem[] = [
     ],
     redFlags: ["Exposition naira/cedi"],
     greenFlags: ["Amélioration continue de la rentabilité"],
+    basis: "illustratif",
   },
   {
     id: "palc-com-2026",
@@ -228,14 +243,15 @@ export const DOCUMENTS: DocItem[] = [
     date: "2026-07-02",
     importance: 2,
     summary:
-      "La société confirme un effet prix très favorable au S1 2026 et anticipe un résultat net annuel en hausse d'au moins 35 % si les cours se maintiennent.",
+      "La société confirme un effet prix favorable au S1 2026. Le titre progresse de 10,8 % sur un an, avec un rendement net de 4,98 % au cours actuel.",
     keyPoints: [
       "Effet prix favorable confirmé au S1",
-      "Guidance implicite : RN 2026 ≥ +35 %",
+      "Variation 1 an : +10,8 % (réel)",
     ],
-    figures: [{ label: "RN attendu 2026", value: "≥ +35 %" }],
+    figures: [{ label: "Variation 1 an", value: "+10,8 %" }],
     redFlags: ["Dépendance au cours mondial de l'huile de palme"],
-    greenFlags: ["Guidance haussière"],
+    greenFlags: [],
+    basis: "illustratif",
   },
   {
     id: "ciec-fy2025",
@@ -257,6 +273,7 @@ export const DOCUMENTS: DocItem[] = [
     ],
     redFlags: [],
     greenFlags: ["Revenus régulés et prévisibles"],
+    basis: "illustratif",
   },
   {
     id: "ontbf-s1-2026",
@@ -266,38 +283,39 @@ export const DOCUMENTS: DocItem[] = [
     date: "2026-06-28",
     importance: 2,
     summary:
-      "CA en baisse de 3,4 % dans un contexte national difficile. Le résultat net recule de 10 %. La valorisation (PER < 4, P/B 0,7) intègre déjà beaucoup de mauvaises nouvelles.",
+      "CA en baisse de 3,4 % dans un contexte national difficile. Le résultat net recule de 10 %.",
     keyPoints: [
       "CA S1 : -3,4 %",
       "Résultat net : -10 %",
-      "PER : 3,8 · P/B : 0,7",
     ],
     figures: [
       { label: "CA S1", value: "96 Mds FCFA" },
       { label: "Résultat net S1", value: "10,4 Mds FCFA" },
     ],
     redFlags: ["Activité en recul", "Contexte pays difficile"],
-    greenFlags: ["Valorisation très basse"],
+    greenFlags: [],
+    basis: "illustratif",
   },
   {
     id: "ttlc-div-2026",
     ticker: "TTLC",
-    title: "TotalEnergies CI — Avis de dividende 2025",
+    title: "TotalEnergies CI — Dividende versé au titre de 2024",
     type: "Dividende",
-    date: "2026-06-30",
+    date: "2025-09-03",
     importance: 1,
     summary:
-      "Dividende de 185 FCFA brut par action (166,5 FCFA net), détachement le 12 août 2026. Rendement net d'environ 5,8 % au cours actuel.",
+      "Dividende net de 195,67 FCFA par action, soit un rendement net de 6,66 % au cours du 8 juillet 2026.",
     keyPoints: [
-      "Dividende brut : 185 FCFA",
-      "Détachement : 12 août 2026",
+      "Dividende net : 195,67 FCFA / action",
+      "Rendement net au cours actuel : 6,66 %",
     ],
     figures: [
-      { label: "Dividende brut", value: "185 FCFA" },
-      { label: "Rendement net", value: "5,8 %" },
+      { label: "Dividende net", value: "195,67 FCFA" },
+      { label: "Rendement net", value: "6,66 %" },
     ],
     redFlags: [],
     greenFlags: [],
+    basis: "réel",
   },
   {
     id: "sibc-s1-2026",
@@ -307,7 +325,7 @@ export const DOCUMENTS: DocItem[] = [
     date: "2026-07-04",
     importance: 2,
     summary:
-      "PNB +7,7 % et résultat net +8,2 %. Trajectoire régulière, dividende attendu en légère hausse. Le coût du risque reste contenu (+8 %).",
+      "PNB +7,7 % et résultat net +8,2 %. Trajectoire régulière. Le coût du risque reste contenu (+8 %).",
     keyPoints: [
       "PNB : +7,7 %",
       "Résultat net : +8,2 %",
@@ -319,6 +337,7 @@ export const DOCUMENTS: DocItem[] = [
     ],
     redFlags: [],
     greenFlags: ["Régularité des résultats"],
+    basis: "illustratif",
   },
   {
     id: "bicc-com-2026",
@@ -328,14 +347,14 @@ export const DOCUMENTS: DocItem[] = [
     date: "2026-06-05",
     importance: 1,
     summary:
-      "Nouveau plan stratégique post-reprise par le groupe BNI : objectif de ROE de 16 % d'ici 2028. Au cours actuel (P/B 3,2), le marché paie déjà une bonne partie de cette amélioration.",
+      "Nouveau plan stratégique post-reprise par le groupe BNI : objectif de ROE de 16 % d'ici 2028.",
     keyPoints: [
       "Objectif ROE 2028 : 16 %",
-      "P/B actuel : 3,2",
     ],
     figures: [{ label: "Objectif ROE", value: "16 % (2028)" }],
-    redFlags: ["Valorisation tendue par rapport à la rentabilité actuelle"],
+    redFlags: [],
     greenFlags: ["Plan de redressement crédible"],
+    basis: "illustratif",
   },
 ];
 

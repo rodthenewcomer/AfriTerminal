@@ -1,5 +1,15 @@
 import type { AlertItem } from "../types";
 
+// basis: "réel" = vérifié contre data/real/snapshot.json le 2026-07-08.
+// basis: "illustratif" = scénario démontrant le produit, construit sur des
+// fondamentaux (résultat net, PNB, ROE, coût du risque...) qu'aucun
+// pipeline ne collecte réellement — voir scripts/boc/README.md.
+//
+// Plusieurs alertes ont été corrigées ou retirées le 2026-07-08 après
+// comparaison avec les vraies données : ex. PALC n'a PAS de volume anormal
+// aujourd'hui (0,73×, contre 3,4× inventé) — mais UNXC, si (3,7× réel),
+// d'où le changement de ticker sur l'alerte volume. Voir aussi
+// git log pour le détail des corrections.
 export const ALERTS: AlertItem[] = [
   {
     id: "a1",
@@ -11,17 +21,19 @@ export const ALERTS: AlertItem[] = [
     time: "2026-07-07T09:12:00Z",
     severity: "critical",
     active: true,
+    basis: "illustratif",
   },
   {
     id: "a2",
     type: "volume",
-    ticker: "PALC",
-    title: "Volume à 3,4× la moyenne 30 jours",
+    ticker: "UNXC",
+    title: "Volume à 3,7× la moyenne 30 jours",
     detail:
-      "Palm CI traite un volume inhabituel dès l'ouverture. Mouvement d'accumulation ou prise de profit : à surveiller sur les prochaines séances.",
+      "Uniwax traite un volume inhabituel dès l'ouverture. Le titre est aussi en très forte hausse sur un an (+150 %) : mouvement à surveiller de près sur les prochaines séances.",
     time: "2026-07-07T10:05:00Z",
     severity: "warning",
     active: true,
+    basis: "réel",
   },
   {
     id: "a3",
@@ -33,17 +45,19 @@ export const ALERTS: AlertItem[] = [
     time: "2026-07-07T09:30:00Z",
     severity: "positive",
     active: true,
+    basis: "illustratif",
   },
   {
     id: "a4",
     type: "dividende",
     ticker: "ORAC",
-    title: "Détachement du dividende le 21 juillet",
+    title: "Dernier dividende versé : 704 FCFA net",
     detail:
-      "950 FCFA brut (855 FCFA net). Dernier jour pour acheter avec droit au dividende : le 20 juillet 2026.",
+      "Orange CI a versé un dividende net de 704 FCFA par action (rendement net 4,32 % au cours actuel), détaché le 8 juin 2026.",
     time: "2026-07-06T16:40:00Z",
     severity: "info",
     active: true,
+    basis: "réel",
   },
   {
     id: "a5",
@@ -55,6 +69,7 @@ export const ALERTS: AlertItem[] = [
     time: "2026-07-05T11:20:00Z",
     severity: "warning",
     active: true,
+    basis: "illustratif",
   },
   {
     id: "a6",
@@ -66,27 +81,31 @@ export const ALERTS: AlertItem[] = [
     time: "2026-07-06T08:05:00Z",
     severity: "info",
     active: true,
+    basis: "illustratif",
   },
   {
     id: "a7",
     type: "fondamental",
     ticker: "BOAB",
-    title: "Payout à 92 % : durabilité du dividende",
+    title: "Payout élevé : durabilité du dividende à surveiller",
     detail:
-      "Le rendement net de ~8,4 % est attractif, mais presque tout le bénéfice est distribué. Toute baisse de résultat toucherait le dividende.",
+      "Le rendement net réel est attractif (6,43 % au cours actuel), mais le payout (part du bénéfice distribuée) n'est pas mesurable sans les résultats financiers. Prudence tant que ce ratio n'est pas confirmé.",
     time: "2026-07-04T14:15:00Z",
     severity: "warning",
     active: true,
+    basis: "illustratif",
   },
   {
     id: "a8",
     type: "prix",
     ticker: "NSBC",
-    title: "NSBC franchit 9 000 FCFA",
-    detail: "Objectif de prix personnel atteint (alerte utilisateur mockée).",
-    time: "2026-07-03T13:45:00Z",
+    title: "NSBC dépasse 20 000 FCFA",
+    detail:
+      "Le titre franchit ce seuil pour la première fois, porté par une hausse de 78 % depuis le 1er janvier (alerte de prix personnalisée, exemple).",
+    time: "2026-07-07T08:30:00Z",
     severity: "positive",
-    active: false,
+    active: true,
+    basis: "réel",
   },
   {
     id: "a9",
@@ -94,10 +113,11 @@ export const ALERTS: AlertItem[] = [
     ticker: "SPHC",
     title: "Turnaround : retour aux bénéfices",
     detail:
-      "SAPH publie 6,5 Mds FCFA de résultat net après -12 Mds en 2024. Redressement à confirmer, pas encore de dividende.",
+      "SAPH publie 6,5 Mds FCFA de résultat net après -12 Mds en 2024. Redressement à confirmer sur plusieurs exercices.",
     time: "2026-06-20T09:50:00Z",
     severity: "info",
     active: true,
+    basis: "illustratif",
   },
   {
     id: "a10",
@@ -109,27 +129,31 @@ export const ALERTS: AlertItem[] = [
     time: "2026-06-27T10:00:00Z",
     severity: "info",
     active: true,
+    basis: "illustratif",
   },
   {
     id: "a11",
-    type: "prix",
+    type: "ia",
     ticker: "UNXC",
-    title: "UNXC sous 1 500 FCFA",
-    detail: "Le titre casse son plus bas de 12 mois (alerte utilisateur mockée).",
+    title: "Retournement spectaculaire sur un an : +150 %",
+    detail:
+      "Uniwax affiche la plus forte progression annuelle de la cote. Une telle amplitude, combinée au volume anormal du jour, appelle à la prudence : vérifier ce qui justifie fondamentalement ce mouvement avant d'y voir un signal d'achat.",
     time: "2026-07-02T12:30:00Z",
     severity: "warning",
-    active: false,
+    active: true,
+    basis: "réel",
   },
   {
     id: "a12",
-    type: "ia",
+    type: "prix",
     ticker: "PALC",
-    title: "Momentum fort : +55 % sur un an",
+    title: "PALC : +10,8 % sur un an",
     detail:
-      "La hausse est soutenue par les résultats (+45 % de RN), mais le risque de FOMO augmente. Éviter d'acheter uniquement la tendance.",
+      "Progression régulière sur la période, sans mouvement de volume particulier aujourd'hui (0,7× la moyenne). Rendement net de 4,98 % au cours actuel.",
     time: "2026-07-01T15:10:00Z",
-    severity: "warning",
+    severity: "info",
     active: true,
+    basis: "réel",
   },
 ];
 

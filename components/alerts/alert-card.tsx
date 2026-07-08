@@ -71,6 +71,15 @@ export function AlertCard({ alert }: { alert: AlertItem }) {
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <h3 className="text-sm font-semibold text-ink">{alert.title}</h3>
           <Badge tone="neutral">{meta.label}</Badge>
+          {alert.basis === "réel" ? (
+            <Badge tone="positive" title="Chiffres vérifiés contre les données réelles BRVM">
+              Données réelles
+            </Badge>
+          ) : (
+            <Badge tone="gold" title="Scénario illustratif — repose sur des fondamentaux non collectés (résultat net, ROE, PNB...)">
+              Scénario illustratif
+            </Badge>
+          )}
           {alert.ticker ? (
             <Link
               href={`/stocks/${alert.ticker}`}

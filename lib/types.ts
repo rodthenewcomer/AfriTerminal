@@ -164,6 +164,15 @@ export type DocType =
   | "IPO"
   | "Communiqué";
 
+/**
+ * "réel" : les chiffres cités (cours, dividende versé, date) sont
+ * cohérents avec le pipeline scripts/boc/, vérifiés le 2026-07-08.
+ * "illustratif" : scénario construit pour démontrer le produit — repose
+ * sur des fondamentaux (résultat net, ROE, PNB...) qu'aucun pipeline ne
+ * collecte réellement. Voir DocumentCard/AlertCard pour le badge affiché.
+ */
+export type ContentBasis = "réel" | "illustratif";
+
 export interface DocItem {
   id: string;
   ticker: string;
@@ -177,6 +186,7 @@ export interface DocItem {
   figures: { label: string; value: string }[];
   redFlags: string[];
   greenFlags: string[];
+  basis: ContentBasis;
 }
 
 export type AlertType =
@@ -196,6 +206,7 @@ export interface AlertItem {
   time: string;
   severity: "info" | "warning" | "critical" | "positive";
   active: boolean;
+  basis: ContentBasis;
 }
 
 export interface IPOItem {

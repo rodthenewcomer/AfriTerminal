@@ -26,6 +26,11 @@ export function DocumentViewerModal({
             <div className="flex flex-wrap items-center gap-2">
               <Badge tone="accent">{doc.type}</Badge>
               <ImportanceBadge level={doc.importance} />
+              {doc.basis === "réel" ? (
+                <Badge tone="positive">Données réelles</Badge>
+              ) : (
+                <Badge tone="gold">Scénario illustratif</Badge>
+              )}
               <span className="text-[11px] text-ink-3">{dateFr(doc.date)}</span>
             </div>
             <h2 className="text-base font-semibold leading-snug text-ink">
