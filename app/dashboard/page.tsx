@@ -103,7 +103,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Indices */}
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {indices.map((idx) => (
           <Card key={idx.code} className="px-4 py-3.5 sm:px-5 flex items-center gap-4">
             <div className="flex-1">
