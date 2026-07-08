@@ -189,6 +189,34 @@ historique git).
      de CIEC n'est pas extrait (le garde-fou anti-bilan rejette sa
      ligne, qui partage un fragment "Report à nouveau" d'une colonne
      voisine) — absence de donnée préférée à une donnée fausse.
+   - **Étendu à 6 sociétés de plus (2026-07-08)** — résultat : 2/6
+     fonctionnent du premier coup (**ONTBF**, **SPHC** : les 3 champs
+     corrects), 4/6 révèlent chacun un problème structurellement
+     différent, aucun n'étant un simple ajustement de regex :
+     - **SNTS** : rapport annuel de 31 pages (pas les états financiers
+       compacts habituels), 0 tableau détecté sur la 1ère page — la
+       "valeur" trouvée vient d'une correspondance fortuite ailleurs
+       dans le document, **pas fiable**, à ne pas utiliser telle quelle.
+     - **ORAC** : même symptôme (valeurs trouvées mais suspectes,
+       probablement une page/ligne non pertinente).
+     - **UNXC** : le PDF est une **image scannée** (0 caractère de texte
+       extrait) — un problème d'OCR, pas de parsing de tableau. Hors de
+       portée de cette approche.
+     - **TTLC** : contient bien les bons libellés ("Chiffre d'affaires",
+       "Résultat des activités ordinaires"...) mais utilise "**Bénéfice
+       net**" au lieu de "Résultat net", et surtout `pdfplumber` ne
+       détecte la mise en page qu'en tableaux à **1 seule colonne**
+       (pas de lignes de tableau visibles dans le PDF pour guider la
+       détection) — nécessiterait une stratégie de détection différente
+       (`table_settings` basée sur le texte plutôt que les traits).
+
+   **Bilan cumulé sur les 9 sociétés non-bancaires testées** : 5/9
+   pleinement validées (ERIUM, Palm CI, CIEC, ONTBF, SPHC), 2/9 avec des
+   résultats suspects à ne pas utiliser (SNTS, ORAC), 2/9 bloquées par
+   des problèmes fondamentalement différents nécessitant chacun sa
+   propre solution (OCR pour UNXC, stratégie de détection de tableau
+   pour TTLC). Confirme la conclusion : c'est un travail par société,
+   pas un format unique à généraliser.
 
 2. **Banques** — `parse_fundamentals_bank.py`. Les indicateurs clés
    (PNB, résultat net, coefficient d'exploitation, coût du risque)
