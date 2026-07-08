@@ -14,10 +14,8 @@ import {
 } from "lucide-react";
 import { getIndices, getSnapshots } from "@/lib/data";
 import { LATEST_TRADING_DATE } from "@/lib/real-data";
-import { TODAY } from "@/lib/mock/stocks";
 import { alertsOfDay } from "@/lib/mock/alerts";
 import { latestNews, newsDate } from "@/lib/news";
-import { upcomingDividends } from "@/lib/mock/dividends";
 import { IPOS } from "@/lib/mock/ipos";
 import { dateFr, fcfa, num, pct } from "@/lib/format";
 import { Sparkline } from "@/components/charts/sparkline";
@@ -80,7 +78,14 @@ export default function DashboardPage() {
   const toWatch = [...snapshots].sort((a, b) => watchScore(b) - watchScore(a)).slice(0, 4);
   const dayAlerts = alertsOfDay();
   const news = latestNews(5);
-  const dividends = upcomingDividends(TODAY).slice(0, 5);
+  // Derniers dividendes réellement payés (bulletin officiel) — remplace
+  // l'ancien calendrier fictif. Tri par date de paiement décroissante.
+  const dividends = [...snapshots]
+    .filter((s) => s.real?.lastDividendNet && s.real.lastDividendDate)
+    .sort((a, b) =>
+      b.real!.lastDividendDate!.localeCompare(a.real!.lastDividendDate!)
+    )
+    .slice(0, 5);
   const liveOps = IPOS.filter((i) => i.status !== "Clôturée").slice(0, 2);
 
   return (
@@ -245,6 +250,11 @@ export default function DashboardPage() {
               </span>
             }
             subtitle="Sika Finance · Financial Afrik — liens vers les articles originaux"
+            action={
+              <Link href="/news" className="inline-flex items-center gap-1 text-xs text-accent hover:underline">
+                Tout voir <ArrowRight className="h-3 w-3" />
+              </Link>
+            }
           />
           <CardBody className="space-y-2.5">
             {news.map((n) => (
@@ -282,28 +292,31 @@ export default function DashboardPage() {
           <CardHeader
             title={
               <span className="inline-flex items-center gap-1.5">
-                <Calendar className="h-3.5 w-3.5 text-gold" /> Dividendes à venir
+                <Calendar className="h-3.5 w-3.5 text-gold" /> Derniers dividendes payés
               </span>
             }
-            subtitle="Prochains détachements (net après IRVM 10 %)"
+            subtitle="Dividendes nets réels (source : bulletins officiels BRVM)"
           />
           <CardBody>
             <ul className="divide-y divide-line/60">
-              {dividends.map((d) => (
-                <li key={d.ticker}>
+              {dividends.map((s) => (
+                <li key={s.ticker}>
                   <Link
-                    href={`/stocks/${d.ticker}`}
+                    href={`/stocks/${s.ticker}`}
                     className="flex items-center gap-3 py-2 hover:bg-surface-2 rounded-lg px-2 -mx-2 transition-colors"
                   >
                     <span className="flex h-7 w-12 shrink-0 items-center justify-center rounded-md bg-gold/10 text-[9px] font-bold text-gold">
-                      {d.ticker}
+                      {s.ticker}
                     </span>
                     <span className="flex-1 text-xs text-ink-2">
-                      Détachement le{" "}
-                      <span className="font-medium text-ink">{d.exDate ? dateFr(d.exDate) : "—"}</span>
+                      Payé le{" "}
+                      <span className="font-medium text-ink">
+                        {dateFr(s.real!.lastDividendDate!)}
+                      </span>
                     </span>
                     <span className="num text-xs font-semibold text-ink">
-                      {fcfa(d.net)} <span className="font-normal text-ink-3">net</span>
+                      {fcfa(s.real!.lastDividendNet!)}{" "}
+                      <span className="font-normal text-ink-3">net</span>
                     </span>
                   </Link>
                 </li>

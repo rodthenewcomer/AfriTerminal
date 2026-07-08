@@ -18,6 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/map",
     "/screener",
     "/watchlist",
+    "/news",
     "/documents",
     "/alerts",
     "/ipo",
