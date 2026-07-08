@@ -14,6 +14,7 @@ const SECTORS: Sector[] = [
   "Industrie",
   "Distribution",
   "Services publics",
+  "Autre",
 ];
 
 const COUNTRIES: Country[] = [
@@ -70,7 +71,8 @@ export default function MarketsPage() {
       <div>
         <h1 className="text-xl font-bold tracking-tight text-ink">Marchés</h1>
         <p className="mt-1 text-sm text-ink-3">
-          {snapshots.length} actions BRVM · données de démonstration
+          {snapshots.length} actions BRVM · cours et volumes réels (bulletins
+          officiels de la cote)
         </p>
       </div>
 

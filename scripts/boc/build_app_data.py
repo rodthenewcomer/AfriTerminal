@@ -17,9 +17,14 @@ Produit deux artefacts distincts, pour deux besoins différents :
    uniquement sur la page de l'action concernée — jamais tous en même
    temps, ~600 Ko/ticker serait trop lourd à embarquer partout.
 
-N'écrit que pour les tickers listés dans TICKERS ci-dessous (les 15
-sociétés actuellement modélisées dans lib/mock/stocks.ts) — pas les ~33
-autres tickers réels de l'univers BRVM, hors scope de cette passe.
+Couvre TOUT l'univers coté trouvé dans --series-dir (48 tickers), plus :
+
+3. data/real/indices.json — niveaux réels BRVM Composite / BRVM 30 /
+   BRVM Prestige (niveau, variation jour, YTD, sparkline) depuis
+   data/boc/indices.json (sortie de aggregate.py / merge_day.py).
+
+4. data/real/index-series/{CODE}.json — historique complet {time, value}
+   par indice, pour la comparaison dans le chart (import dynamique).
 
 Usage :
     python3 build_app_data.py --series-dir ../../data/boc/series --out-dir ../../data
@@ -31,11 +36,11 @@ import argparse
 import json
 from pathlib import Path
 
-# Les 15 tickers actuellement modélisés dans lib/mock/stocks.ts.
-TICKERS = [
-    "SNTS", "ORAC", "NSBC", "SGBC", "SIBC", "BICC", "CBIBF", "BOAB",
-    "ETIT", "ONTBF", "PALC", "SPHC", "UNXC", "CIEC", "TTLC",
-]
+INDEX_NAMES = {
+    "BRVMC": "BRVM Composite",
+    "BRVM30": "BRVM 30",
+    "BRVMPRES": "BRVM Prestige",
+}
 
 
 def pct_change(from_v: float, to_v: float) -> float:
@@ -84,6 +89,52 @@ def build_snapshot(records: list[dict]) -> dict:
     }
 
 
+def build_indices(indices_src: Path, real_dir: Path) -> None:
+    """Écrit indices.json (snapshot compact) et index-series/ (historique)."""
+    if not indices_src.exists():
+        print(f"Pas de {indices_src} — indices ignorés.")
+        return
+    by_code = json.loads(indices_src.read_text(encoding="utf-8"))
+    series_out = real_dir / "index-series"
+    series_out.mkdir(parents=True, exist_ok=True)
+
+    out = []
+    for code, name in INDEX_NAMES.items():
+        records = by_code.get(code, [])
+        if not records:
+            continue
+        last = records[-1]
+        year = last["time"][:4]
+        first_of_year = next(
+            (r for r in records if r["time"] >= f"{year}-01-01"), records[0]
+        )
+        out.append(
+            {
+                "code": code,
+                "name": name,
+                "asOfDate": last["time"],
+                "level": last["level"],
+                "dayChangePct": last["day_change_pct"],
+                "ytdChangePct": round(
+                    pct_change(first_of_year["level"], last["level"]), 2
+                ),
+                "spark": [r["level"] for r in records[-60:]],
+            }
+        )
+        (series_out / f"{code}.json").write_text(
+            json.dumps(
+                [{"time": r["time"], "value": r["level"]} for r in records],
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+
+    (real_dir / "indices.json").write_text(
+        json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print(f"{len(out)} indices écrits dans {real_dir / 'indices.json'}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--series-dir", default="data/boc/series")
@@ -97,12 +148,9 @@ def main() -> None:
 
     snapshots = {}
     missing = []
-    for ticker in TICKERS:
-        src = series_dir / f"{ticker}.json"
-        if not src.exists():
-            missing.append(ticker)
-            continue
-        records = json.loads(src.read_text(encoding="utf-8"))
+    tickers = sorted(f.stem for f in series_dir.glob("*.json"))
+    for ticker in tickers:
+        records = json.loads((series_dir / f"{ticker}.json").read_text(encoding="utf-8"))
         if not records:
             missing.append(ticker)
             continue
@@ -130,9 +178,11 @@ def main() -> None:
         json.dumps(snapshots, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 
-    print(f"{len(snapshots)}/{len(TICKERS)} tickers écrits dans {out_dir / 'real'}")
+    build_indices(series_dir.parent / "indices.json", out_dir / "real")
+
+    print(f"{len(snapshots)}/{len(tickers)} tickers écrits dans {out_dir / 'real'}")
     if missing:
-        print(f"Manquants (pas de série trouvée) : {', '.join(missing)}")
+        print(f"Manquants (série vide) : {', '.join(missing)}")
 
 
 if __name__ == "__main__":

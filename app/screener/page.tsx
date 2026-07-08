@@ -129,7 +129,7 @@ export default function ScreenerPage() {
               className="w-full"
             >
               <option value="">Tous</option>
-              {["Banque", "Télécom", "Agro-industrie", "Industrie", "Distribution", "Services publics"].map((s) => (
+              {["Banque", "Télécom", "Agro-industrie", "Industrie", "Distribution", "Services publics", "Autre"].map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </Select>

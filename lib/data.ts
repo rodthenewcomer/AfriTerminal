@@ -6,11 +6,12 @@ import type {
   StockSnapshot,
 } from "./types";
 import { STOCKS, STOCK_MAP } from "./mock/stocks";
-import { getIndexSeries, getSeries } from "./mock/series";
+import { getSeries } from "./mock/series";
 import { IRVM_RATE } from "./mock/dividends";
 import { computeScores, detectSignals } from "./signals";
 import { generateInsight } from "./insights";
-import { getRealQuote } from "./real-data";
+import { getAllRealQuotes, getRealQuote, REAL_INDICES } from "./real-data";
+import { realOnlySnapshot } from "./real-universe";
 
 function pctChange(from: number, to: number): number {
   if (from === 0) return 0;
@@ -58,7 +59,12 @@ let snapshots: StockSnapshot[] | null = null;
 
 export function getSnapshots(): StockSnapshot[] {
   if (snapshots) return snapshots;
-  snapshots = STOCKS.map((stock) => {
+  // Tout l'univers coté au-delà des 15 fiches curées : snapshot construit
+  // uniquement depuis la cotation réelle (fondamentaux masqués).
+  const realOnly = getAllRealQuotes()
+    .filter((q) => !STOCK_MAP.has(q.ticker))
+    .map(realOnlySnapshot);
+  const curated = STOCKS.map((stock) => {
     const derived = computeDerived(stock);
     const signals = detectSignals(stock, derived);
     const scores = computeScores(stock, derived);
@@ -89,6 +95,9 @@ export function getSnapshots(): StockSnapshot[] {
       netDividend: real.lastDividendNet ?? base.netDividend,
     };
   });
+  snapshots = [...curated, ...realOnly].sort((a, b) =>
+    a.ticker.localeCompare(b.ticker)
+  );
   return snapshots;
 }
 
@@ -116,29 +125,9 @@ export function getSectorStats(): SectorStats[] {
   }));
 }
 
+/** Indices réels BRVM (bulletins officiels) — plus aucune valeur synthétique. */
 export function getIndices(): IndexInfo[] {
-  const composite = getIndexSeries("BRVMC", 291.4, 0.14);
-  const brvm30 = getIndexSeries("BRVM30", 146.2, 0.12);
-  const build = (code: string, name: string, daily: typeof composite): IndexInfo => {
-    const n = daily.length;
-    const last = daily[n - 1];
-    const year = String(new Date().getUTCFullYear());
-    const firstOfYear =
-      daily.find((d) => typeof d.time === "string" && d.time >= `${year}-01-01`) ??
-      daily[0];
-    return {
-      code,
-      name,
-      level: last.close,
-      dayChange: pctChange(daily[n - 2].close, last.close),
-      ytdChange: pctChange(firstOfYear.close, last.close),
-      spark: daily.slice(-60).map((d) => d.close),
-    };
-  };
-  return [
-    build("BRVMC", "BRVM Composite", composite),
-    build("BRVM30", "BRVM 30", brvm30),
-  ];
+  return REAL_INDICES;
 }
 
 export { STOCKS, STOCK_MAP };

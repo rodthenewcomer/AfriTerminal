@@ -54,6 +54,21 @@ def stock_record(date: str, s: dict) -> dict:
     }
 
 
+def index_record(date: str, idx: dict) -> dict:
+    """Convertit une ligne indice d'un JSON journalier en enregistrement de série.
+
+    Les bulletins d'avant ~2022 ne publient pas les indices sous la forme
+    parsée (voir README) : les séries d'indices démarrent donc plus tard
+    que les séries d'actions. Réutilisé par merge_day.py.
+    """
+    return {
+        "time": date,
+        "level": idx["level"],
+        "day_change_pct": idx["day_change_pct"],
+        "year_change_pct": idx["year_change_pct"],
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--raw-dir", default="data/boc/raw")
@@ -65,12 +80,15 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     by_ticker: dict[str, list[dict]] = defaultdict(list)
+    by_index: dict[str, list[dict]] = defaultdict(list)
     files = sorted(raw_dir.glob("*.json"))
 
     for f in files:
         day = json.loads(f.read_text(encoding="utf-8"))
         for s in day["stocks"]:
             by_ticker[s["ticker"]].append(stock_record(day["date"], s))
+        for idx in day.get("indices", []):
+            by_index[idx["code"]].append(index_record(day["date"], idx))
 
     for ticker, records in by_ticker.items():
         records.sort(key=lambda r: r["time"])
@@ -78,7 +96,17 @@ def main() -> None:
             json.dumps(records, ensure_ascii=False), encoding="utf-8"
         )
 
+    for records in by_index.values():
+        records.sort(key=lambda r: r["time"])
+    indices_path = out_dir.parent / "indices.json"
+    indices_path.write_text(
+        json.dumps(dict(sorted(by_index.items())), ensure_ascii=False),
+        encoding="utf-8",
+    )
+
     print(f"{len(files)} jours agrégés -> {len(by_ticker)} tickers dans {out_dir}")
+    for code, records in sorted(by_index.items()):
+        print(f"  indice {code}: {len(records)} jours, {records[0]['time']} -> {records[-1]['time']}")
     by_length = sorted(by_ticker.items(), key=lambda kv: -len(kv[1]))
     for ticker, records in by_length[:5]:
         print(f"  {ticker}: {len(records)} jours, {records[0]['time']} -> {records[-1]['time']}")

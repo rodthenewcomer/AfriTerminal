@@ -18,7 +18,9 @@ export type Sector =
   | "Agro-industrie"
   | "Industrie"
   | "Distribution"
-  | "Services publics";
+  | "Services publics"
+  /** Tickers réels sans code secteur dans le bulletin BRVM */
+  | "Autre";
 
 export type Country =
   | "Côte d'Ivoire"

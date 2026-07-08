@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import unittest
 
-from aggregate import stock_record
+from aggregate import index_record, stock_record
 from merge_day import merge_records
 
 
@@ -96,6 +96,27 @@ class MergeRecordsTest(unittest.TestCase):
         snapshot = [dict(r) for r in series]
         merge_records(series, [record("2026-07-03")])
         self.assertEqual(series, snapshot)
+
+
+class IndexRecordTest(unittest.TestCase):
+    def test_conversion(self) -> None:
+        rec = index_record(
+            "2026-07-06",
+            {"code": "BRVMC", "level": 460.21, "day_change_pct": 0.11,
+             "year_change_pct": 33.1},
+        )
+        self.assertEqual(rec["time"], "2026-07-06")
+        self.assertEqual(rec["level"], 460.21)
+        self.assertEqual(rec["day_change_pct"], 0.11)
+
+    def test_fusion_idempotente_via_merge_records(self) -> None:
+        # Les séries d'indices passent par le même merge_records que les
+        # actions : re-fusionner le même jour ne crée pas de doublon.
+        day = index_record("2026-07-06", {"code": "BRVMC", "level": 460.21,
+                                          "day_change_pct": 0.11,
+                                          "year_change_pct": 33.1})
+        series = merge_records([], [day])
+        self.assertEqual(merge_records(series, [day]), series)
 
 
 if __name__ == "__main__":

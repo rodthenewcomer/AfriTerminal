@@ -4,13 +4,20 @@ Terminal de charting et d'analyse des actions africaines — MVP BRVM.
 « La BRVM devient lisible » : charts, fondamentaux, dividendes, documents
 officiels et signaux intelligents.
 
-Depuis le 2026-07-08, la **page action** (`/stocks/[ticker]`) affiche des
-données réelles BRVM (chart, prix, variations, volume, PER, dividende) pour
-les 15 sociétés modélisées — voir
-[Pipeline de données réelles](#pipeline-de-données-réelles-brvm) plus bas.
-Le reste de l'app (dashboard, marchés, screener, watchlist) tourne encore
-sur des données **simulées** (`lib/mock/`), une incohérence temporaire
-assumée en attendant une passe de branchement suivante.
+Depuis le 2026-07-08, **toute l'app** tourne sur les données réelles
+BRVM : les **48 sociétés cotées** (cours, variations, volumes, PER,
+dividendes, historique depuis 2019) et les **3 indices officiels**
+(BRVM Composite, BRVM 30, BRVM Prestige, depuis 2023) alimentent le
+dashboard, les marchés, le screener, la watchlist, la recherche et les
+fiches actions. Les fondamentaux (capitalisation, P/B, ROE, résultat
+net…) ne sont **pas** publiés dans le bulletin quotidien : ils sont
+masqués (« — »), jamais inventés — les scores/signaux/analyses IA ne
+s'affichent donc pas pour l'instant. Documents, alertes et IPO restent
+simulés à titre de démonstration (badge « illustratif »). 15 sociétés
+gardent une fiche curée (`lib/mock/stocks.ts` : description, secteur
+vérifié) ; les 33 autres sont dérivées du bulletin
+(`lib/real-universe.ts` : secteur via code BOC, pays via suffixe du
+ticker).
 
 ## Prérequis
 

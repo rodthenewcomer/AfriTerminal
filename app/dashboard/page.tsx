@@ -13,6 +13,7 @@ import {
   Volume2,
 } from "lucide-react";
 import { getIndices, getSnapshots } from "@/lib/data";
+import { LATEST_TRADING_DATE } from "@/lib/real-data";
 import { TODAY } from "@/lib/mock/stocks";
 import { alertsOfDay } from "@/lib/mock/alerts";
 import { latestDocuments } from "@/lib/mock/documents";
@@ -92,12 +93,12 @@ export default function DashboardPage() {
             Votre radar BRVM intelligent
           </h1>
           <p className="mt-1 text-sm text-ink-3">
-            Séance du {dateFr(TODAY)} · Ne regarde pas seulement le prix.
-            Comprends le mouvement.
+            Séance du {dateFr(LATEST_TRADING_DATE)} · Ne regarde pas seulement
+            le prix. Comprends le mouvement.
           </p>
         </div>
-        <Badge tone="positive" title="Cours, variations et volumes réels (BRVM) — alertes, documents et IPO restent simulés">
-          Cours réels · reste en démo
+        <Badge tone="positive" title="Cours, variations, volumes et indices réels (bulletins officiels BRVM) — alertes, documents et IPO restent simulés">
+          Cours &amp; indices réels · alertes en démo
         </Badge>
       </div>
 

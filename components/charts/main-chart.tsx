@@ -19,9 +19,13 @@ import {
   type Time,
 } from "lightweight-charts";
 import type { ChartType, IndicatorId, OHLCV, Timeframe } from "@/lib/types";
-import { seriesForTimeframe, getIndexSeries } from "@/lib/mock/series";
-import { isRealTicker, realSeriesForTimeframe } from "@/lib/real-data";
-import { STOCKS } from "@/lib/mock/stocks";
+import { seriesForTimeframe } from "@/lib/mock/series";
+import {
+  isRealTicker,
+  realIndexSeriesForTimeframe,
+  realSeriesForTimeframe,
+} from "@/lib/real-data";
+import { getSnapshots } from "@/lib/data";
 import {
   calculateBollingerBands,
   calculateEMA,
@@ -52,12 +56,10 @@ const OVERLAYS: { id: IndicatorId; period: number; color: string }[] = [
   { id: "sma200", period: 200, color: CHART_COLORS.sma200 },
 ];
 
-/** L'indice BRVM Composite reste synthétique (pas encore de pipeline réel dédié aux indices). */
 async function compareSeriesData(code: string, tf: Timeframe): Promise<OHLCV[]> {
   if (code === "BRVMC") {
-    const daily = getIndexSeries("BRVMC", 291.4, 0.14);
-    const ref = seriesForTimeframe(STOCKS[0].ticker, tf).data.length;
-    return daily.slice(-ref);
+    // Niveaux réels du BRVM Composite (bulletins officiels, depuis 2023).
+    return realIndexSeriesForTimeframe("BRVMC", tf);
   }
   if (isRealTicker(code)) {
     return (await realSeriesForTimeframe(code, tf)).data;
@@ -399,10 +401,12 @@ export function MainChart({ ticker }: { ticker: string }) {
   const compareOptions = useMemo(
     () => [
       { code: "BRVMC", label: "BRVM Composite" },
-      ...STOCKS.filter((s) => s.ticker !== ticker).map((s) => ({
-        code: s.ticker,
-        label: `${s.ticker} — ${s.name}`,
-      })),
+      ...getSnapshots()
+        .filter((s) => s.ticker !== ticker)
+        .map((s) => ({
+          code: s.ticker,
+          label: `${s.ticker} — ${s.name}`,
+        })),
     ],
     [ticker]
   );

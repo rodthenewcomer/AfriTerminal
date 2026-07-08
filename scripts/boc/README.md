@@ -106,7 +106,13 @@ des erreurs.
 
 `aggregate.py` produit un fichier JSON par ticker
 (`data/boc/series/TICKER.json`), trié chronologiquement, avec tous les
-champs du BOC (pas seulement OHLCV).
+champs du BOC (pas seulement OHLCV), plus `data/boc/indices.json`
+(niveaux quotidiens BRVM Composite / 30 / Prestige — disponibles à
+partir de 2023, les bulletins antérieurs n'exposant pas les indices
+sous une forme parsée). `merge_day.py` maintient les deux
+incrémentalement en CI, et `build_app_data.py` en dérive les artefacts
+consommés par l'app (`data/real/` : snapshot 48 tickers, séries OHLCV,
+indices + historique par indice).
 
 ### Limite importante : pas de vrai plus haut/plus bas intraday
 

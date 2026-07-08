@@ -23,7 +23,7 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
-from aggregate import stock_record
+from aggregate import index_record, stock_record
 
 
 def merge_records(series: list[dict], incoming: list[dict]) -> list[dict]:
@@ -52,10 +52,13 @@ def main() -> None:
         return
 
     by_ticker: dict[str, list[dict]] = defaultdict(list)
+    by_index: dict[str, list[dict]] = defaultdict(list)
     for f in raw_files:
         day = json.loads(f.read_text(encoding="utf-8"))
         for s in day["stocks"]:
             by_ticker[s["ticker"]].append(stock_record(day["date"], s))
+        for idx in day.get("indices", []):
+            by_index[idx["code"]].append(index_record(day["date"], idx))
 
     changed = 0
     for ticker, incoming in sorted(by_ticker.items()):
@@ -70,9 +73,30 @@ def main() -> None:
             )
             changed += 1
 
+    indices_path = series_dir.parent / "indices.json"
+    indices_changed = 0
+    if by_index:
+        existing = (
+            json.loads(indices_path.read_text(encoding="utf-8"))
+            if indices_path.exists()
+            else {}
+        )
+        merged_indices = {
+            code: merge_records(existing.get(code, []), incoming)
+            for code, incoming in by_index.items()
+        }
+        merged_indices = {**existing, **merged_indices}
+        if merged_indices != existing:
+            indices_path.write_text(
+                json.dumps(dict(sorted(merged_indices.items())), ensure_ascii=False),
+                encoding="utf-8",
+            )
+            indices_changed = 1
+
     print(
         f"{len(raw_files)} jour(s) fusionné(s) -> "
-        f"{changed}/{len(by_ticker)} série(s) modifiée(s) dans {series_dir}"
+        f"{changed}/{len(by_ticker)} série(s) modifiée(s) dans {series_dir}, "
+        f"indices {'mis à jour' if indices_changed else 'inchangés'}"
     )
 
 
