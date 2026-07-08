@@ -1,0 +1,32 @@
+# Intégration continue : tests unitaires (indicateurs TS + fusion des
+# données Python) et build Next.js (qui porte aussi le lint et le
+# type-check) sur chaque push et pull request.
+name: ci
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "data/live/**"
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Tests unitaires TypeScript (vitest)
+        run: npx vitest run
+      - name: Tests unitaires Python (fusion BOC)
+        working-directory: scripts/boc
+        run: python3 -m unittest test_merge_day -v
+      - name: Build Next.js (lint + type-check inclus)
+        run: npm run build
