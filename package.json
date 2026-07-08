@@ -24,6 +24,7 @@
     "@types/node": "^24",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "puppeteer-core": "^24.43.1",
     "tailwindcss": "^4.1.11",
     "typescript": "^5",
     "vitest": "^4.1.10"
