@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +31,11 @@ export function Dialog({
 
   if (!open) return null;
 
-  return (
+  // Portail vers <body> : rendu en place, un ancêtre avec transform,
+  // filter ou backdrop-filter (header flouté, page .fade-in...) devient
+  // le référentiel du position:fixed — la modale s'ouvrait décalée en
+  // bas et rognée. Le portail échappe à tout containing block.
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6"
       role="dialog"
@@ -55,6 +60,7 @@ export function Dialog({
         </button>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

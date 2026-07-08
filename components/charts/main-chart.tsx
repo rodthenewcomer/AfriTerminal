@@ -36,6 +36,7 @@ import {
 } from "@/lib/indicators";
 import { adjustForDividends, CHART_COLORS, COMPARE_COLORS } from "@/lib/chart-utils";
 import { compactVolume, pct } from "@/lib/format";
+import { createPortal } from "react-dom";
 import { useChartPrefs } from "@/hooks/use-chart-prefs";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -430,7 +431,11 @@ export function MainChart({ ticker }: { ticker: string }) {
     [ticker]
   );
 
-  return (
+  // En plein écran, le bloc passe par un portail vers <body> : rendu en
+  // place, l'animation .fade-in de la page laisse un transform appliqué
+  // qui devient le référentiel du position:fixed — le "plein écran"
+  // restait coincé dans la zone de contenu, sidebar visible et bas rogné.
+  const chartUi = (
     <div
       className={cn(
         "flex flex-col gap-2.5",
@@ -501,4 +506,9 @@ export function MainChart({ ticker }: { ticker: string }) {
       </div>
     </div>
   );
+
+  if (fullscreen && typeof document !== "undefined") {
+    return createPortal(chartUi, document.body);
+  }
+  return chartUi;
 }

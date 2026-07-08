@@ -99,14 +99,15 @@ body {
   animation: fadeIn 0.35s ease both;
 }
 
+/* Opacité seule : un transform, même translateY(0), resté appliqué par
+   fill-mode fait de l'élément le containing block de tout position:fixed
+   descendant (modales, plein écran). Plus jamais de transform ici. */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(4px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
