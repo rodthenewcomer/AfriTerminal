@@ -8,8 +8,43 @@ import { fcfa, pct } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Dialog } from "@/components/ui/dialog";
 
+import { create } from "zustand";
+
+// État partagé : le header monte DEUX déclencheurs (barre desktop +
+// icône mobile) — chacun avait sa propre modale et son écouteur ⌘K,
+// donc deux modales empilées s'ouvraient. Un seul dialog global
+// (GlobalSearchDialog, monté une fois dans AppShell), des déclencheurs
+// muets.
+const useSearchOpen = create<{ open: boolean; setOpen: (v: boolean) => void }>(
+  (set) => ({ open: false, setOpen: (open) => set({ open }) })
+);
+
 export function GlobalSearch({ trigger }: { trigger?: "icon" | "bar" }) {
-  const [open, setOpen] = useState(false);
+  const setOpen = useSearchOpen((s) => s.setOpen);
+  return trigger === "icon" ? (
+    <button
+      onClick={() => setOpen(true)}
+      aria-label="Rechercher"
+      className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-2 hover:bg-surface-2 hover:text-ink cursor-pointer"
+    >
+      <Search className="h-4 w-4" />
+    </button>
+  ) : (
+    <button
+      onClick={() => setOpen(true)}
+      className="group flex h-9 w-full max-w-xs items-center gap-2 rounded-lg border border-line bg-surface/60 px-3 text-sm text-ink-3 hover:bg-surface-2 cursor-pointer"
+    >
+      <Search className="h-3.5 w-3.5" />
+      <span className="flex-1 text-left">Rechercher une action…</span>
+      <kbd className="hidden sm:inline rounded border border-line bg-surface-2 px-1.5 py-0.5 text-[10px] font-mono">
+        ⌘K
+      </kbd>
+    </button>
+  );
+}
+
+export function GlobalSearchDialog() {
+  const { open, setOpen } = useSearchOpen();
   const [query, setQuery] = useState("");
   const [cursor, setCursor] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -19,7 +54,7 @@ export function GlobalSearch({ trigger }: { trigger?: "icon" | "bar" }) {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        setOpen((o) => !o);
+        useSearchOpen.setState((s) => ({ open: !s.open }));
       }
     };
     document.addEventListener("keydown", onKey);
@@ -58,29 +93,7 @@ export function GlobalSearch({ trigger }: { trigger?: "icon" | "bar" }) {
   );
 
   return (
-    <>
-      {trigger === "icon" ? (
-        <button
-          onClick={() => setOpen(true)}
-          aria-label="Rechercher"
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-2 hover:bg-surface-2 hover:text-ink cursor-pointer"
-        >
-          <Search className="h-4 w-4" />
-        </button>
-      ) : (
-        <button
-          onClick={() => setOpen(true)}
-          className="group flex h-9 w-full max-w-xs items-center gap-2 rounded-lg border border-line bg-surface/60 px-3 text-sm text-ink-3 hover:bg-surface-2 cursor-pointer"
-        >
-          <Search className="h-3.5 w-3.5" />
-          <span className="flex-1 text-left">Rechercher une action…</span>
-          <kbd className="hidden sm:inline rounded border border-line bg-surface-2 px-1.5 py-0.5 text-[10px] font-mono">
-            ⌘K
-          </kbd>
-        </button>
-      )}
-
-      <Dialog open={open} onClose={() => setOpen(false)} className="sm:max-w-lg">
+    <Dialog open={open} onClose={() => setOpen(false)} className="sm:max-w-lg">
         <div className="p-3 border-b border-line">
           <div className="flex items-center gap-2 pr-8">
             <Search className="h-4 w-4 text-ink-3 shrink-0" />
@@ -157,7 +170,6 @@ export function GlobalSearch({ trigger }: { trigger?: "icon" | "bar" }) {
             ))
           )}
         </ul>
-      </Dialog>
-    </>
+    </Dialog>
   );
 }

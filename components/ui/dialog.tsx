@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,18 +16,51 @@ export function Dialog({
   children: ReactNode;
   className?: string;
 }) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  // onClose est souvent une arrow inline : la mettre dans les deps
+  // relançait l'effet à chaque render du parent, dont le cleanup
+  // renvoyait le focus HORS de la modale à chaque frappe.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
   useEffect(() => {
     if (!open) return;
+    // Focus trap : Tab reste dans la modale (accessibilité clavier), le
+    // focus revient à l'élément déclencheur à la fermeture.
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const focusables = () =>
+      panelRef.current?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      ) ?? [];
+    const first = focusables()[0];
+    first?.focus();
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") onCloseRef.current();
+      if (e.key !== "Tab") return;
+      const els = [...focusables()];
+      if (els.length === 0) return;
+      const firstEl = els[0];
+      const lastEl = els[els.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey && (active === firstEl || !panelRef.current?.contains(active))) {
+        e.preventDefault();
+        lastEl.focus();
+      } else if (!e.shiftKey && active === lastEl) {
+        e.preventDefault();
+        firstEl.focus();
+      }
     };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
+      previouslyFocused?.focus();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
@@ -46,6 +79,7 @@ export function Dialog({
         onClick={onClose}
       />
       <div
+        ref={panelRef}
         className={cn(
           "relative w-full sm:max-w-2xl max-h-[92vh] sm:max-h-[85vh] overflow-y-auto card-glass !bg-surface shadow-2xl fade-in rounded-t-2xl rounded-b-none sm:rounded-2xl",
           className

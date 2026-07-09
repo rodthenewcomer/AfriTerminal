@@ -11,7 +11,8 @@
   --line: rgba(24, 24, 27, 0.08);
   --ink: #18181b;
   --ink-2: #52525b;
-  --ink-3: #a1a1aa;
+  /* zinc-500 : les petits libellés tertiaires passaient sous 3:1 sur blanc */
+  --ink-3: #71717a;
   --accent: #a16207;
   --gold: #8f6a1a;
   --warn: #c2410c;

@@ -16,7 +16,9 @@ import {
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { GlobalSearch } from "./global-search";
+import { LATEST_TRADING_DATE } from "@/lib/real-data";
+import { dateFr } from "@/lib/format";
+import { GlobalSearch, GlobalSearchDialog } from "./global-search";
 import { MarketStatusBadge } from "./market-status-badge";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -85,7 +87,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
         <div className="px-4 py-4 text-[10px] leading-relaxed text-ink-3 border-t border-line">
-          Données simulées — démo produit.
+          Cours, indices, dividendes, alertes : données officielles BRVM.
+          Documents &amp; IPO : démo.
           <br />
           Ceci n&apos;est pas un conseil en investissement.
         </div>
@@ -105,6 +108,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             <GlobalSearch trigger="icon" />
           </div>
           <MarketStatusBadge />
+          <span
+            className="hidden whitespace-nowrap text-[11px] text-ink-3 sm:inline"
+            title="Dernière séance intégrée depuis le bulletin officiel de la cote — mise à jour automatique chaque soir de bourse"
+          >
+            Bulletin du {dateFr(LATEST_TRADING_DATE)}
+          </span>
           <Link
             href="/alerts"
             aria-label="Alertes"
@@ -116,6 +125,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <ThemeToggle />
         </div>
       </header>
+      <GlobalSearchDialog />
 
       {/* Contenu */}
       <main className="px-4 pb-24 pt-5 sm:px-6 lg:pb-10 lg:pl-[264px] xl:pr-8">
