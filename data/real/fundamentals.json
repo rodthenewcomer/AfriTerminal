@@ -305,6 +305,24 @@
     "source": "https://www.brvm.org/sites/default/files/20260318_-_etats_financiers_syscohada_-_exercice_2025_-_saph_ci.pdf",
     "publishedOn": "2026-03-18"
   },
+  "STAC": {
+    "ticker": "STAC",
+    "fiscalYear": 2025,
+    "revenueLabel": "CA",
+    "revenueM": 3878,
+    "revenuePrevM": 1793,
+    "netIncomeM": -97,
+    "netIncomePrevM": -348,
+    "ordinaryIncomeM": -545,
+    "ordinaryIncomePrevM": -923,
+    "cirPct": null,
+    "cirPrevPct": null,
+    "costOfRiskM": null,
+    "costOfRiskPrevM": null,
+    "proposedGrossDividend": null,
+    "source": "https://www.brvm.org/sites/default/files/20260413_-_etats_financiers_-_exercice_2025_-_setao_ci.pdf",
+    "publishedOn": "2026-04-13"
+  },
   "SVOC": {
     "ticker": "SVOC",
     "fiscalYear": 2019,

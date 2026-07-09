@@ -298,6 +298,39 @@ REGISTRY: dict[str, dict] = {
             "ordinary_income_prev": -776,
         },
     },
+    "STAC": {
+        "pdf": f"{BASE}/20260413_-_etats_financiers_-_exercice_2025_-_setao_ci.pdf",
+        "publishedOn": "2026-04-13",
+        "fiscalYear": 2025,
+        "extractor": "manual",
+        "unit": 1_000,
+        # PDF scanné (aucune couche texte) : valeurs relevées par OCR
+        # (tesseract 5, 400 dpi, --psm 6) — voir scripts/boc/README.md
+        # section fondamentaux pour la méthode. Confiance : le résultat
+        # net (-96 558 / -348 195) apparaît IDENTIQUE sur deux tableaux
+        # différents (compte de résultat ET projet d'affectation), sur
+        # deux passes OCR indépendantes — recoupement réussi. Pas de PER
+        # BOC pour un second recoupement (résultat négatif deux années
+        # de suite). CA = "CA, autres produits et transfert de charges"
+        # (pas de ligne CA isolée sur ce document).
+        "raw": {
+            "revenue": 3_878_254,
+            "revenue_prev": 1_793_360,
+            "net_income": -96_558,
+            "net_income_prev": -348_195,
+            "ordinary_income": -544_944,
+            "ordinary_income_prev": -922_567,
+        },
+    },
+    # UNXC (Uniwax CI) essayé par OCR (600 dpi) mais écarté : le résultat
+    # net relevé sur deux tableaux différents du même document donne deux
+    # lectures qui NE CONCORDENT PAS (ex. "-2 064 070 774" vs
+    # "-3 054 070 773" pour la même case en théorie) malgré plusieurs
+    # passes (résolutions, PSM, recadrage/zoom ciblé) — scan trop
+    # dégradé à cet endroit précis pour une confiance suffisante. Le
+    # chiffre d'affaires, lui, était lisible et cohérent, mais un
+    # enregistrement sans résultat net fiable n'est pas exploitable
+    # (garde-fou main() : CA et RN doivent être tous les deux présents).
 }
 
 
