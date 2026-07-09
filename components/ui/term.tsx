@@ -11,6 +11,12 @@ import { GLOSSARY } from "@/lib/glossary";
  */
 export function Term({ id, children }: { id: string; children: ReactNode }) {
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  // Le clic doit "épingler" la bulle indépendamment du survol/focus : un
+  // clic souris est toujours précédé d'un mouseenter, un tap d'un focus —
+  // sans ce flag séparé, le show() du survol et le hide() du clic (basé
+  // sur `pos`, déjà vrai à cause du survol) s'annulaient dans le même
+  // batch React, et la bulle ne restait jamais affichée.
+  const pinnedRef = useRef(false);
   const ref = useRef<HTMLButtonElement>(null);
   const entry = GLOSSARY[id];
   if (!entry) return <>{children}</>;
@@ -26,11 +32,23 @@ export function Term({ id, children }: { id: string; children: ReactNode }) {
       <button
         ref={ref}
         type="button"
-        onMouseEnter={show}
-        onMouseLeave={hide}
-        onFocus={show}
-        onBlur={hide}
-        onClick={() => (pos ? hide() : show())}
+        onMouseEnter={() => {
+          if (!pinnedRef.current) show();
+        }}
+        onMouseLeave={() => {
+          if (!pinnedRef.current) hide();
+        }}
+        onFocus={() => {
+          if (!pinnedRef.current) show();
+        }}
+        onBlur={() => {
+          if (!pinnedRef.current) hide();
+        }}
+        onClick={() => {
+          pinnedRef.current = !pinnedRef.current;
+          if (pinnedRef.current) show();
+          else hide();
+        }}
         aria-label={`Définition : ${entry.label}`}
         className="cursor-help underline decoration-ink-3/60 decoration-dotted underline-offset-2 uppercase"
       >
