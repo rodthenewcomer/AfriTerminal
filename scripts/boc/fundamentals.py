@@ -152,6 +152,91 @@ REGISTRY: dict[str, dict] = {
         "extractor": "bank",
         "unit": 1_000_000_000,
     },
+    # Les 4 entrées ci-dessous (2026-07-09) utilisent extractor="manual" :
+    # ni l'extracteur tableau ni un scan ligne-à-ligne générique n'ont
+    # fonctionné sur leur gabarit (colonnes BILAN/COMPTE DE RESULTAT
+    # côte à côte sur la même ligne visuelle → un scan par position de
+    # mot capture parfois les mauvais nombres, voir ex. Résultat net vs
+    # Bénéfice net de TTLC). Valeurs relevées à la main sur le PDF,
+    # vérifiées par recoupement nombre d'actions implicite (PER officiel
+    # BOC × RN / cours) contre nombre d'actions déduit du capital social
+    # ÷ valeur nominale — les deux méthodes convergent à <0,1% pour les
+    # 4 sociétés, cf. commentaires unitaires ci-dessous.
+    "SOGC": {
+        "pdf": f"{BASE}/20260422_-_etats_financiers_syscohada_-_exercice_2025_-_sogb_ci.pdf",
+        "publishedOn": "2026-04-22",
+        "fiscalYear": 2025,
+        "extractor": "manual",
+        "unit": 1_000,
+        # Pas de ligne "Chiffre d'affaires" isolée (présentation
+        # DEBIT/CREDIT) : CA reconstruit = Ventes de marchandises +
+        # Ventes de produits fabriqués + Travaux/services rendus +
+        # Produits accessoires. RN recoupé avec le texte du PDF
+        # ("résultat net... s'établit à 12,493 milliards, -5%") et
+        # actions implicites (12,49 Md×14,51 / 8390 ≈ 21,61 M) contre
+        # capital 21 601 840 000 FCFA ÷ 1 000 FCFA/action = 21 601 840.
+        "raw": {
+            "revenue": 41_939 + 97_539_777 + 1_035_279 + 362_037,
+            "revenue_prev": 479_782 + 87_254_124 + 1_225_545 + 455_826,
+            "net_income": 12_492_623,
+            "net_income_prev": 13_110_790,
+            "ordinary_income": 17_161_525,
+            "ordinary_income_prev": 18_040_224,
+        },
+    },
+    "SMBC": {
+        "pdf": f"{BASE}/20260512_-_etats_financiers_et_projet_daffectation_du_resultat_-_exercice_2025_-_smb_ci.pdf",
+        "publishedOn": "2026-05-12",
+        "fiscalYear": 2025,
+        "extractor": "manual",
+        "unit": 1_000_000,
+        # Actions implicites (13,075 Md×10,14 / 17000 ≈ 7,80 M),
+        # cohérent avec la taille de la société (petite capitalisation).
+        "raw": {
+            "revenue": 206_740,
+            "revenue_prev": 229_061,
+            "net_income": 13_075,
+            "net_income_prev": 8_698,
+            "ordinary_income": 17_975,
+            "ordinary_income_prev": 12_448,
+        },
+    },
+    "NTLC": {
+        "pdf": f"{BASE}/20260430_-_etats_financiers_-_exercice_2025_-_nestle_ci.pdf",
+        "publishedOn": "2026-04-30",
+        "fiscalYear": 2025,
+        "extractor": "manual",
+        "unit": 1,
+        # Montants en FCFA pleins dans le PDF (pas d'ambiguïté d'unité).
+        # Actions implicites (18,43 Md×19,7 / 16450 ≈ 22,06 M) contre
+        # capital 5 517 600 000 FCFA ÷ 250 FCFA/action = 22 070 400.
+        "raw": {
+            "revenue": 233_261_162_741,
+            "revenue_prev": 220_113_267_165,
+            "net_income": 18_426_899_479,
+            "net_income_prev": 18_149_967_087,
+            "ordinary_income": 29_730_140_706,
+            "ordinary_income_prev": 28_968_728_930,
+        },
+    },
+    "TTLC": {
+        "pdf": f"{BASE}/20260601_-_etats_financiers_approuves_-_exercice_2025_-_totalenergies_marketing_ci.pdf",
+        "publishedOn": "2026-06-01",
+        "fiscalYear": 2025,
+        "extractor": "manual",
+        "unit": 1_000_000,
+        # Le PDF labellise le résultat net "Bénéfice net" (pas "Résultat
+        # net"). Actions implicites (9,087 Md×19,75 / 2850 ≈ 62,97 M)
+        # contre capital 3 148 080 000 FCFA ÷ 50 FCFA/action = 62 961 600.
+        "raw": {
+            "revenue": 588_709,
+            "revenue_prev": 621_042,
+            "net_income": 9_087,
+            "net_income_prev": 9_374,
+            "ordinary_income": 12_597,
+            "ordinary_income_prev": 13_178,
+        },
+    },
 }
 
 
@@ -212,11 +297,14 @@ def main() -> None:
     out: dict[str, dict] = {}
     for ticker, meta in sorted(REGISTRY.items()):
         pdf_path = fetch(meta["pdf"], Path(args.pdf_cache))
-        with pdfplumber.open(pdf_path) as pdf:
-            if meta["extractor"] == "bank":
-                raw = extract_bank(extract_columns(pdf))
-            else:
-                raw = extract_syscohada(pdf)
+        if meta["extractor"] == "manual":
+            raw = meta["raw"]
+        else:
+            with pdfplumber.open(pdf_path) as pdf:
+                if meta["extractor"] == "bank":
+                    raw = extract_bank(extract_columns(pdf))
+                else:
+                    raw = extract_syscohada(pdf)
         rec = normalize(ticker, raw, meta)
         if rec["revenueM"] is None or rec["netIncomeM"] is None:
             # Extraction incomplète = document ou gabarit qui a changé :
