@@ -157,20 +157,37 @@ export function ChartToolbar(props: ChartToolbarProps) {
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <PillTabs
-        options={TIMEFRAMES.map((t) => ({ value: t, label: t }))}
-        value={props.tf}
-        onChange={props.onTf}
-        className="max-w-full"
-      />
-      <PillTabs
-        options={CHART_TYPES.map((t) => ({ value: t.value, label: t.label }))}
-        value={props.chartType}
-        onChange={props.onChartType}
-        className="max-w-full"
-      />
-      <div className="flex items-center gap-2 ml-auto">
+    // Deux rangées délibérées (au lieu d'un flex-wrap imprévisible qui
+    // empilait 3-4 lignes sur mobile) : timeframes + plein écran, puis
+    // types de graphique + contrôles, chacune défilant horizontalement.
+    // min-w-0 partout : sans lui, min-width:auto des enfants flex fait
+    // grandir toute la colonne au lieu de laisser défiler à l'intérieur
+    // (débordement horizontal de la page sur mobile).
+    <div className="flex min-w-0 flex-col gap-2">
+      <div className="flex min-w-0 items-center gap-2">
+        <PillTabs
+          options={TIMEFRAMES.map((t) => ({ value: t, label: t }))}
+          value={props.tf}
+          onChange={props.onTf}
+          className="min-w-0 flex-1 sm:flex-none"
+        />
+        <button
+          onClick={() => props.onFullscreen(!props.fullscreen)}
+          title={props.fullscreen ? "Quitter le plein écran (Échap)" : "Plein écran"}
+          aria-label={props.fullscreen ? "Quitter le plein écran" : "Plein écran"}
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-line bg-surface/60 text-ink-2 hover:bg-surface-2 hover:text-ink cursor-pointer transition-colors"
+        >
+          {props.fullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+        </button>
+      </div>
+      <div className="flex min-w-0 items-center gap-2 overflow-x-auto pb-0.5">
+        <PillTabs
+          options={CHART_TYPES.map((t) => ({ value: t.value, label: t.label }))}
+          value={props.chartType}
+          onChange={props.onChartType}
+          className="shrink-0"
+        />
+        <div className="ml-auto flex shrink-0 items-center gap-2">
         <button
           onClick={() => props.onShowVolume(!props.showVolume)}
           className={cn(
@@ -248,14 +265,7 @@ export function ChartToolbar(props: ChartToolbarProps) {
             />
           ))}
         </Dropdown>
-        <button
-          onClick={() => props.onFullscreen(!props.fullscreen)}
-          title={props.fullscreen ? "Quitter le plein écran (Échap)" : "Plein écran"}
-          aria-label={props.fullscreen ? "Quitter le plein écran" : "Plein écran"}
-          className="flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-surface/60 text-ink-2 hover:bg-surface-2 hover:text-ink cursor-pointer transition-colors"
-        >
-          {props.fullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
-        </button>
+        </div>
       </div>
     </div>
   );

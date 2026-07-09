@@ -94,7 +94,7 @@ export default function WatchlistPage() {
       ) : (
         <div className="grid gap-2.5">
           {watched.map((s) => (
-            <div key={s.ticker} className="card-glass p-3.5">
+            <div key={s.ticker} className="min-w-0 card-glass p-3.5">
               <div className="flex items-center gap-3">
                 <Link
                   href={`/stocks/${s.ticker}`}

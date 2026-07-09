@@ -8,8 +8,12 @@ import { fcfa, pct } from "@/lib/format";
 import type { RealQuote, StockSnapshot } from "@/lib/types";
 import { PillTabs } from "@/components/ui/tabs";
 
-const GROUP_GAP = 5;
-const HEADER_H = 19;
+// Espacement et en-têtes plus compacts sous 480 px : chaque pixel
+// compte pour garder 48 tuiles lisibles sur un écran de téléphone.
+function metrics(width: number) {
+  const small = width < 480;
+  return { gap: small ? 3 : 5, header: small ? 14 : 19, small };
+}
 
 /**
  * Horizons de performance (façon Finviz). `range` = variation à laquelle
@@ -69,6 +73,7 @@ function computeLayout(
   width: number,
   height: number
 ): Layout {
+  const { gap: GROUP_GAP, header: HEADER_H } = metrics(width);
   const bySector = new Map<string, StockSnapshot[]>();
   for (const s of snapshots) {
     const arr = bySector.get(s.sector) ?? [];
@@ -144,6 +149,7 @@ export function MarketMap({ compact = false }: { compact?: boolean }) {
     () => (size ? computeLayout(snapshots, size.w, size.h) : null),
     [snapshots, size]
   );
+  const { gap: GROUP_GAP, header: HEADER_H, small } = metrics(size?.w ?? 1024);
 
   const change = (s: StockSnapshot): number =>
     s.real ? horizon.get(s.real) : s.dayChange;
@@ -180,7 +186,7 @@ export function MarketMap({ compact = false }: { compact?: boolean }) {
         className={
           compact
             ? "relative h-[300px] min-h-[260px] w-full overflow-hidden rounded-xl bg-[#0c0c0e]"
-            : "relative h-[68vh] min-h-[500px] w-full overflow-hidden rounded-xl bg-[#0c0c0e]"
+            : "relative h-[72vh] min-h-[460px] w-full overflow-hidden rounded-xl bg-[#0c0c0e]"
         }
         onMouseLeave={() => setHover(null)}
       >
@@ -201,9 +207,13 @@ export function MarketMap({ compact = false }: { compact?: boolean }) {
             ) : null}
             {g.tiles.map(({ stock, rect }) => {
               const chg = change(stock);
-              const showTicker = rect.width >= 30 && rect.height >= 14;
-              const showPct = rect.width >= 40 && rect.height >= 30;
-              const showPrice = rect.width >= 96 && rect.height >= 64;
+              const showTicker = small
+                ? rect.width >= 22 && rect.height >= 11
+                : rect.width >= 30 && rect.height >= 14;
+              const showPct = small
+                ? rect.width >= 32 && rect.height >= 24
+                : rect.width >= 40 && rect.height >= 30;
+              const showPrice = !small && rect.width >= 96 && rect.height >= 64;
               const big = rect.width >= 90 && rect.height >= 54;
               return (
                 <button
@@ -225,7 +235,7 @@ export function MarketMap({ compact = false }: { compact?: boolean }) {
                   {showTicker ? (
                     <span
                       className="font-bold leading-none text-white drop-shadow-sm"
-                      style={{ fontSize: big ? 15 : rect.width >= 52 ? 12 : 9 }}
+                      style={{ fontSize: big ? 15 : rect.width >= 52 ? 12 : small ? 8 : 9 }}
                     >
                       {stock.ticker}
                     </span>

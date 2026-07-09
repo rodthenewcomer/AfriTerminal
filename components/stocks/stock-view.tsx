@@ -91,8 +91,10 @@ export function StockView({ ticker }: { ticker: string }) {
       </div>
 
       {/* Chart + résumé */}
+      {/* min-w-0 sur l'item : 1fr = minmax(auto,1fr), le min-content de la
+          toolbar défilante élargirait toute la page sur mobile sinon */}
       <div className="grid gap-4 xl:grid-cols-[1fr_320px]">
-        <Card className="p-4 sm:p-5">
+        <Card className="min-w-0 p-4 sm:p-5">
           <MainChart ticker={stock.ticker} />
         </Card>
 

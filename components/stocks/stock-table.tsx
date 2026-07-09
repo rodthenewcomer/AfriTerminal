@@ -160,7 +160,7 @@ export function StockTable({ stocks }: { stocks: StockSnapshot[] }) {
       {/* Mobile : cartes compactes */}
       <div className="grid gap-2.5 md:hidden">
         {sorted.map((s) => (
-          <Link key={s.ticker} href={`/stocks/${s.ticker}`} className="card-glass p-3.5 active:scale-[0.99] transition-transform">
+          <Link key={s.ticker} href={`/stocks/${s.ticker}`} className="min-w-0 card-glass p-3.5 active:scale-[0.99] transition-transform">
             <div className="flex items-center gap-3">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-[9px] font-bold text-accent">
                 {s.ticker}

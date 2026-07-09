@@ -438,7 +438,7 @@ export function MainChart({ ticker }: { ticker: string }) {
   const chartUi = (
     <div
       className={cn(
-        "flex flex-col gap-2.5",
+        "flex min-w-0 flex-col gap-2.5",
         fullscreen && "fixed inset-0 z-50 bg-background p-3 sm:p-5"
       )}
     >
