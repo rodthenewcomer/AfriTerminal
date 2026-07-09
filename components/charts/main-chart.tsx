@@ -37,7 +37,7 @@ import {
 import { adjustForDividends, CHART_COLORS, COMPARE_COLORS } from "@/lib/chart-utils";
 import { compactVolume, pct } from "@/lib/format";
 import { createPortal } from "react-dom";
-import { useChartPrefs } from "@/hooks/use-chart-prefs";
+import { useChartPrefs, useChartPrefsHydrated } from "@/hooks/use-chart-prefs";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChartToolbar } from "./chart-toolbar";
@@ -80,6 +80,7 @@ export function MainChart({ ticker }: { ticker: string }) {
   const [ready, setReady] = useState(false);
   const [noIntraday, setNoIntraday] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+  useChartPrefsHydrated();
   const { maColors, setMaColor, resetMaColors } = useChartPrefs();
   const isReal = isRealTicker(ticker);
 

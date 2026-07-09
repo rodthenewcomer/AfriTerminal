@@ -1,43 +1,34 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
-import { DOCUMENTS } from "@/lib/mock/documents";
-import type { DocItem, DocType } from "@/lib/types";
-import { STOCK_MAP } from "@/lib/mock/stocks";
+import Link from "next/link";
+import { ExternalLink, FileText } from "lucide-react";
+import { REAL_DOCUMENTS, type RealDocument } from "@/lib/real-documents";
+import { dateFr } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { DocumentCard } from "@/components/documents/document-card";
-import { DocumentViewerModal } from "@/components/documents/document-viewer-modal";
 
-const TYPES: DocType[] = [
-  "Résultats",
+const TYPES: (RealDocument["type"] | "Tous")[] = [
+  "Tous",
   "États financiers",
+  "Résultats",
   "Dividende",
   "AGO",
-  "IPO",
   "Communiqué",
 ];
 
 export default function DocumentsPage() {
-  const [type, setType] = useState<DocType | null>(null);
+  const [type, setType] = useState<(typeof TYPES)[number]>("Tous");
   const [query, setQuery] = useState("");
-  const [openDoc, setOpenDoc] = useState<DocItem | null>(null);
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return [...DOCUMENTS]
-      .sort((a, b) => b.date.localeCompare(a.date))
-      .filter((d) => {
-        if (type && d.type !== type) return false;
-        if (!q) return true;
-        const stock = STOCK_MAP.get(d.ticker);
-        return (
-          d.title.toLowerCase().includes(q) ||
-          d.ticker.toLowerCase().includes(q) ||
-          (stock?.name.toLowerCase().includes(q) ?? false)
-        );
-      });
+    const q = query.trim().toUpperCase();
+    return REAL_DOCUMENTS.filter(
+      (d) =>
+        (type === "Tous" || d.type === type) &&
+        (!q || d.ticker.includes(q) || d.title.toUpperCase().includes(q))
+    ).slice(0, 120);
   }, [type, query]);
 
   return (
@@ -45,38 +36,19 @@ export default function DocumentsPage() {
       <div>
         <h1 className="text-xl font-bold tracking-tight text-ink">Documents</h1>
         <p className="mt-1 text-sm text-ink-3">
-          Les documents officiels, transformés en signaux simples.
+          {REAL_DOCUMENTS.length} publications officielles des sociétés cotées,
+          référencées depuis brvm.org — chaque lien ouvre le PDF original.
         </p>
       </div>
 
-      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
-        <div className="relative sm:max-w-xs w-full">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-3" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher par société ou ticker…"
-            className="pl-8"
-          />
-        </div>
+      <div className="flex flex-wrap items-center gap-2">
         <div className="flex gap-2 overflow-x-auto pb-1">
-          <button
-            onClick={() => setType(null)}
-            className={cn(
-              "rounded-full border px-3 py-1 text-xs font-medium whitespace-nowrap cursor-pointer",
-              type === null
-                ? "border-accent/40 bg-accent/15 text-accent"
-                : "border-line bg-surface/60 text-ink-2 hover:bg-surface-2"
-            )}
-          >
-            Tous
-          </button>
           {TYPES.map((t) => (
             <button
               key={t}
-              onClick={() => setType(type === t ? null : t)}
+              onClick={() => setType(t)}
               className={cn(
-                "rounded-full border px-3 py-1 text-xs font-medium whitespace-nowrap cursor-pointer",
+                "rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap cursor-pointer transition-colors",
                 type === t
                   ? "border-accent/40 bg-accent/15 text-accent"
                   : "border-line bg-surface/60 text-ink-2 hover:bg-surface-2"
@@ -86,24 +58,51 @@ export default function DocumentsPage() {
             </button>
           ))}
         </div>
+        <Input
+          placeholder="Filtrer par ticker ou titre…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="max-w-xs"
+        />
       </div>
 
-      {filtered.length === 0 ? (
-        <div className="card-glass p-10 text-center">
-          <p className="text-sm font-medium text-ink">Aucun document</p>
-          <p className="mt-1 text-xs text-ink-3">
-            Modifiez la recherche ou le filtre de type.
-          </p>
-        </div>
-      ) : (
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((d) => (
-            <DocumentCard key={d.id} doc={d} onOpen={setOpenDoc} />
-          ))}
-        </div>
-      )}
+      <div className="grid gap-2.5">
+        {filtered.map((d) => (
+          <article key={d.url} className="min-w-0 card-glass flex items-start gap-3 p-3.5">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
+              <FileText className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <a
+                href={d.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-start justify-between gap-2"
+              >
+                <span className="text-sm font-semibold text-ink group-hover:text-accent">
+                  {d.title}
+                </span>
+                <ExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-3 group-hover:text-accent" />
+              </a>
+              <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                <Link
+                  href={`/stocks/${d.ticker}`}
+                  className="text-[11px] font-bold text-accent hover:underline"
+                >
+                  {d.ticker}
+                </Link>
+                <Badge tone="neutral">{d.type}</Badge>
+                <time className="text-[11px] text-ink-3">{dateFr(d.date)}</time>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
 
-      <DocumentViewerModal doc={openDoc} onClose={() => setOpenDoc(null)} />
+      <p className="text-[11px] text-ink-3">
+        Source : fiches sociétés officielles de la BRVM, actualisées chaque
+        semaine. Les documents appartiennent à leurs émetteurs.
+      </p>
     </div>
   );
 }

@@ -87,8 +87,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
         <div className="px-4 py-4 text-[10px] leading-relaxed text-ink-3 border-t border-line">
-          Cours, indices, dividendes, alertes : données officielles BRVM.
-          Documents &amp; IPO : démo.
+          Cours, indices, dividendes, documents et alertes : sources BRVM.
+          IPO : démo.
           <br />
           Ceci n&apos;est pas un conseil en investissement.
         </div>
@@ -108,12 +108,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             <GlobalSearch trigger="icon" />
           </div>
           <MarketStatusBadge />
-          <span
-            className="hidden whitespace-nowrap text-[11px] text-ink-3 sm:inline"
-            title="Dernière séance intégrée depuis le bulletin officiel de la cote — mise à jour automatique chaque soir de bourse"
+          <Link
+            href="/status"
+            className="hidden whitespace-nowrap text-[11px] text-ink-3 hover:text-ink sm:inline"
+            title="Dernière séance intégrée — cliquer pour le statut détaillé de chaque source de données"
           >
             Bulletin du {dateFr(LATEST_TRADING_DATE)}
-          </span>
+          </Link>
           <Link
             href="/alerts"
             aria-label="Alertes"

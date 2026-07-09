@@ -23,6 +23,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Audit sécurité npm (production, high+)
+        run: npm run audit:prod
       - name: Tests unitaires TypeScript (vitest)
         run: npx vitest run
       - name: Dépendances Python (pdfplumber pour le golden test du parseur)

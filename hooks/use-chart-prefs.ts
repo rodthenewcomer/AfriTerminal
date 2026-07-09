@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { CHART_COLORS } from "@/lib/chart-utils";
@@ -29,6 +30,37 @@ export const useChartPrefs = create<ChartPrefsState>()(
         set((state) => ({ maColors: { ...state.maColors, [id]: color } })),
       resetMaColors: () => set({ maColors: DEFAULT_MA_COLORS }),
     }),
-    { name: "afriterminal-chart-prefs" }
+    { name: "afriterminal-chart-prefs", skipHydration: true }
   )
 );
+
+let hydrationPromise: Promise<void> | null = null;
+
+function hasHydrated(): boolean {
+  return typeof window !== "undefined" && useChartPrefs.persist?.hasHydrated?.() === true;
+}
+
+function rehydrateChartPrefs(): Promise<void> {
+  hydrationPromise ??= Promise.resolve(useChartPrefs.persist?.rehydrate?.()).then(() => undefined);
+  return hydrationPromise;
+}
+
+export function useChartPrefsHydrated(): boolean {
+  const [hydrated, setHydrated] = useState(hasHydrated);
+
+  useEffect(() => {
+    let active = true;
+    const unsub = useChartPrefs.persist?.onFinishHydration?.(() => {
+      if (active) setHydrated(true);
+    });
+    rehydrateChartPrefs().finally(() => {
+      if (active) setHydrated(hasHydrated());
+    });
+    return () => {
+      active = false;
+      unsub?.();
+    };
+  }, []);
+
+  return hydrated;
+}

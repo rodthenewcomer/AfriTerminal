@@ -49,6 +49,19 @@ def pct_change(from_v: float, to_v: float) -> float:
     return ((to_v - from_v) / from_v) * 100
 
 
+def last_valid_dividend(records: list[dict]) -> tuple[float | None, str | None]:
+    """Dernier dividende utilisable, jamais postérieur à la séance courante."""
+    as_of = records[-1]["time"]
+    for rec in reversed(records):
+        net = rec.get("last_dividend_net")
+        div_date = rec.get("last_dividend_date")
+        if net is None or not div_date:
+            continue
+        if div_date <= as_of:
+            return net, div_date
+    return None, None
+
+
 def build_snapshot(records: list[dict]) -> dict:
     last = records[-1]
     n = len(records)
@@ -65,6 +78,7 @@ def build_snapshot(records: list[dict]) -> dict:
         if n > 1
         else last["volume"]
     )
+    dividend_net, dividend_date = last_valid_dividend(records)
 
     return {
         "ticker": None,  # rempli par l'appelant
@@ -88,8 +102,8 @@ def build_snapshot(records: list[dict]) -> dict:
         "volumeRatio": round(last["volume"] / avg30, 2) if avg30 else 1.0,
         "per": last["per"],
         "netYieldPct": last["net_yield_pct"],
-        "lastDividendNet": last["last_dividend_net"],
-        "lastDividendDate": last["last_dividend_date"],
+        "lastDividendNet": dividend_net,
+        "lastDividendDate": dividend_date,
         "sparkline": [r["close"] for r in records[-30:]],
     }
 

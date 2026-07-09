@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { WatchlistDef } from "@/lib/types";
@@ -63,6 +64,37 @@ export const useWatchlist = create<WatchlistState>()(
       isWatched: (ticker) =>
         get().lists.some((l) => l.tickers.includes(ticker)),
     }),
-    { name: "afriterminal-watchlists" }
+    { name: "afriterminal-watchlists", skipHydration: true }
   )
 );
+
+let hydrationPromise: Promise<void> | null = null;
+
+function hasHydrated(): boolean {
+  return typeof window !== "undefined" && useWatchlist.persist?.hasHydrated?.() === true;
+}
+
+function rehydrateWatchlist(): Promise<void> {
+  hydrationPromise ??= Promise.resolve(useWatchlist.persist?.rehydrate?.()).then(() => undefined);
+  return hydrationPromise;
+}
+
+export function useWatchlistHydrated(): boolean {
+  const [hydrated, setHydrated] = useState(hasHydrated);
+
+  useEffect(() => {
+    let active = true;
+    const unsub = useWatchlist.persist?.onFinishHydration?.(() => {
+      if (active) setHydrated(true);
+    });
+    rehydrateWatchlist().finally(() => {
+      if (active) setHydrated(hasHydrated());
+    });
+    return () => {
+      active = false;
+      unsub?.();
+    };
+  }, []);
+
+  return hydrated;
+}

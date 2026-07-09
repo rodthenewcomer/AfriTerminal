@@ -114,7 +114,10 @@ def fr_date(raw: str) -> str | None:
     month = MONTH_FR.get(month_key)
     if month is None:
         return None
-    year = 2000 + int(year2)
+    yy = int(year2)
+    # Le BOC imprime les années sur 2 chiffres. Utiliser 2000+yy ferait
+    # passer '99' en 2099 ; pivot POSIX classique, suffisant pour BRVM.
+    year = 2000 + yy if yy <= 68 else 1900 + yy
     return f"{year:04d}-{month:02d}-{int(day):02d}"
 
 

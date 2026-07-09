@@ -1,14 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { Bell, Sparkles } from "lucide-react";
 import { getSectorStats, getSnapshot } from "@/lib/data";
-import { getRealQuote } from "@/lib/real-data";
+import { getRealQuote, LATEST_TRADING_DATE } from "@/lib/real-data";
 import { getRealFundamentals, growthPct } from "@/lib/real-fundamentals";
 import { newsDate, newsForTicker } from "@/lib/news";
-import { docsForTicker } from "@/lib/mock/documents";
+import { realDocsForTicker } from "@/lib/real-documents";
 import { DIVIDEND_MAP } from "@/lib/mock/dividends";
-import type { DocItem } from "@/lib/types";
 import {
   compactFcfa,
   compactVolume,
@@ -28,8 +27,6 @@ import { DividendPanel } from "./dividend-panel";
 import { MetricCard } from "./metric-card";
 import { SectorComparison } from "./sector-comparison";
 import { WatchlistButton } from "./watchlist-button";
-import { DocumentCard } from "@/components/documents/document-card";
-import { DocumentViewerModal } from "@/components/documents/document-viewer-modal";
 
 export function StockView({ ticker }: { ticker: string }) {
   // Ouvrir une fiche depuis le bas d'une longue liste (48 lignes) pouvait
@@ -41,16 +38,16 @@ export function StockView({ ticker }: { ticker: string }) {
   const real = useMemo(() => getRealQuote(ticker), [ticker]);
   const realFund = useMemo(() => getRealFundamentals(ticker), [ticker]);
   const news = useMemo(() => newsForTicker(ticker), [ticker]);
-  const [openDoc, setOpenDoc] = useState<DocItem | null>(null);
 
   if (!stock) return null;
-  const docs = docsForTicker(ticker);
+  const docs = realDocsForTicker(ticker);
   const dividend = DIVIDEND_MAP.get(ticker);
   const sectorStats = getSectorStats().find((s) => s.sector === stock.sector);
   const f = stock.fundamentals;
 
   const lastPrice = real?.lastClose ?? stock.lastPrice;
   const dayChange = real?.dayChangePct ?? stock.dayChange;
+  const staleQuote = !!real && real.asOfDate !== LATEST_TRADING_DATE;
 
   return (
     <div className="space-y-4 fade-in">
@@ -67,8 +64,11 @@ export function StockView({ ticker }: { ticker: string }) {
             <p className="flex flex-wrap items-center gap-1.5 text-[11px] text-ink-3">
               BRVM · {stock.sector} · {stock.country}
               {real ? (
-                <Badge tone="positive" title={`Données réelles BRVM au ${dateFr(real.asOfDate)}`}>
-                  Données réelles
+                <Badge
+                  tone={staleQuote ? "warning" : "positive"}
+                  title={`Données réelles BRVM au ${dateFr(real.asOfDate)}`}
+                >
+                  {staleQuote ? "Cotation suspendue" : "Données réelles"}
                 </Badge>
               ) : (
                 <Badge tone="gold">Démo simulée</Badge>
@@ -93,7 +93,25 @@ export function StockView({ ticker }: { ticker: string }) {
       {/* Chart + résumé */}
       {/* min-w-0 sur l'item : 1fr = minmax(auto,1fr), le min-content de la
           toolbar défilante élargirait toute la page sur mobile sinon */}
-      <div className="grid gap-4 xl:grid-cols-[1fr_320px]">
+      {/* Navigation rapide vers les sections de la fiche */}
+      <nav className="flex gap-2 overflow-x-auto pb-1 text-xs" aria-label="Sections">
+        {[
+          ["#chart", "Graphique"],
+          ["#fondamentaux", "Fondamentaux"],
+          ...(news.length > 0 ? [["#actualites", "Actualités"]] : []),
+          ["#documents", "Documents"],
+        ].map(([href, label]) => (
+          <a
+            key={href}
+            href={href}
+            className="whitespace-nowrap rounded-full border border-line bg-surface/60 px-3 py-1.5 font-medium text-ink-2 hover:bg-surface-2 hover:text-ink transition-colors"
+          >
+            {label}
+          </a>
+        ))}
+      </nav>
+
+      <div id="chart" className="scroll-mt-20 grid gap-4 xl:grid-cols-[1fr_320px]">
         <Card className="min-w-0 p-4 sm:p-5">
           <MainChart ticker={stock.ticker} />
         </Card>
@@ -151,7 +169,7 @@ export function StockView({ ticker }: { ticker: string }) {
       </div>
 
       {/* Métriques */}
-      <section>
+      <section id="fondamentaux" className="scroll-mt-20">
         <h2 className="mb-2.5 text-sm font-semibold text-ink">Fondamentaux</h2>
         {real ? (
           <>
@@ -322,7 +340,7 @@ export function StockView({ ticker }: { ticker: string }) {
 
       {/* Actualités réelles */}
       {news.length > 0 ? (
-        <section>
+        <section id="actualites" className="scroll-mt-20">
           <div className="mb-2.5 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-ink">Actualités</h2>
             <Badge tone="positive">Sources réelles</Badge>
@@ -350,19 +368,32 @@ export function StockView({ ticker }: { ticker: string }) {
       ) : null}
 
       {/* Documents */}
-      <section>
+      <section id="documents" className="scroll-mt-20">
         <div className="mb-2.5 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-ink">Documents officiels</h2>
           <Badge tone="neutral">{docs.length} document{docs.length > 1 ? "s" : ""}</Badge>
         </div>
         {docs.length === 0 ? (
           <Card className="p-8 text-center text-sm text-ink-3">
-            Aucun document récent pour cette valeur.
+            Aucun document référencé pour cette valeur.
           </Card>
         ) : (
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-2.5 md:grid-cols-2">
             {docs.map((d) => (
-              <DocumentCard key={d.id} doc={d} onOpen={setOpenDoc} showTicker={false} />
+              <a
+                key={d.url}
+                href={d.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group min-w-0 rounded-xl border border-line bg-surface/50 p-3 hover:bg-surface-2 transition-colors"
+              >
+                <p className="text-xs font-semibold text-ink group-hover:text-accent">
+                  {d.title}
+                </p>
+                <p className="mt-1 text-[11px] text-ink-3">
+                  {d.type} · {dateFr(d.date)} · PDF officiel (brvm.org)
+                </p>
+              </a>
             ))}
           </div>
         )}
@@ -370,12 +401,11 @@ export function StockView({ ticker }: { ticker: string }) {
 
       <p className="text-[10px] text-ink-3">
         {real
-          ? `Cours, volumes, PER et dividendes réels (source : bulletins officiels de la cote BRVM, au ${dateFr(real.asOfDate)}). Documents et alertes ci-dessus restent simulés à titre de démonstration.`
+          ? `Cours, volumes, PER, dividendes, documents et alertes réels (sources : bulletins officiels et fiches sociétés BRVM, au ${dateFr(real.asOfDate)}).`
           : "Les informations présentées sont fournies à titre éducatif et informatif sur données simulées."}{" "}
         Ceci ne constitue pas un conseil en investissement.
       </p>
 
-      <DocumentViewerModal doc={openDoc} onClose={() => setOpenDoc(null)} />
     </div>
   );
 }

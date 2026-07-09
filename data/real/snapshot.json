@@ -2384,8 +2384,8 @@
     "volumeRatio": 0.13,
     "per": null,
     "netYieldPct": null,
-    "lastDividendNet": 270.0,
-    "lastDividendDate": "2099-07-05",
+    "lastDividendNet": null,
+    "lastDividendDate": null,
     "sparkline": [
       2495.0,
       2450.0,

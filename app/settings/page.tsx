@@ -13,18 +13,24 @@ function Toggle({
   onChange,
   label,
   hint,
+  disabled = false,
 }: {
   checked: boolean;
   onChange: (v: boolean) => void;
   label: string;
   hint?: string;
+  disabled?: boolean;
 }) {
   return (
     <button
-      onClick={() => onChange(!checked)}
-      className="flex w-full items-center justify-between gap-3 py-2 text-left cursor-pointer"
+      onClick={() => {
+        if (!disabled) onChange(!checked);
+      }}
+      disabled={disabled}
+      className="flex w-full items-center justify-between gap-3 py-2 text-left cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
       role="switch"
       aria-checked={checked}
+      aria-disabled={disabled}
     >
       <span>
         <span className="block text-sm font-medium text-ink">{label}</span>
@@ -52,9 +58,9 @@ export default function SettingsPage() {
   const [mounted, setMounted] = useState(false);
   const [currency, setCurrency] = useState("FCFA");
   const [language, setLanguage] = useState("fr");
-  const [notifDocs, setNotifDocs] = useState(true);
-  const [notifPrice, setNotifPrice] = useState(true);
-  const [notifDividends, setNotifDividends] = useState(true);
+  const [notifDocs, setNotifDocs] = useState(false);
+  const [notifPrice, setNotifPrice] = useState(false);
+  const [notifDividends, setNotifDividends] = useState(false);
   const [advanced, setAdvanced] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -72,10 +78,12 @@ export default function SettingsPage() {
             <User className="h-5 w-5" />
           </span>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-ink">Investisseur démo</p>
-            <p className="text-xs text-ink-3">demo@afriterminal.app</p>
+            <p className="text-sm font-semibold text-ink">Session locale</p>
+            <p className="text-xs text-ink-3">
+              Watchlists et filtres restent dans ce navigateur.
+            </p>
           </div>
-          <Badge tone="gold">Plan Free</Badge>
+          <Badge tone="neutral">Public</Badge>
         </CardBody>
       </Card>
 
@@ -98,54 +106,61 @@ export default function SettingsPage() {
             <span className="text-sm font-medium text-ink">Devise d&apos;affichage</span>
             <Select value={currency} onChange={(e) => setCurrency(e.target.value)}>
               <option value="FCFA">FCFA</option>
-              <option value="USD">USD (démo)</option>
-              <option value="EUR">EUR (démo)</option>
+              <option value="USD" disabled>USD — à venir</option>
+              <option value="EUR" disabled>EUR — à venir</option>
             </Select>
           </label>
           <label className="flex items-center justify-between gap-3">
             <span className="text-sm font-medium text-ink">Langue</span>
             <Select value={language} onChange={(e) => setLanguage(e.target.value)}>
               <option value="fr">Français</option>
-              <option value="en">English (démo)</option>
+              <option value="en" disabled>English — à venir</option>
             </Select>
           </label>
           <div className="border-t border-line pt-1">
             <Toggle
               checked={advanced}
               onChange={setAdvanced}
-              label="Mode avancé"
-              hint="Affiche plus d'indicateurs techniques et de métriques (démo)."
+              label="Mode avancé — à venir"
+              hint="Prévu pour regrouper les indicateurs pro sans alourdir l'écran par défaut."
+              disabled
             />
           </div>
         </CardBody>
       </Card>
 
       <Card>
-        <CardHeader title="Notifications" subtitle="Préférences d'alertes (démo)" />
+        <CardHeader
+          title="Notifications"
+          subtitle="À venir avec comptes utilisateur : aucun email ni push n'est envoyé aujourd'hui."
+        />
         <CardBody className="divide-y divide-line/60">
           <Toggle
             checked={notifDocs}
             onChange={setNotifDocs}
-            label="Nouveaux documents"
+            label="Nouveaux documents — à venir"
             hint="Résultats, dividendes, AGO des valeurs suivies."
+            disabled
           />
           <Toggle
             checked={notifPrice}
             onChange={setNotifPrice}
-            label="Alertes de prix et de volume"
+            label="Alertes de prix et de volume — à venir"
             hint="Franchissements de seuils et volumes anormaux."
+            disabled
           />
           <Toggle
             checked={notifDividends}
             onChange={setNotifDividends}
-            label="Calendrier des dividendes"
+            label="Calendrier des dividendes — à venir"
             hint="Rappel avant chaque date de détachement."
+            disabled
           />
         </CardBody>
       </Card>
 
       <p className="text-[10px] text-ink-3">
-        AfriTerminal — démo. Les informations présentées sont fournies à titre
+        AfriTerminal — version publique. Les informations présentées sont fournies à titre
         éducatif et informatif. Elles ne constituent pas un conseil en
         investissement.
       </p>

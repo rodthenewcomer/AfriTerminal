@@ -398,7 +398,7 @@ export default function DashboardPage() {
           <CardHeader
             title={
               <span className="inline-flex items-center gap-1.5">
-                <Rocket className="h-3.5 w-3.5 text-accent" /> IPO & opérations en cours
+                <Rocket className="h-3.5 w-3.5 text-accent" /> IPO & opérations démo
               </span>
             }
             action={
@@ -426,8 +426,9 @@ export default function DashboardPage() {
                 <Flame className="h-3.5 w-3.5 text-accent" /> Comprendre le marché avant le marché
               </p>
               <p className="mt-1 text-[11px] leading-relaxed text-ink-2">
-                Les documents officiels, transformés en signaux simples. Passez à
-                AfriTerminal Pro pour le screener complet et les alertes IA.
+                Les documents officiels deviennent un flux de surveillance. Les
+                comptes, alertes personnalisées et synthèses avancées restent à
+                brancher avant une offre Pro.
               </p>
             </div>
           </CardBody>

@@ -12,10 +12,12 @@ dashboard, les marchés, le screener, la watchlist, la recherche et les
 fiches actions. Les fondamentaux (capitalisation, P/B, ROE, résultat
 net…) ne sont **pas** publiés dans le bulletin quotidien : ils sont
 masqués (« — »), jamais inventés — les scores/signaux/analyses IA ne
-s'affichent donc pas pour l'instant. Documents, alertes et IPO restent
-simulés à titre de démonstration (badge « illustratif »). 15 sociétés
-gardent une fiche curée (`lib/mock/stocks.ts` : description, secteur
-vérifié) ; les 33 autres sont dérivées du bulletin
+s'affichent donc pas pour l'instant. Les documents officiels sont
+référencés depuis brvm.org, les alertes sont factuelles et dérivées des
+dernières séances, et les IPO/opérations restent simulées à titre de
+démonstration. 15 sociétés gardent une fiche curée
+(`lib/mock/stocks.ts` : description, secteur vérifié) ; les 33 autres
+sont dérivées du bulletin
 (`lib/real-universe.ts` : secteur via code BOC, pays via suffixe du
 ticker).
 
@@ -29,12 +31,15 @@ ticker).
 ```bash
 npm install
 npm run dev      # http://localhost:3000 — développement, hot reload
-npm run build    # build de production (SSG des 15 fiches actions)
+npm run build    # build de production (SSG des 48 fiches actions)
 npm run start    # sert le build de production, après npm run build
+npm run audit:prod # audit npm production high/critical
 ```
 
-Aucune variable d'environnement n'est requise : toutes les données sont
-mockées dans `lib/mock/`.
+Aucune variable d'environnement n'est requise : l'app lit des artefacts
+JSON committés dans `data/real/`, `data/news/` et `data/boc/series/`.
+`lib/mock/` ne sert plus qu'aux descriptions curées, aux anciennes séries
+démo de repli et aux surfaces explicitement simulées (IPO/opérations).
 
 ## Stack
 
@@ -67,11 +72,10 @@ components/
                     volume, SMA/EMA/Bollinger, RSI, MACD, comparaison %,
                     ajustement dividendes), toolbar, sparkline
   stocks/           table, badges, scores, analyse IA, dividendes, secteur
-  documents/        cartes + visionneuse modale (résumé IA, signaux)
+  documents/        liste des publications officielles référencées BRVM
   layout/           shell, sidebar, bottom nav, recherche ⌘K, statut BRVM
 lib/
-  mock/             15 sociétés BRVM, séries OHLCV déterministes (5 ans),
-                    dividendes, documents, alertes, opérations
+  mock/             descriptions curées + anciennes données de démo
   signals.ts        moteur de signaux (bénéfice non durable, risque crédit,
                     payout > 90 %, volume anormal, sous-évaluation…)
   indicators.ts     SMA, EMA, RSI, MACD, Bollinger, Heikin Ashi, VWAP
@@ -129,17 +133,18 @@ fondamentaux (P/B, ROE, croissance, qualité, risque) au profit de
 critères réels (PER, rendement, YTD, volume).
 
 Documents et alertes ont aussi été audités contre les vraies données :
-les affirmations vérifiables (dividendes, prix, volumes) ont été
-corrigées quand elles étaient fausses (ex. ORAC : 950 FCFA inventé vs
-704 FCFA réel), et chaque carte affiche désormais un badge "Données
-réelles" ou "Scénario illustratif" (`ContentBasis` dans `lib/types.ts`)
-— rien ne se présente plus comme vérifié sans l'être.
+les documents listent les PDF officiels référencés depuis les fiches
+sociétés BRVM, et les alertes factuelles (prix, volumes, dividendes,
+extrêmes 52 semaines) sont générées depuis les séries réelles. Les
+surfaces qui restent simulées sont explicitement marquées comme telles
+(notamment IPO/opérations) — rien ne se présente plus comme vérifié sans
+l'être.
 
 **Limite connue à ne pas oublier** : le BOC ne publie que l'ouverture et
-la clôture par action, jamais de plus haut/bas intraday. Tant que
-`live_poll.py` ne tourne pas en continu, les séries historiques agrégées
-n'auront jamais de vraies mèches de bougie (high = low = max/min(open,
-close)).
+la clôture par action, jamais de plus haut/bas intraday. `live_poll.py`
+élargit désormais les fourchettes avec les observations collectées
+pendant la séance, mais seulement à partir du jour où la collecte existe
+— jamais rétroactivement.
 
 **Écart réel vs les 15 sociétés mockées** : l'univers réel BRVM compte
 ~45-50 tickers (contre 15 modélisés) — mais bonne nouvelle vérifiée
@@ -152,17 +157,15 @@ mockés sont fictifs** (ex. SNTS à 24 500 FCFA inventé vs ~29 500 FCFA
 réel début juillet 2026) et les 30-35 autres tickers réels ne sont pas
 encore modélisés du tout.
 
-Pour brancher ces données plus tard : toute la donnée de l'app passe par
-`lib/data.ts` (snapshots) et `lib/mock/series.ts` (`getSeries`,
-`seriesForTimeframe`) — remplacer ces deux modules par une lecture de
-`data/boc/series/*.json` (ou une vraie base de données alimentée par ce
-pipeline) suffit, les composants ne connaissent que les types de
-`lib/types.ts`.
+Pour productiser au-delà du statique (comptes, alertes personnalisées,
+billing, équipes), voir `docs/ship-readiness.md` : l'app actuelle reste
+un MVP public sans backend utilisateur.
 
 ## Avertissement
 
-Données simulées, à but éducatif et démonstratif uniquement.
-Ceci n'est pas un conseil en investissement.
+Données réelles quand elles sont sourcées, scénarios de démonstration
+quand ils sont indiqués comme tels. Ceci n'est pas un conseil en
+investissement.
 
 ## Déploiement & automatisation (depuis le 2026-07-08)
 

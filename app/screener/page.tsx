@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { RotateCcw } from "lucide-react";
+import { BookmarkPlus, RotateCcw, X } from "lucide-react";
+import { useSavedFilters, useSavedFiltersHydrated } from "@/hooks/use-saved-filters";
 import { getSnapshots } from "@/lib/data";
 import type { Sector, StockSnapshot } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -65,6 +66,9 @@ const FIELDS: { key: keyof Filters; label: string; placeholder: string }[] = [
 export default function ScreenerPage() {
   const [filters, setFilters] = useState<Filters>(EMPTY);
   const [preset, setPreset] = useState<string | null>(null);
+  const savedHydrated = useSavedFiltersHydrated();
+  const { saved, save, remove } = useSavedFilters();
+  const hasActiveFilters = Object.values(filters).some(Boolean);
 
   const snapshots = getSnapshots();
   const results = useMemo(() => applyFilters(snapshots, filters), [snapshots, filters]);
@@ -90,16 +94,29 @@ export default function ScreenerPage() {
             « PER sous 8 », « dividende net &gt; 6 % »… trouvez-les en deux clics.
           </p>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            setFilters(EMPTY);
-            setPreset(null);
-          }}
-        >
-          <RotateCcw className="h-3.5 w-3.5" /> Réinitialiser
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!hasActiveFilters || !savedHydrated}
+            onClick={() => {
+              const name = window.prompt("Nom de ce filtre :");
+              if (name?.trim()) save(name.trim(), filters as unknown as Record<string, string>);
+            }}
+          >
+            <BookmarkPlus className="h-3.5 w-3.5" /> Enregistrer
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setFilters(EMPTY);
+              setPreset(null);
+            }}
+          >
+            <RotateCcw className="h-3.5 w-3.5" /> Réinitialiser
+          </Button>
+        </div>
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-1">
@@ -118,6 +135,37 @@ export default function ScreenerPage() {
           </button>
         ))}
       </div>
+
+      {savedHydrated && saved.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-medium uppercase tracking-wide text-ink-3">
+            Mes filtres
+          </span>
+          {saved.map((f) => (
+            <span
+              key={f.id}
+              className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 pl-3 pr-1 py-0.5 text-xs font-medium text-gold"
+            >
+              <button
+                onClick={() => {
+                  setPreset(null);
+                  setFilters({ ...EMPTY, ...(f.filters as unknown as Partial<Filters>) });
+                }}
+                className="cursor-pointer hover:underline"
+              >
+                {f.name}
+              </button>
+              <button
+                onClick={() => remove(f.id)}
+                aria-label={`Supprimer le filtre ${f.name}`}
+                className="rounded-full p-0.5 hover:bg-gold/20 cursor-pointer"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      ) : null}
 
       <div className="card-glass p-4 space-y-2.5">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">

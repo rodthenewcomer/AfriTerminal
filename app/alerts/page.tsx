@@ -38,8 +38,13 @@ export default function AlertsPage() {
             dividendes, publications. Factuel — jamais un conseil.
           </p>
         </div>
-        <Button variant="accent" size="sm" title="Création d'alerte (démo)">
-          <BellPlus className="h-3.5 w-3.5" /> Créer une alerte
+        <Button
+          variant="outline"
+          size="sm"
+          disabled
+          title="Les alertes personnalisées nécessitent un compte utilisateur et arrivent avec AfriTerminal Pro."
+        >
+          <BellPlus className="h-3.5 w-3.5" /> Alertes perso à venir
         </Button>
       </div>
 

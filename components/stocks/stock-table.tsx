@@ -4,10 +4,12 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import type { StockSnapshot } from "@/lib/types";
-import { compactFcfa, compactVolume, fcfa, pct, ratio } from "@/lib/format";
+import { LATEST_TRADING_DATE } from "@/lib/real-data";
+import { compactFcfa, compactVolume, dateFr, fcfa, pct, ratio } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { getSeries } from "@/lib/mock/series";
 import { Sparkline } from "@/components/charts/sparkline";
+import { Badge } from "@/components/ui/badge";
 import { PriceChange, ScoreBadge, SignalBadges } from "./badges";
 import { WatchlistStar } from "./watchlist-star";
 
@@ -112,11 +114,13 @@ export function StockTable({ stocks }: { stocks: StockSnapshot[] }) {
             </tr>
           </thead>
           <tbody>
-            {sorted.map((s) => (
-              <tr
-                key={s.ticker}
-                className="group border-b border-line/60 last:border-0 hover:bg-surface-2/50 transition-colors"
-              >
+            {sorted.map((s) => {
+              const stale = !!s.real && s.real.asOfDate !== LATEST_TRADING_DATE;
+              return (
+                <tr
+                  key={s.ticker}
+                  className="group border-b border-line/60 last:border-0 hover:bg-surface-2/50 transition-colors"
+                >
                 <td className="px-3 py-2.5">
                   <Link href={`/stocks/${s.ticker}`} className="flex items-center gap-2">
                     <WatchlistStar ticker={s.ticker} />
@@ -129,6 +133,11 @@ export function StockTable({ stocks }: { stocks: StockSnapshot[] }) {
                       </span>
                       <span className="block text-[11px] text-ink-3">
                         {s.sector} · {s.country}
+                        {stale ? (
+                          <Badge tone="warning" className="ml-1" title={`Dernière cotation disponible : ${dateFr(s.real!.asOfDate)}`}>
+                            suspendue
+                          </Badge>
+                        ) : null}
                       </span>
                     </span>
                   </Link>
@@ -156,23 +165,33 @@ export function StockTable({ stocks }: { stocks: StockSnapshot[] }) {
                 <td className="px-3 py-2.5 text-right">
                   {s.real ? <span className="text-ink-3" title="Non disponible sur données réelles">—</span> : <ScoreBadge kind="risk" value={s.scores.risk} compact />}
                 </td>
-              </tr>
-            ))}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
       {/* Mobile : cartes compactes */}
       <div className="grid gap-2.5 md:hidden">
-        {sorted.map((s) => (
-          <Link key={s.ticker} href={`/stocks/${s.ticker}`} className="min-w-0 card-glass p-3.5 active:scale-[0.99] transition-transform">
+        {sorted.map((s) => {
+          const stale = !!s.real && s.real.asOfDate !== LATEST_TRADING_DATE;
+          return (
+            <Link key={s.ticker} href={`/stocks/${s.ticker}`} className="min-w-0 card-glass p-3.5 active:scale-[0.99] transition-transform">
             <div className="flex items-center gap-3">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-[9px] font-bold text-accent">
                 {s.ticker}
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-ink">{s.name}</p>
-                <p className="text-[11px] text-ink-3">{s.sector} · {s.country}</p>
+                <p className="text-[11px] text-ink-3">
+                  {s.sector} · {s.country}
+                  {stale ? (
+                    <Badge tone="warning" className="ml-1" title={`Dernière cotation disponible : ${dateFr(s.real!.asOfDate)}`}>
+                      suspendue
+                    </Badge>
+                  ) : null}
+                </p>
               </div>
               <Sparkline
                 data={s.real ? s.real.sparkline : getSeries(s.ticker).daily.slice(-30).map((d) => d.close)}
@@ -190,8 +209,9 @@ export function StockTable({ stocks }: { stocks: StockSnapshot[] }) {
                 <SignalBadges signals={s.signals} max={3} />
               </div>
             ) : null}
-          </Link>
-        ))}
+            </Link>
+          );
+        })}
       </div>
     </>
   );

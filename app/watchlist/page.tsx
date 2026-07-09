@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, Star, Trash2 } from "lucide-react";
 import { getSnapshots } from "@/lib/data";
 import { getSeries } from "@/lib/mock/series";
 import { fcfa } from "@/lib/format";
-import { useWatchlist } from "@/hooks/use-watchlist";
+import { useWatchlist, useWatchlistHydrated } from "@/hooks/use-watchlist";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/input";
@@ -15,11 +14,10 @@ import { PriceChange, ScoreBadge, SignalBadges } from "@/components/stocks/badge
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function WatchlistPage() {
-  const [mounted, setMounted] = useState(false);
+  const hydrated = useWatchlistHydrated();
   const { lists, activeId, setActive, toggle, createList, removeList } = useWatchlist();
-  useEffect(() => setMounted(true), []);
 
-  if (!mounted) {
+  if (!hydrated) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-8 w-48" />
