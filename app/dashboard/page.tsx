@@ -17,7 +17,7 @@ import { LATEST_TRADING_DATE } from "@/lib/real-data";
 import { latestSessionAlerts, REAL_ALERTS } from "@/lib/real-alerts";
 import { MarketMap } from "@/components/markets/market-map";
 import { latestNews, newsDate } from "@/lib/news";
-import { IPOS } from "@/lib/mock/ipos";
+import { latestNotices } from "@/lib/real-operations";
 import { dateFr, fcfa, num, pct } from "@/lib/format";
 import { Sparkline } from "@/components/charts/sparkline";
 import { PriceChange, SignalBadges } from "@/components/stocks/badges";
@@ -96,7 +96,7 @@ export default function DashboardPage() {
       b.real!.lastDividendDate!.localeCompare(a.real!.lastDividendDate!)
     )
     .slice(0, 5);
-  const liveOps = IPOS.filter((i) => i.status !== "Clôturée").slice(0, 2);
+  const liveOps = latestNotices(3);
 
   return (
     <div className="space-y-5 fade-in">
@@ -398,7 +398,7 @@ export default function DashboardPage() {
           <CardHeader
             title={
               <span className="inline-flex items-center gap-1.5">
-                <Rocket className="h-3.5 w-3.5 text-accent" /> IPO & opérations démo
+                <Rocket className="h-3.5 w-3.5 text-accent" /> Avis officiels BRVM
               </span>
             }
             action={
@@ -409,17 +409,19 @@ export default function DashboardPage() {
           />
           <CardBody className="space-y-2.5">
             {liveOps.map((op) => (
-              <Link
-                key={op.id}
-                href="/ipo"
+              <a
+                key={op.pdf}
+                href={op.pdf}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="block rounded-xl border border-line bg-surface/50 p-3 hover:bg-surface-2 transition-colors"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-ink">{op.name}</span>
-                  <Badge tone={op.status === "En cours" ? "positive" : "accent"}>{op.status}</Badge>
+                  <span className="text-xs font-semibold text-ink line-clamp-2">{op.title}</span>
+                  <Badge tone="positive">Officiel</Badge>
                 </div>
-                <p className="mt-1 text-[11px] text-ink-3 line-clamp-2">{op.summary}</p>
-              </Link>
+                <p className="mt-1 text-[11px] text-ink-3">{dateFr(op.date)} · PDF (brvm.org)</p>
+              </a>
             ))}
             <div className="rounded-xl border border-accent/25 bg-gradient-to-br from-accent/10 to-gold/10 p-3.5">
               <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink">

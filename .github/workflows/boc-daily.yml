@@ -56,6 +56,8 @@ jobs:
         run: python3 scripts/boc/build_app_data.py --series-dir data/boc/series --out-dir data
       - name: Générer les alertes réelles
         run: python3 scripts/boc/build_alerts.py --out data/real/alerts.json
+      - name: Rafraîchir les opérations sur titres (avis + ESV, stdlib)
+        run: python3 scripts/boc/fetch_operations.py --out data/real/operations.json
       - name: Committer les données du jour
         id: commit
         run: |
