@@ -393,6 +393,50 @@ REGISTRY: dict[str, dict] = {
             "ordinary_income_prev": -1_855_715_900,
         },
     },
+    # SDSC/SEMC (2026-07-10) : diagnostiqués à tort « sans pages
+    # chiffrées » — les états y sont en IMAGES au milieu de pages
+    # texte (rapport CAC), invisibles pour pdfplumber mais nets à
+    # l'OCR (ocrmac).
+    "SDSC": {
+        "pdf": f"{BASE}/20250829_-_etats_financiers_et_rapport_des_cac_-_exercice_2024_-_africa_global_logistics_ci.pdf",
+        "publishedOn": "2025-08-29",
+        "fiscalYear": 2024,
+        "extractor": "manual",
+        "unit": 1_000,
+        # « en milliers de FCFA » libellé sur le document. RN confirmé
+        # sur TROIS tableaux (compte de résultat, bilan, affectation).
+        # Recoupé : PER BOC (6,08) × RN / cours ≈ 54,39 M actions vs
+        # capital 10 887 060 000 ÷ 200 FCFA = 54 435 300 (<0,1%).
+        # RAO 2024 relevé sur un recadrage ciblé (lecture pleine page
+        # tronquait un chiffre), validé par la valeur 2023 adjacente.
+        "raw": {
+            "revenue": 85_643_038,
+            "revenue_prev": 82_623_385,
+            "net_income": 21_068_974,
+            "net_income_prev": 17_138_527,
+            "ordinary_income": 21_811_731,
+            "ordinary_income_prev": 18_614_670,
+        },
+    },
+    "SEMC": {
+        "pdf": f"{BASE}/20241216_-_etats_financiers_de_synthese_-exercice_2023_-_eviosys_packaging_siem_ci.pdf",
+        "publishedOn": "2024-12-16",
+        "fiscalYear": 2023,
+        "extractor": "manual",
+        "unit": 1,
+        # FCFA pleins (montants à 10-11 chiffres). RN 2023 identique
+        # sur TROIS tableaux (compte de résultat, bilan, projet
+        # d'affectation) ; RN 2022 sur deux. Dernier exercice publié :
+        # 2023 (rien de plus récent sur la fiche BRVM au 2026-07-10).
+        "raw": {
+            "revenue": 27_874_878_137,
+            "revenue_prev": 29_602_761_049,
+            "net_income": 1_012_055_129,
+            "net_income_prev": 3_857_786_280,
+            "ordinary_income": 1_451_037_405,
+            "ordinary_income_prev": 4_854_791_298,
+        },
+    },
 }
 
 
