@@ -49,6 +49,16 @@ jobs:
         run: npm run build
         env:
           NEXT_PUBLIC_BASE_PATH: /AfriTerminal
+      - name: Extension .png sur les images OG
+        # GitHub Pages sert les fichiers sans extension en
+        # application/octet-stream — les crawlers WhatsApp/X/Facebook
+        # exigent un content-type image/*. On renomme les fichiers
+        # générés par la convention opengraph-image et on réécrit
+        # leurs URLs dans le HTML et les payloads RSC (.txt).
+        run: |
+          find out -type f -name 'opengraph-image' -exec mv {} {}.png \;
+          find out -type f \( -name '*.html' -o -name '*.txt' \) \
+            -exec sed -i 's|/opengraph-image?|/opengraph-image.png?|g' {} +
       - uses: actions/upload-pages-artifact@v3
         with:
           path: out
