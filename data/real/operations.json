@@ -1,6 +1,11 @@
 {
   "avis": [
     {
+      "title": "BRVM :  Transactions Sur Dossier",
+      "date": "2026-07-10",
+      "pdf": "https://www.brvm.org/sites/default/files/20260709_-_avis_ndeg202_brvmdg_-_transactions_sur_dossier.pdf"
+    },
+    {
       "title": "Avis : Calendrier de paiement de dividendes",
       "date": "2026-07-09",
       "pdf": "https://www.brvm.org/sites/default/files/20260708_-_calendrier_de_paiement_des_dividendes_-_exercice_2025.pdf"
@@ -144,11 +149,6 @@
       "title": "SAFCA CI : Radiation - Droit Préférentiel de Souscription 1",
       "date": "2026-06-07",
       "pdf": "https://www.brvm.org/sites/default/files/20260605_-_avis_ndeg157_brvmdg_-_radiation_safca_ci_droit_ps1.pdf"
-    },
-    {
-      "title": "Communiqué AMF-UMOA – Liste des cartes professionnelles délivrées en avril 2026 - AMF-UMOA",
-      "date": "2026-06-07",
-      "pdf": "https://www.brvm.org/sites/default/files/20260605_-_liste_des_cartes_professionnelles_delivrees_en_avril_2026_-_amf-umoa.pdf"
     }
   ],
   "operations": [
