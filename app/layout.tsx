@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { AppShell } from "@/components/layout/app-shell";
+import { GOOGLE_SITE_VERIFICATION, SITE_ORIGIN } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,6 +16,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  // Base absolue des URLs OG/Twitter — les images de partage générées
+  // par la convention opengraph-image.tsx la consomment.
+  metadataBase: new URL(SITE_ORIGIN),
   title: {
     default: "AfriTerminal — La BRVM devient lisible",
     template: "%s · AfriTerminal",
@@ -22,6 +26,17 @@ export const metadata: Metadata = {
   description:
     "Charts, dividendes, documents et signaux intelligents pour les actions africaines. Comprendre le marché avant le marché.",
   applicationName: "AfriTerminal",
+  openGraph: {
+    siteName: "AfriTerminal",
+    locale: "fr_FR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
+  ...(GOOGLE_SITE_VERIFICATION
+    ? { verification: { google: GOOGLE_SITE_VERIFICATION } }
+    : {}),
 };
 
 export const viewport: Viewport = {
