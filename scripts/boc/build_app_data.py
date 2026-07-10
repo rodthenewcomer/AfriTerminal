@@ -137,6 +137,13 @@ def build_snapshot(records: list[dict]) -> dict:
         "netYieldPct": last["net_yield_pct"],
         "lastDividendNet": dividend_net,
         "lastDividendDate": dividend_date,
+        # Séance du jour : le BOC publie ouverture/clôture (high/low
+        # affinés plus loin par la collecte live quand elle existe) et la
+        # valeur échangée en FCFA.
+        "dayOpen": last["open"],
+        "dayHigh": last["high"],
+        "dayLow": last["low"],
+        "dayValueFcfa": last.get("value"),
         "week52High": week52_high,
         "week52Low": week52_low,
         "allTimeHigh": record_bar["close"],
@@ -252,6 +259,10 @@ def main() -> None:
 
         snap = build_snapshot(records)
         snap["ticker"] = ticker
+        live = live_by_date.get(records[-1]["time"], {}).get(ticker)
+        if live:
+            snap["dayHigh"] = max(snap["dayHigh"], live["high"])
+            snap["dayLow"] = min(snap["dayLow"], live["low"])
         snapshots[ticker] = snap
 
         history = dividend_history(records)

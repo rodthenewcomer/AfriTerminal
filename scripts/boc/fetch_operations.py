@@ -37,6 +37,48 @@ ESV_TYPES = {
     "consolidation": "Consolidation",
 }
 
+# Émetteur ESV (nom libre) -> ticker BRVM, vérifié contre snapshot.json.
+# Les tables ESV n'utilisent pas les tickers ; sans ce mappage, la fiche
+# action ne peut pas retrouver les opérations de sa société.
+ISSUER_TICKERS: dict[str, str] = {
+    "SIB": "SIBC",
+    "BANK OF AFRICA CI": "BOAC",
+    "BANK OF AFRICA NG": "BOAN",
+    "BANK OF AFRICA BN": "BOAB",
+    "BANK OF AFRICA SN": "BOAS",
+    "BANK OF AFRICA SENEGAL": "BOAS",
+    "BANK OF AFRICA BF": "BOABF",
+    "BANK OF AFRICA ML": "BOAM",
+    "TRACTAFRIC CI": "PRSC",
+    "TRACTAFRIC MOTORS CI": "PRSC",
+    "SMB": "SMBC",
+    "SMB CI": "SMBC",
+    "ECOBANK CI": "ECOC",
+    "CROWN SIEM CI": "SEMC",
+    "SAFCA CI": "SAFC",
+    "SAFCA": "SAFC",
+    "ONATEL BF": "ONTBF",
+    "ONATEL": "ONTBF",
+    "UNILEVER CI": "UNLC",
+    "SICOR": "SICC",
+    "SICOR CI": "SICC",
+    "NEI-CEDA": "NEIC",
+    "NEI-CEDA CI": "NEIC",
+    "SETAO": "STAC",
+    "SETAO CI": "STAC",
+    "SERVAIR ABIDJAN": "ABJC",
+    "SERVAIR ABIDJAN CI": "ABJC",
+    "SODE CI": "SDCC",
+    "SITAB": "STBC",
+    "SITAB CI": "STBC",
+    "SODECI": "SDCC",
+}
+
+
+def issuer_ticker(issuer: str) -> str | None:
+    return ISSUER_TICKERS.get(issuer.strip().upper())
+
+
 TABLE_RE = re.compile(r"<table[^>]*>(.*?)</table>", re.S)
 ROW_RE = re.compile(r"<tr[^>]*>(.*?)</tr>", re.S)
 CELL_RE = re.compile(r"<t[dh][^>]*>(.*?)</t[dh]>", re.S)
@@ -146,6 +188,7 @@ def scrape_esv() -> list[dict]:
                     {
                         "kind": kind,
                         "issuer": issuer,
+                        "ticker": issuer_ticker(issuer),
                         "date": date,
                         "parity": parity,
                         "avisPdf": pdfs[0] if pdfs else None,

@@ -155,6 +155,7 @@
     {
       "kind": "Augmentation de capital",
       "issuer": "SIB",
+      "ticker": "SIBC",
       "date": "2024-11-19",
       "parity": "Une (1) action nouvelle pour une (1) action ancienne.",
       "avisPdf": "https://www.brvm.org/sites/default/files/20241030_-_avis_ndeg273_brvmdg_-_augmentation_de_capital_-_sib_ci.pdf",
@@ -163,6 +164,7 @@
     {
       "kind": "Augmentation de capital",
       "issuer": "BANK OF AFRICA CI",
+      "ticker": "BOAC",
       "date": "2024-10-29",
       "parity": "Une (1) action nouvelle pour une (1) action ancienne.",
       "avisPdf": "https://www.brvm.org/sites/default/files/20241015_-_avis_ndeg257_brvmdg_-_augmentation_de_capital_-_boa_ci.pdf",
@@ -171,6 +173,7 @@
     {
       "kind": "Augmentation de capital",
       "issuer": "BANK OF AFRICA NG",
+      "ticker": "BOAN",
       "date": "2024-09-06",
       "parity": "Trois (3) actions nouvelles pour cinq (5) actions",
       "avisPdf": "https://www.brvm.org/sites/default/files/20240823_-_avis_ndeg205_brvmdg_-_augmentation_de_capital_-_boa_niger.pdf",
@@ -179,6 +182,7 @@
     {
       "kind": "Fractionnement (split)",
       "issuer": "TRACTAFRIC CI",
+      "ticker": "PRSC",
       "date": "2019-10-25",
       "parity": "64 actions nouvelles pour une (1) action ancienne",
       "avisPdf": "https://www.brvm.org/sites/default/files/20191010_-_avis_ndeg162_brvmdg_-_fractionnement_tmci.pdf",
@@ -187,6 +191,7 @@
     {
       "kind": "Fractionnement (split)",
       "issuer": "TRACTAFRIC CI",
+      "ticker": "PRSC",
       "date": "2019-10-24",
       "parity": "64 actions nouvelles pour une action ancienne",
       "avisPdf": "https://www.brvm.org/sites/default/files/20191024_-_avis_ndeg167_brvmdg_-_valeur_theorique_-_fractionnement_des_actions_tmci.pdf",
@@ -195,6 +200,7 @@
     {
       "kind": "Augmentation de capital",
       "issuer": "UNILEVER CI",
+      "ticker": "UNLC",
       "date": "2019-07-26",
       "parity": null,
       "avisPdf": "https://www.brvm.org/sites/default/files/20190712_-_avis_ndeg118_brvmdg_-_augmentation_de_capital_par_apport_en_numeraire_-_unilever_ci.pdf",
@@ -203,6 +209,7 @@
     {
       "kind": "Fractionnement (split)",
       "issuer": "SMB",
+      "ticker": "SMBC",
       "date": "2019-02-25",
       "parity": "Quatre (4) nouvelles action pour une (1) ancienne",
       "avisPdf": "https://www.brvm.org/sites/default/files/20190211_-_avis_ndeg016_brvmdg_-_fractionnement_smb_ci.pdf",
@@ -211,6 +218,7 @@
     {
       "kind": "Fractionnement (split)",
       "issuer": "ECOBANK CI",
+      "ticker": "ECOC",
       "date": "2018-12-27",
       "parity": "Cinq (5) nouvelles actions pour une (1) ancienne",
       "avisPdf": "https://www.brvm.org/sites/default/files/20181211_-_avis_ndeg180_brvmdg_-_fractionnement_ecobank_ci.pdf",
@@ -219,6 +227,7 @@
     {
       "kind": "Fractionnement (split)",
       "issuer": "SAFCA CI",
+      "ticker": "SAFC",
       "date": "2018-12-24",
       "parity": "Cinq (5) nouvelles pour une (1) ancienne",
       "avisPdf": "https://www.brvm.org/sites/default/files/20181128_-_avis_ndeg178_brvmdg_-_fractionnement_safca.pdf",
@@ -227,6 +236,7 @@
     {
       "kind": "Fractionnement (split)",
       "issuer": "CROWN SIEM CI",
+      "ticker": "SEMC",
       "date": "2018-12-20",
       "parity": "Quarante (40) nouvelles actions pour une (1) ancienne",
       "avisPdf": "https://www.brvm.org/sites/default/files/20181205_-_avis_ndeg179_brvmdg_-_fractionnement_crown_siem.pdf",
@@ -235,6 +245,7 @@
     {
       "kind": "Fractionnement (split)",
       "issuer": "ONATEL BF",
+      "ticker": "ONTBF",
       "date": "2018-08-29",
       "parity": "deux (02) actions nouvelles pour une (1) ancienne",
       "avisPdf": "https://www.brvm.org/sites/default/files/20180730_-_avis_ndeg123_brvmdg_-_fractionnement_onatel.pdf",
@@ -243,6 +254,7 @@
     {
       "kind": "Fractionnement (split)",
       "issuer": "SITAB",
+      "ticker": "STBC",
       "date": "2018-07-27",
       "parity": "vingt (20) actions nouvelles pour une (1) action ancienne",
       "avisPdf": "https://www.brvm.org/sites/default/files/20180712_-_avis_ndeg115_brvmdg_-_fractionnement_sitab.pdf",
@@ -251,6 +263,7 @@
     {
       "kind": "Fractionnement (split)",
       "issuer": "SITAB",
+      "ticker": "STBC",
       "date": "2018-07-26",
       "parity": "vingt (20) actions nouvelles pour une (1) action ancienne",
       "avisPdf": "https://www.brvm.org/sites/default/files/20180726_-_avis_ndeg121_brvmdg_-_valeur_theorique_-_fractionnement_des_actions_sitab_ci.pdf",
@@ -259,6 +272,7 @@
     {
       "kind": "Fractionnement (split)",
       "issuer": "SIB",
+      "ticker": "SIBC",
       "date": "2018-06-15",
       "parity": "Cinq (5) nouvelles actions pour une (1) ancienne",
       "avisPdf": "https://www.brvm.org/sites/default/files/20180518_-_avis_ndeg072_brvmdg_-_fractionnement_sib_ci.pdf",
@@ -267,6 +281,7 @@
     {
       "kind": "Augmentation de capital",
       "issuer": "BRVM-C",
+      "ticker": null,
       "date": null,
       "parity": null,
       "avisPdf": null,
@@ -275,6 +290,7 @@
     {
       "kind": "Augmentation de capital",
       "issuer": "BRVM-30",
+      "ticker": null,
       "date": null,
       "parity": null,
       "avisPdf": null,
@@ -283,6 +299,7 @@
     {
       "kind": "Augmentation de capital",
       "issuer": "BRVM-PRES",
+      "ticker": null,
       "date": null,
       "parity": null,
       "avisPdf": null,
@@ -291,6 +308,7 @@
     {
       "kind": "Augmentation de capital",
       "issuer": "BANK OF AFRICA BN",
+      "ticker": "BOAB",
       "date": null,
       "parity": null,
       "avisPdf": "https://www.brvm.org/sites/default/files/20240822_-_avis_ndeg204_brvmdg_-_augmentation_de_capital_-_boa_benin.pdf",
@@ -299,6 +317,7 @@
     {
       "kind": "Augmentation de capital",
       "issuer": "BANK OF AFRICA SN",
+      "ticker": "BOAS",
       "date": null,
       "parity": null,
       "avisPdf": "https://www.brvm.org/sites/default/files/20240819_-_avis_ndeg200_brvmdg_-_augmentation_de_capital_-_boa_senegal.pdf",
@@ -307,6 +326,7 @@
     {
       "kind": "Augmentation de capital",
       "issuer": "BANK OF AFRICA BF",
+      "ticker": "BOABF",
       "date": null,
       "parity": null,
       "avisPdf": "https://www.brvm.org/sites/default/files/20240816_-_avis_ndeg197_brvmdg_-_augmentation_de_capital_-_boa_burkina_faso.pdf",
@@ -315,6 +335,7 @@
     {
       "kind": "Augmentation de capital",
       "issuer": "BANK OF AFRICA ML",
+      "ticker": "BOAM",
       "date": null,
       "parity": null,
       "avisPdf": "https://www.brvm.org/sites/default/files/20240816_-_avis_ndeg196_brvmdg_-_augmentation_de_capital_-_boa_mali.pdf",
@@ -323,6 +344,7 @@
     {
       "kind": "Augmentation de capital",
       "issuer": "BANK OF AFRICA ML",
+      "ticker": "BOAM",
       "date": null,
       "parity": null,
       "avisPdf": "https://www.brvm.org/sites/default/files/20220112_-_avis_ndeg006_brvmdg_-_admission_la_cote_actions_nouvelles_boa_ml.pdf",
@@ -331,6 +353,7 @@
     {
       "kind": "Augmentation de capital",
       "issuer": "BANK OF AFRICA ML",
+      "ticker": "BOAM",
       "date": null,
       "parity": null,
       "avisPdf": "https://www.brvm.org/sites/default/files/20211229_-_avis_ndeg251_brvmdg_-_admission_la_cote_actions_nouvelles_boa_ml_0.pdf",
@@ -339,6 +362,7 @@
     {
       "kind": "Fractionnement (split)",
       "issuer": "BRVM-C",
+      "ticker": null,
       "date": null,
       "parity": null,
       "avisPdf": null,
@@ -347,6 +371,7 @@
     {
       "kind": "Fractionnement (split)",
       "issuer": "BRVM-30",
+      "ticker": null,
       "date": null,
       "parity": null,
       "avisPdf": null,
@@ -355,6 +380,7 @@
     {
       "kind": "Fractionnement (split)",
       "issuer": "BRVM-PRES",
+      "ticker": null,
       "date": null,
       "parity": null,
       "avisPdf": null,
@@ -363,6 +389,7 @@
     {
       "kind": "Réduction de capital",
       "issuer": "BRVM-C",
+      "ticker": null,
       "date": null,
       "parity": null,
       "avisPdf": null,
@@ -371,6 +398,7 @@
     {
       "kind": "Réduction de capital",
       "issuer": "BRVM-30",
+      "ticker": null,
       "date": null,
       "parity": null,
       "avisPdf": null,
@@ -379,6 +407,7 @@
     {
       "kind": "Réduction de capital",
       "issuer": "BRVM-PRES",
+      "ticker": null,
       "date": null,
       "parity": null,
       "avisPdf": null,
@@ -387,6 +416,7 @@
     {
       "kind": "Consolidation",
       "issuer": "BRVM-C",
+      "ticker": null,
       "date": null,
       "parity": null,
       "avisPdf": null,
@@ -395,6 +425,7 @@
     {
       "kind": "Consolidation",
       "issuer": "BRVM-30",
+      "ticker": null,
       "date": null,
       "parity": null,
       "avisPdf": null,
@@ -403,6 +434,7 @@
     {
       "kind": "Consolidation",
       "issuer": "BRVM-PRES",
+      "ticker": null,
       "date": null,
       "parity": null,
       "avisPdf": null,

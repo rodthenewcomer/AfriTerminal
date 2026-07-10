@@ -269,6 +269,12 @@ export interface RealQuote {
   netYieldPct: number | null;
   lastDividendNet: number | null;
   lastDividendDate: string | null;
+  /** Séance du jour : ouverture BOC, extrêmes (affinés par la collecte
+   * intraday quand elle existe) et valeur échangée en FCFA. */
+  dayOpen: number;
+  dayHigh: number;
+  dayLow: number;
+  dayValueFcfa: number | null;
   /** Extrêmes de clôture sur ~252 séances (52 semaines), séries BOC réelles. */
   week52High: number;
   week52Low: number;

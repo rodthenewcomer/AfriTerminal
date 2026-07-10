@@ -61,6 +61,18 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     label: "Volume moyen 30 j",
     def: "Nombre moyen de titres échangés par séance sur les 30 dernières séances — la liquidité réelle de la valeur.",
   },
+  volatilite: {
+    label: "Volatilité",
+    def: "Amplitude des variations quotidiennes du cours, annualisée. Plus elle est élevée, plus le titre bouge fort — dans les deux sens. Calculée sur les 252 dernières séances officielles.",
+  },
+  beta: {
+    label: "Bêta",
+    def: "Sensibilité du titre aux mouvements du marché (BRVM Composite). 1 = bouge comme le marché ; > 1 = amplifie ; < 1 = amortit ; négatif = à contre-courant. Calculé sur 1 an de séances communes.",
+  },
+  drawdown: {
+    label: "Perte max.",
+    def: "La pire baisse subie depuis un sommet de clôture — ce qu'aurait perdu, au pire moment, un investisseur entré au plus haut. Calculée sur tout l'historique disponible (2019+).",
+  },
   ytd: {
     label: "YTD",
     def: "Year-to-date : la variation depuis le 1er janvier de l'année en cours.",

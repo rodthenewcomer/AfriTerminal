@@ -15,6 +15,8 @@ export interface MarketNotice {
 export interface CapitalOperation {
   kind: string;
   issuer: string;
+  /** Ticker BRVM résolu depuis le nom d'émetteur (null : indices, non coté) */
+  ticker: string | null;
   date: string | null;
   parity: string | null;
   avisPdf: string | null;
@@ -31,4 +33,9 @@ export const CAPITAL_OPERATIONS: CapitalOperation[] = DATA.operations;
 
 export function latestNotices(n: number): MarketNotice[] {
   return MARKET_NOTICES.slice(0, n);
+}
+
+/** Opérations sur capital d'une société (splits, augmentations…). */
+export function operationsForTicker(ticker: string): CapitalOperation[] {
+  return CAPITAL_OPERATIONS.filter((o) => o.ticker === ticker);
 }

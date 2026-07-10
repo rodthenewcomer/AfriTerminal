@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
+import Link from "next/link";
 import { Bell, Sparkles } from "lucide-react";
-import { getSectorStats, getSnapshot } from "@/lib/data";
+import { getSectorStats, getSnapshot, getSnapshots } from "@/lib/data";
 import { getRealQuote, LATEST_TRADING_DATE } from "@/lib/real-data";
 import { getRealFundamentals, growthPct } from "@/lib/real-fundamentals";
 import { newsDate, newsForTicker } from "@/lib/news";
@@ -27,6 +28,9 @@ import { DividendPanel } from "./dividend-panel";
 import { MetricCard } from "./metric-card";
 import { SectorComparison } from "./sector-comparison";
 import { DividendHistory } from "./dividend-history";
+import { RiskStats } from "./risk-stats";
+import { operationsForTicker } from "@/lib/real-operations";
+import { Landmark } from "lucide-react";
 import { WatchlistButton } from "./watchlist-button";
 
 export function StockView({ ticker }: { ticker: string }) {
@@ -84,8 +88,13 @@ export function StockView({ ticker }: { ticker: string }) {
           </div>
           <div className="flex w-full items-center gap-2 sm:w-auto">
             <WatchlistButton ticker={stock.ticker} />
-            <Button variant="outline" size="sm">
-              <Bell className="h-3.5 w-3.5" /> Alerte
+            <Button
+              variant="outline"
+              size="sm"
+              disabled
+              title="Alertes personnalisées à venir (nécessite les comptes) — les alertes factuelles du marché sont dans l'onglet Alertes"
+            >
+              <Bell className="h-3.5 w-3.5" /> Alerte — à venir
             </Button>
           </div>
         </div>
@@ -128,6 +137,30 @@ export function StockView({ ticker }: { ticker: string }) {
                   <ScoreBadge kind="momentum" value={stock.scores.momentum} />
                   <ScoreBadge kind="risk" value={stock.scores.risk} />
                 </div>
+              ) : null}
+              {real ? (
+                <dl className="space-y-1.5 border-b border-line pb-3 text-xs">
+                  <div className="flex items-center justify-between">
+                    <dt className="text-ink-3">Ouverture</dt>
+                    <dd className="num font-medium text-ink">{fcfa(real.dayOpen)}</dd>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <dt className="text-ink-3">+ Haut / + Bas du jour</dt>
+                    <dd className="num font-medium text-ink">
+                      {fcfa(real.dayHigh)} / {fcfa(real.dayLow)}
+                    </dd>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <dt className="text-ink-3">Clôture veille</dt>
+                    <dd className="num font-medium text-ink">{fcfa(real.prevClose)}</dd>
+                  </div>
+                  {real.dayValueFcfa ? (
+                    <div className="flex items-center justify-between">
+                      <dt className="text-ink-3">Valeur échangée</dt>
+                      <dd className="num font-medium text-ink">{compactFcfa(real.dayValueFcfa)}</dd>
+                    </div>
+                  ) : null}
+                </dl>
               ) : null}
               <dl className="space-y-1.5 text-xs">
                 {[
@@ -358,6 +391,87 @@ export function StockView({ ticker }: { ticker: string }) {
 
       {/* Historique réel des dividendes (si ≥ 2 versements connus) */}
       {real ? <DividendHistory ticker={stock.ticker} /> : null}
+
+      {/* Profil de risque calculé (volatilité, bêta, perte max) */}
+      <RiskStats ticker={stock.ticker} />
+
+      {/* Opérations sur capital de la société (splits, augmentations) */}
+      {(() => {
+        const ops = operationsForTicker(stock.ticker);
+        if (ops.length === 0) return null;
+        return (
+          <Card>
+            <CardHeader
+              title={
+                <span className="inline-flex items-center gap-1.5">
+                  <Landmark className="h-3.5 w-3.5 text-accent" /> Opérations
+                  sur capital
+                </span>
+              }
+              subtitle="Splits, augmentations et réductions actés à la BRVM pour cette société"
+            />
+            <CardBody className="space-y-1.5">
+              {ops.map((op, i) => (
+                <div
+                  key={i}
+                  className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-line bg-surface/50 px-3 py-2 text-xs"
+                >
+                  <Badge tone="accent">{op.kind}</Badge>
+                  {op.date ? <time className="text-ink-3">{dateFr(op.date)}</time> : null}
+                  {op.parity ? (
+                    <span className="min-w-0 flex-1 truncate text-ink-2">{op.parity}</span>
+                  ) : null}
+                  {op.avisPdf ? (
+                    <a
+                      href={op.avisPdf}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] underline text-ink-3 hover:text-ink"
+                    >
+                      Avis officiel
+                    </a>
+                  ) : null}
+                </div>
+              ))}
+            </CardBody>
+          </Card>
+        );
+      })()}
+
+      {/* Valeurs comparables : même secteur, les plus liquides */}
+      {(() => {
+        const peers = getSnapshots()
+          .filter((s) => s.sector === stock.sector && s.ticker !== stock.ticker)
+          .sort((a, b) => b.avgVolume30d * b.lastPrice - a.avgVolume30d * a.lastPrice)
+          .slice(0, 4);
+        if (peers.length === 0) return null;
+        return (
+          <section>
+            <h2 className="mb-2.5 text-sm font-semibold text-ink">
+              Dans le même secteur ({stock.sector})
+            </h2>
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+              {peers.map((s) => (
+                <Link
+                  key={s.ticker}
+                  href={`/stocks/${s.ticker}`}
+                  className="min-w-0 rounded-xl border border-line bg-surface/50 p-3 hover:bg-surface-2 transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-bold text-accent">{s.ticker}</span>
+                    <PriceChange value={s.dayChange} className="text-[11px]" arrow={false} />
+                  </div>
+                  <p className="mt-0.5 truncate text-xs font-medium text-ink">{s.name}</p>
+                  <p className="mt-1 flex items-center justify-between text-[11px] text-ink-3">
+                    <span className="num text-ink-2">{fcfa(s.lastPrice)}</span>
+                    <span className="num">PER {s.per > 0 ? ratio(s.per) : "—"}</span>
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        );
+      })()}
 
       {/* Analyse IA + dividendes */}
       {real ? (
