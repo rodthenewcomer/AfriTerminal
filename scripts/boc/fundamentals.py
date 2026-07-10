@@ -253,6 +253,11 @@ REGISTRY: dict[str, dict] = {
             "net_income_prev": 9_374,
             "ordinary_income": 12_597,
             "ordinary_income_prev": 13_178,
+            # Ligne totale explicite du bilan « Capitaux propres » ;
+            # composantes recoupées (23 082 + 9 087 + 4 033 = 36 202).
+            # Identité vérifiée : P/B 4,96 = PER BOC 19,75 × ROE 25,1 %.
+            "equity": 36_202,
+            "equity_prev": 41_115,
         },
     },
     "SDCC": {
@@ -276,6 +281,16 @@ REGISTRY: dict[str, dict] = {
             "revenue": 189_400_000_000,
             "net_income": 4_663_000_000,
             "proposed_gross_dividend": 525,
+            # Bilan SYSCOHADA individuel (en milliers, converti ici en FCFA
+            # pleins = unité de l'entrée) : capital 4 500 000 + primes/
+            # réserves 7 418 903 + résultat 4 662 738 + autres capitaux
+            # propres 3 134 154. Le RN du bilan (4 662 738 k) recoupe le
+            # communiqué (4,663 Md) — même référentiel. Le capital confirme
+            # aussi le nombre d'actions : 4,5 Md ÷ 9 000 000 = 500 F de
+            # nominal pile. NB : le PER publié au BOC semble calculé sur le
+            # référentiel IFRS consolidé, pas sur ces comptes individuels.
+            "equity": (4_500_000 + 7_418_903 + 4_662_738 + 3_134_154) * 1_000,
+            "equity_prev": (4_500_000 + 7_458_414 + 3_560_488 + 3_072_525) * 1_000,
         },
     },
     "ABJC": {
@@ -377,6 +392,11 @@ REGISTRY: dict[str, dict] = {
             "net_income_prev": -759_371_358,
             "ordinary_income": 1_335_940_310,
             "ordinary_income_prev": 714_921_778,
+            # « TOTAL CAPITAUX PROPRES ET RESSOURCES ASSIMILEES » (inclut
+            # les subventions, convention SYSCOHADA). Identité vérifiée :
+            # P/B 4,7 = PER BOC 13,29 × ROE 35,4 % (année de redressement).
+            "equity": 5_754_898_260,
+            "equity_prev": 3_718_272_026,
         },
     },
     "SLBC": {
@@ -446,6 +466,11 @@ REGISTRY: dict[str, dict] = {
             "net_income_prev": 17_138_527,
             "ordinary_income": 21_811_731,
             "ordinary_income_prev": 18_614_670,
+            # Ligne « Situation nette » du bilan, recoupée à 1 k près avec
+            # capital + primes/réserves + résultat. Identité vérifiée :
+            # P/B 1,66 = PER BOC 6,08 × ROE 27,3 %.
+            "equity": 77_095_183,
+            "equity_prev": 61_034_257,
         },
     },
     "SEMC": {
@@ -467,6 +492,12 @@ REGISTRY: dict[str, dict] = {
             "net_income_prev": 3_857_786_280,
             "ordinary_income": 1_451_037_405,
             "ordinary_income_prev": 4_854_791_298,
+            # Capital + primes/réserves + résultat (seules lignes de
+            # capitaux propres de ce bilan). Preuve interne : réserves
+            # 2023 (10 147 844 890) = réserves 2022 + RN 2022 au franc
+            # près. Identité vérifiée : P/B 2,61 = PER 33,6 × ROE 7,8 %.
+            "equity": 1_889_220_000 + 10_147_844_890 + 1_012_055_129,
+            "equity_prev": 1_889_220_000 + 6_290_058_610 + 3_857_786_280,
         },
     },
 }
