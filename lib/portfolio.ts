@@ -266,3 +266,51 @@ export function dividendIncome(
   events.sort((a, b) => b.date.localeCompare(a.date));
   return { events, total: events.reduce((a, e) => a + e.amount, 0) };
 }
+
+export interface IncomeProjection {
+  ticker: string;
+  /** Dernier dividende net par action, FCFA */
+  netPerShare: number;
+  /** Revenu annuel projeté = quantité × dernier net, FCFA */
+  annual: number;
+  /** Rendement sur PRU : dernier net / coût moyen, % */
+  yieldOnCost: number;
+}
+
+/**
+ * Revenu annuel projeté et rendement sur PRU par position — hypothèse
+ * explicite : chaque société reconduit son DERNIER dividende net. Ce
+ * n'est pas une prévision, c'est une projection à dividende constant,
+ * à étiqueter comme telle dans l'UI. Le rendement sur PRU est le
+ * rendement « personnel » du détenteur (dividende / prix payé), souvent
+ * supérieur au rendement affiché du marché pour un ancien actionnaire.
+ */
+export function projectedIncome(
+  positions: Position[],
+  lastDividendOf: (ticker: string) => number | null | undefined
+): {
+  perPosition: IncomeProjection[];
+  totalAnnual: number;
+  /** Rendement sur PRU du portefeuille : revenu projeté / investi total, % */
+  portfolioYieldOnCost: number;
+} {
+  const held = positions.filter((p) => p.quantity > 0);
+  const perPosition: IncomeProjection[] = [];
+  for (const p of held) {
+    const net = lastDividendOf(p.ticker);
+    if (!net || net <= 0) continue;
+    perPosition.push({
+      ticker: p.ticker,
+      netPerShare: net,
+      annual: p.quantity * net,
+      yieldOnCost: p.averageCost > 0 ? (net / p.averageCost) * 100 : 0,
+    });
+  }
+  const totalAnnual = perPosition.reduce((a, x) => a + x.annual, 0);
+  const totalInvested = held.reduce((a, p) => a + p.invested, 0);
+  return {
+    perPosition,
+    totalAnnual,
+    portfolioYieldOnCost: totalInvested > 0 ? (totalAnnual / totalInvested) * 100 : 0,
+  };
+}

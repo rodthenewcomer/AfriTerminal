@@ -3,6 +3,7 @@ import {
   computePositions,
   dividendIncome,
   portfolioValueSeries,
+  projectedIncome,
   valuePortfolio,
   type PortfolioTransaction,
 } from "./portfolio";
@@ -200,5 +201,34 @@ describe("dividendIncome", () => {
       4 * 1_740,
       10 * 1_655,
     ]);
+  });
+});
+
+describe("projectedIncome", () => {
+  it("projette le dernier dividende et le rendement sur PRU", () => {
+    const positions = computePositions([
+      tx({ ticker: "SNTS", quantity: 10, price: 20_000 }),
+      tx({ ticker: "XXXX", quantity: 5, price: 1_000 }),
+    ]);
+    const { perPosition, totalAnnual, portfolioYieldOnCost } = projectedIncome(
+      positions,
+      (t) => (t === "SNTS" ? 1_740 : null)
+    );
+    // XXXX sans dividende : exclu de la projection
+    expect(perPosition).toHaveLength(1);
+    expect(perPosition[0].annual).toBe(17_400);
+    expect(perPosition[0].yieldOnCost).toBeCloseTo(8.7);
+    expect(totalAnnual).toBe(17_400);
+    // investi total = 200 000 + 5 000 ; rendement portefeuille dilué par XXXX
+    expect(portfolioYieldOnCost).toBeCloseTo((17_400 / 205_000) * 100);
+  });
+
+  it("position soldée : aucun revenu projeté", () => {
+    const positions = computePositions([
+      tx({ quantity: 10, price: 20_000 }),
+      tx({ date: "2026-02-01", side: "vente", quantity: 10, price: 22_000 }),
+    ]);
+    const { totalAnnual } = projectedIncome(positions, () => 1_740);
+    expect(totalAnnual).toBe(0);
   });
 });

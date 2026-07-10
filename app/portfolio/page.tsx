@@ -12,7 +12,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { usePortfolio, usePortfolioHydrated } from "@/hooks/use-portfolio";
-import { computePositions, dividendIncome, valuePortfolio } from "@/lib/portfolio";
+import { computePositions, dividendIncome, projectedIncome, valuePortfolio } from "@/lib/portfolio";
 import { dividendHistoryFor } from "@/lib/real-dividends";
 import { Coins } from "lucide-react";
 import { getSnapshot } from "@/lib/data";
@@ -103,6 +103,18 @@ export default function PortfolioPage() {
   const dividends = useMemo(
     () => dividendIncome(transactions, dividendHistoryFor),
     [transactions]
+  );
+
+  const projection = useMemo(() => {
+    const positions = computePositions(transactions);
+    return projectedIncome(
+      positions,
+      (t) => dividendHistoryFor(t).at(-1)?.net ?? null
+    );
+  }, [transactions]);
+  const yieldOnCostOf = useMemo(
+    () => new Map(projection.perPosition.map((x) => [x.ticker, x.yieldOnCost])),
+    [projection]
   );
 
   const orderedTx = useMemo(
@@ -211,7 +223,7 @@ export default function PortfolioPage() {
               subtitle="Valorisées au dernier cours officiel · PRU = prix de revient unitaire (coût moyen, frais inclus)"
             />
             <CardBody className="hidden overflow-x-auto p-0 md:block">
-              <table className="w-full min-w-[760px] text-sm">
+              <table className="w-full min-w-[820px] text-sm">
                 <thead>
                   <tr className="border-b border-line bg-surface-2/50 text-[11px] uppercase tracking-wide text-ink-3">
                     <th className="px-4 py-2.5 text-left font-medium">Valeur</th>
@@ -220,6 +232,7 @@ export default function PortfolioPage() {
                     <th className="px-3 py-2.5 text-right font-medium">Cours</th>
                     <th className="px-3 py-2.5 text-right font-medium">Valeur</th>
                     <th className="px-3 py-2.5 text-right font-medium">+/- value</th>
+                    <th className="px-3 py-2.5 text-right font-medium" title="Rendement sur PRU : dernier dividende net / votre prix de revient — votre rendement personnel">Rdt/PRU</th>
                     <th className="px-3 py-2.5 text-right font-medium">Poids</th>
                   </tr>
                 </thead>
@@ -253,6 +266,11 @@ export default function PortfolioPage() {
                             {fcfa(p.unrealizedPnl)}
                           </span>{" "}
                           <PriceChange value={p.unrealizedPnlPct} className="text-[11px]" arrow={false} />
+                        </td>
+                        <td className="num px-3 py-2.5 text-right text-ink-2">
+                          {yieldOnCostOf.has(p.ticker)
+                            ? pct(yieldOnCostOf.get(p.ticker)!, { signed: false, digits: 1 })
+                            : "—"}
                         </td>
                         <td className="num px-3 py-2.5 text-right text-ink-2">
                           {pct(p.weightPct, { signed: false, digits: 1 })}
@@ -289,6 +307,14 @@ export default function PortfolioPage() {
                       {fcfa(p.unrealizedPnl)} ({pct(p.unrealizedPnlPct, { digits: 1 })})
                     </span>
                   </div>
+                  {yieldOnCostOf.has(p.ticker) ? (
+                    <p className="mt-1 text-[11px] text-ink-3">
+                      Rendement sur votre PRU :{" "}
+                      <span className="num font-medium text-ink-2">
+                        {pct(yieldOnCostOf.get(p.ticker)!, { signed: false, digits: 1 })}
+                      </span>
+                    </p>
+                  ) : null}
                 </Link>
               ))}
             </CardBody>
@@ -336,8 +362,8 @@ export default function PortfolioPage() {
             </Card>
           </div>
 
-          {/* Dividendes perçus */}
-          {dividends.events.length > 0 ? (
+          {/* Dividendes perçus + revenu projeté */}
+          {dividends.events.length > 0 || projection.totalAnnual > 0 ? (
             <Card>
               <CardHeader
                 title={
@@ -348,6 +374,26 @@ export default function PortfolioPage() {
                 subtitle="Estimation : titres détenus avant chaque date de paiement publiée au bulletin × dividende net (après IRVM 10 %)"
               />
               <CardBody className="space-y-1.5">
+                {projection.totalAnnual > 0 ? (
+                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-gold/25 bg-gold/5 px-3 py-2.5">
+                    <div>
+                      <p className="text-xs font-semibold text-ink">
+                        Revenu annuel projeté :{" "}
+                        <span className="num text-gold">{fcfa(projection.totalAnnual)}</span>
+                      </p>
+                      <p className="mt-0.5 text-[10px] leading-relaxed text-ink-3">
+                        Si chaque société reconduit son dernier dividende —
+                        projection à dividende constant, pas une prévision.
+                      </p>
+                    </div>
+                    <p className="text-xs text-ink-2">
+                      Rendement sur PRU du portefeuille :{" "}
+                      <span className="num font-semibold text-ink">
+                        {pct(projection.portfolioYieldOnCost, { signed: false, digits: 2 })}
+                      </span>
+                    </p>
+                  </div>
+                ) : null}
                 {dividends.events.slice(0, 12).map((e) => (
                   <div
                     key={`${e.ticker}-${e.date}`}
