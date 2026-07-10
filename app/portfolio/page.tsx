@@ -12,7 +12,9 @@ import {
   Trash2,
 } from "lucide-react";
 import { usePortfolio, usePortfolioHydrated } from "@/hooks/use-portfolio";
-import { computePositions, valuePortfolio } from "@/lib/portfolio";
+import { computePositions, dividendIncome, valuePortfolio } from "@/lib/portfolio";
+import { dividendHistoryFor } from "@/lib/real-dividends";
+import { Coins } from "lucide-react";
 import { getSnapshot } from "@/lib/data";
 import { dateFr, fcfa, pct } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -98,6 +100,11 @@ export default function PortfolioPage() {
       .sort((a, b) => b.weightPct - a.weightPct);
   }, [summary]);
 
+  const dividends = useMemo(
+    () => dividendIncome(transactions, dividendHistoryFor),
+    [transactions]
+  );
+
   const orderedTx = useMemo(
     () => [...transactions].sort((a, b) => b.date.localeCompare(a.date)),
     [transactions]
@@ -160,7 +167,7 @@ export default function PortfolioPage() {
       ) : (
         <>
           {/* Chiffres clés */}
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
             <StatTile label="Valeur actuelle" value={fcfa(summary.totalValue)} />
             <StatTile
               label="Montant investi"
@@ -177,6 +184,12 @@ export default function PortfolioPage() {
               label="Résultat réalisé (ventes)"
               value={`${summary.totalRealizedPnl >= 0 ? "+" : ""}${fcfa(summary.totalRealizedPnl)}`}
               tone={summary.totalRealizedPnl >= 0 ? "up" : "down"}
+            />
+            <StatTile
+              label="Dividendes perçus (est.)"
+              value={fcfa(dividends.total)}
+              sub={`${dividends.events.length} versement${dividends.events.length > 1 ? "s" : ""}`}
+              tone={dividends.total > 0 ? "up" : undefined}
             />
           </div>
 
@@ -322,6 +335,50 @@ export default function PortfolioPage() {
               </CardBody>
             </Card>
           </div>
+
+          {/* Dividendes perçus */}
+          {dividends.events.length > 0 ? (
+            <Card>
+              <CardHeader
+                title={
+                  <span className="inline-flex items-center gap-1.5">
+                    <Coins className="h-3.5 w-3.5 text-accent" /> Dividendes perçus
+                  </span>
+                }
+                subtitle="Estimation : titres détenus avant chaque date de paiement publiée au bulletin × dividende net (après IRVM 10 %)"
+              />
+              <CardBody className="space-y-1.5">
+                {dividends.events.slice(0, 12).map((e) => (
+                  <div
+                    key={`${e.ticker}-${e.date}`}
+                    className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-line bg-surface/50 px-3 py-2 text-xs"
+                  >
+                    <span className="font-bold text-accent">{e.ticker}</span>
+                    <time className="text-ink-3">{dateFr(e.date)}</time>
+                    <span className="num text-ink-2">
+                      {e.quantityHeld} × {fcfa(e.netPerShare)}
+                    </span>
+                    <span className="num ml-auto font-semibold text-up">
+                      +{fcfa(e.amount)}
+                    </span>
+                  </div>
+                ))}
+                {dividends.events.length > 12 ? (
+                  <p className="text-[11px] text-ink-3">
+                    + {dividends.events.length - 12} versement
+                    {dividends.events.length - 12 > 1 ? "s" : ""} plus ancien
+                    {dividends.events.length - 12 > 1 ? "s" : ""} inclus dans le
+                    total.
+                  </p>
+                ) : null}
+                <p className="pt-1 text-[10px] leading-relaxed text-ink-3">
+                  L&apos;éligibilité réelle dépend de la date de détachement,
+                  que le bulletin ne publie pas — un achat effectué entre le
+                  détachement et le paiement peut être compté à tort.
+                </p>
+              </CardBody>
+            </Card>
+          ) : null}
 
           {/* Actus / docs / alertes des valeurs détenues */}
           <HoldingsFeed tickers={summary.positions.map((p) => p.ticker)} />

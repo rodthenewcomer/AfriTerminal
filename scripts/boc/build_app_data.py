@@ -62,6 +62,31 @@ def last_valid_dividend(records: list[dict]) -> tuple[float | None, str | None]:
     return None, None
 
 
+def dividend_history(records: list[dict]) -> list[dict]:
+    """Historique réel des dividendes d'un ticker, reconstruit depuis le
+    champ « dernier dividende » des bulletins : chaque changement de
+    (date, montant) = un versement. Filtre les dates postérieures à la
+    séance du bulletin qui les annonce (annonces anticipées : gardées
+    seulement une fois la date passée sur un bulletin ultérieur) et les
+    doublons. Trié chronologiquement."""
+    seen: set[tuple[str, float]] = set()
+    out: list[dict] = []
+    for rec in records:
+        net = rec.get("last_dividend_net")
+        div_date = rec.get("last_dividend_date")
+        if net is None or not div_date or net <= 0:
+            continue
+        if div_date > rec["time"]:
+            continue  # annonce future vue depuis ce bulletin — pas encore payée
+        key = (div_date, net)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append({"date": div_date, "net": net})
+    out.sort(key=lambda d: d["date"])
+    return out
+
+
 def build_snapshot(records: list[dict]) -> dict:
     last = records[-1]
     n = len(records)
@@ -216,6 +241,7 @@ def main() -> None:
     series_out.mkdir(parents=True, exist_ok=True)
 
     snapshots = {}
+    dividends = {}
     missing = []
     tickers = sorted(f.stem for f in series_dir.glob("*.json"))
     for ticker in tickers:
@@ -227,6 +253,10 @@ def main() -> None:
         snap = build_snapshot(records)
         snap["ticker"] = ticker
         snapshots[ticker] = snap
+
+        history = dividend_history(records)
+        if history:
+            dividends[ticker] = history
 
         ohlcv = [
             with_live_bounds(
@@ -248,6 +278,9 @@ def main() -> None:
 
     (out_dir / "real" / "snapshot.json").write_text(
         json.dumps(snapshots, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    (out_dir / "real" / "dividends.json").write_text(
+        json.dumps(dividends, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 
     build_indices(series_dir.parent / "indices.json", out_dir / "real")

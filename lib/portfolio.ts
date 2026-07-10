@@ -210,3 +210,59 @@ export function portfolioValueSeries(
   }
   return out;
 }
+
+export interface DividendIncomeEvent {
+  ticker: string;
+  /** Date de paiement publiée au bulletin */
+  date: string;
+  /** Dividende net par action, FCFA */
+  netPerShare: number;
+  /** Titres détenus à la veille du paiement */
+  quantityHeld: number;
+  /** netPerShare × quantityHeld, FCFA */
+  amount: number;
+}
+
+/**
+ * Dividendes nets perçus, estimés : pour chaque versement d'une valeur
+ * détenue, quantité détenue AVANT la date de paiement × dividende net
+ * par action. Approximation assumée : le bulletin publie la date de
+ * PAIEMENT, pas la date de détachement qui fixe l'éligibilité réelle —
+ * un achat entre détachement et paiement serait compté à tort (cas
+ * rare, fenêtre courte). À afficher avec la mention « estimation ».
+ */
+export function dividendIncome(
+  transactions: PortfolioTransaction[],
+  historyOf: (ticker: string) => { date: string; net: number }[]
+): { events: DividendIncomeEvent[]; total: number } {
+  const byTicker = new Map<string, PortfolioTransaction[]>();
+  for (const tx of transactions) {
+    const arr = byTicker.get(tx.ticker) ?? [];
+    arr.push(tx);
+    byTicker.set(tx.ticker, arr);
+  }
+
+  const events: DividendIncomeEvent[] = [];
+  for (const [ticker, txs] of byTicker) {
+    const ordered = [...txs].sort((a, b) => a.date.localeCompare(b.date));
+    for (const div of historyOf(ticker)) {
+      let qty = 0;
+      for (const tx of ordered) {
+        if (tx.date >= div.date) break;
+        qty += tx.side === "achat" ? tx.quantity : -tx.quantity;
+      }
+      qty = Math.max(0, qty);
+      if (qty > 0) {
+        events.push({
+          ticker,
+          date: div.date,
+          netPerShare: div.net,
+          quantityHeld: qty,
+          amount: qty * div.net,
+        });
+      }
+    }
+  }
+  events.sort((a, b) => b.date.localeCompare(a.date));
+  return { events, total: events.reduce((a, e) => a + e.amount, 0) };
+}

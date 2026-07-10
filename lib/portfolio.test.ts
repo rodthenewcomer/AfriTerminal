@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   computePositions,
+  dividendIncome,
   portfolioValueSeries,
   valuePortfolio,
   type PortfolioTransaction,
@@ -155,5 +156,49 @@ describe("portfolioValueSeries", () => {
 
   it("aucune transaction -> série vide", () => {
     expect(portfolioValueSeries([], closes)).toEqual([]);
+  });
+});
+
+describe("dividendIncome", () => {
+  const history = (t: string) =>
+    t === "SNTS"
+      ? [
+          { date: "2025-05-22", net: 1_655 },
+          { date: "2026-05-26", net: 1_740 },
+        ]
+      : [];
+
+  it("compte les titres détenus avant la date de paiement", () => {
+    const { events, total } = dividendIncome(
+      [tx({ ticker: "SNTS", date: "2026-01-05", quantity: 10, price: 25_000 })],
+      history
+    );
+    // acheté en 2026 : seul le dividende de mai 2026 est perçu
+    expect(events).toHaveLength(1);
+    expect(events[0].amount).toBe(10 * 1_740);
+    expect(total).toBe(17_400);
+  });
+
+  it("un achat le jour même du paiement ne compte pas", () => {
+    const { events } = dividendIncome(
+      [tx({ ticker: "SNTS", date: "2026-05-26", quantity: 10, price: 30_000 })],
+      history
+    );
+    expect(events).toHaveLength(0);
+  });
+
+  it("une vente avant paiement réduit la quantité éligible", () => {
+    const { events } = dividendIncome(
+      [
+        tx({ ticker: "SNTS", date: "2025-01-05", quantity: 10, price: 25_000 }),
+        tx({ ticker: "SNTS", date: "2026-05-20", side: "vente", quantity: 6, price: 30_000 }),
+      ],
+      history
+    );
+    // 2025 : 10 titres × 1655 ; 2026 : 4 titres × 1740
+    expect(events.map((e) => e.amount).sort((a, b) => a - b)).toEqual([
+      4 * 1_740,
+      10 * 1_655,
+    ]);
   });
 });

@@ -119,3 +119,38 @@ class DividendDateGuardTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestDividendHistory(unittest.TestCase):
+    def rec(self, time, net, date):
+        return {"time": time, "last_dividend_net": net, "last_dividend_date": date}
+
+    def test_chaque_changement_est_un_versement(self) -> None:
+        from build_app_data import dividend_history
+        records = [
+            self.rec("2025-06-01", 1500.0, "2025-05-20"),
+            self.rec("2025-06-02", 1500.0, "2025-05-20"),  # doublon ignoré
+            self.rec("2026-06-01", 1740.0, "2026-05-26"),
+        ]
+        self.assertEqual(
+            dividend_history(records),
+            [
+                {"date": "2025-05-20", "net": 1500.0},
+                {"date": "2026-05-26", "net": 1740.0},
+            ],
+        )
+
+    def test_annonce_future_ignoree_puis_retenue(self) -> None:
+        from build_app_data import dividend_history
+        records = [
+            # bulletin du 01/06 annonce un paiement au 15/06 (futur) : ignoré
+            self.rec("2025-06-01", 900.0, "2025-06-15"),
+            # bulletin du 16/06 : la date est passée, versement retenu
+            self.rec("2025-06-16", 900.0, "2025-06-15"),
+        ]
+        self.assertEqual(dividend_history(records), [{"date": "2025-06-15", "net": 900.0}])
+
+    def test_sans_dividende(self) -> None:
+        from build_app_data import dividend_history
+        records = [{"time": "2025-06-01", "last_dividend_net": None, "last_dividend_date": None}]
+        self.assertEqual(dividend_history(records), [])
