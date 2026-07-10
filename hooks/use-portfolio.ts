@@ -10,6 +10,8 @@ interface PortfolioState {
   add: (tx: Omit<PortfolioTransaction, "id">) => void;
   remove: (id: string) => void;
   clear: () => void;
+  /** Restauration de sauvegarde : remplace tout l'état. */
+  replaceAll: (transactions: PortfolioTransaction[]) => void;
 }
 
 export const usePortfolio = create<PortfolioState>()(
@@ -28,6 +30,7 @@ export const usePortfolio = create<PortfolioState>()(
           transactions: state.transactions.filter((t) => t.id !== id),
         })),
       clear: () => set({ transactions: [] }),
+      replaceAll: (transactions) => set({ transactions }),
     }),
     { name: "afriterminal-portfolio", skipHydration: true }
   )

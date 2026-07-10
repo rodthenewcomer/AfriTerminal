@@ -14,6 +14,8 @@ interface SavedFiltersState {
   saved: SavedFilter[];
   save: (name: string, filters: Record<string, string>) => void;
   remove: (id: string) => void;
+  /** Restauration de sauvegarde : remplace tout l'état. */
+  replaceAll: (saved: SavedFilter[]) => void;
 }
 
 /** Filtres de screener nommés, persistés en localStorage. */
@@ -30,6 +32,7 @@ export const useSavedFilters = create<SavedFiltersState>()(
         })),
       remove: (id) =>
         set((state) => ({ saved: state.saved.filter((f) => f.id !== id) })),
+      replaceAll: (saved) => set({ saved }),
     }),
     { name: "afriterminal-screener-filters", skipHydration: true }
   )

@@ -476,7 +476,12 @@ export default function PortfolioPage() {
       <p className="text-[10px] text-ink-3">
         Le portefeuille est un outil de suivi personnel valorisé sur les cours
         officiels BRVM (différé : bulletin quotidien). Il ne constitue ni un
-        compte-titres ni un conseil en investissement.
+        compte-titres ni un conseil en investissement. Vos données vivent dans
+        ce navigateur :{" "}
+        <Link href="/settings" className="text-accent underline hover:no-underline">
+          pensez à les sauvegarder
+        </Link>
+        .
       </p>
 
       <TransactionDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />

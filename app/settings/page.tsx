@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Select } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { BackupCard } from "@/components/settings/backup-card";
 
 function Toggle({
   checked,
@@ -213,6 +214,7 @@ export default function SettingsPage() {
         </CardBody>
       </Card>
 
+      <BackupCard />
       </div>
       </div>
 

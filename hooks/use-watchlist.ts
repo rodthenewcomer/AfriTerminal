@@ -20,6 +20,8 @@ interface WatchlistState {
   createList: (name: string) => void;
   removeList: (id: string) => void;
   isWatched: (ticker: string) => boolean;
+  /** Restauration de sauvegarde : remplace tout l'état. */
+  replaceAll: (lists: WatchlistDef[], activeId: string) => void;
 }
 
 export const useWatchlist = create<WatchlistState>()(
@@ -63,6 +65,8 @@ export const useWatchlist = create<WatchlistState>()(
         }),
       isWatched: (ticker) =>
         get().lists.some((l) => l.tickers.includes(ticker)),
+      replaceAll: (lists, activeId) =>
+        set({ lists, activeId: lists.some((l) => l.id === activeId) ? activeId : (lists[0]?.id ?? "default") }),
     }),
     { name: "afriterminal-watchlists", skipHydration: true }
   )

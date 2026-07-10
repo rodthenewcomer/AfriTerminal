@@ -26,6 +26,7 @@ import { PriceChange, ScoreBadge, SignalBadges } from "./badges";
 import { DividendPanel } from "./dividend-panel";
 import { MetricCard } from "./metric-card";
 import { SectorComparison } from "./sector-comparison";
+import { DividendHistory } from "./dividend-history";
 import { WatchlistButton } from "./watchlist-button";
 
 export function StockView({ ticker }: { ticker: string }) {
@@ -354,6 +355,9 @@ export function StockView({ ticker }: { ticker: string }) {
           </div>
         )}
       </section>
+
+      {/* Historique réel des dividendes (si ≥ 2 versements connus) */}
+      {real ? <DividendHistory ticker={stock.ticker} /> : null}
 
       {/* Analyse IA + dividendes */}
       {real ? (
