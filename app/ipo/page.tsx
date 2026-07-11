@@ -25,7 +25,7 @@ export default function IPOPage() {
           (augmentation de capital) ou divise son titre (fractionnement), cela
           change le nombre d&apos;actions en circulation — et donc la valeur de
           chacune. Avis officiels de la BRVM, historique des opérations, et
-          exemples pour apprendre à les analyser.
+          scénarios pédagogiques séparés pour apprendre à les analyser.
         </p>
       </div>
 
@@ -106,9 +106,9 @@ export default function IPOPage() {
         apprendre={
           <div className="space-y-3">
             <p className="text-xs text-ink-3">
-              Des cas fictifs mais réalistes pour apprendre à lire une
-              opération avant de souscrire : valorisation, dilution, risques
-              et opportunités.
+              Des scénarios pédagogiques simulés, séparés des avis officiels,
+              pour apprendre à lire une opération avant de souscrire :
+              valorisation, dilution, risques et opportunités.
             </p>
             <IPOCard ipo={featured} featured />
             <div className="grid gap-3 lg:grid-cols-2">

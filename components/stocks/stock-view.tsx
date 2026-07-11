@@ -76,7 +76,7 @@ export function StockView({ ticker }: { ticker: string }) {
                   {staleQuote ? "Cotation suspendue" : "Données réelles"}
                 </Badge>
               ) : (
-                <Badge tone="gold">Démo simulée</Badge>
+                <Badge tone="gold">Scénario illustratif</Badge>
               )}
             </p>
           </div>
@@ -593,7 +593,7 @@ export function StockView({ ticker }: { ticker: string }) {
       <p className="text-[10px] text-ink-3">
         {real
           ? `Cours, volumes, PER, dividendes, documents et alertes réels (sources : bulletins officiels et fiches sociétés BRVM, au ${dateFr(real.asOfDate)}).`
-          : "Les informations présentées sont fournies à titre éducatif et informatif sur données simulées."}{" "}
+          : "Les informations présentées sont fournies à titre éducatif et informatif sur scénario illustratif, sans cotation vérifiée."}{" "}
         Ceci ne constitue pas un conseil en investissement.
       </p>
 

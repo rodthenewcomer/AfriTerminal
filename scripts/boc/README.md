@@ -164,14 +164,14 @@ bulletin quotidien est lui aussi automatisé
 (`.github/workflows/boc-daily.yml` : fetch + merge_day.py +
 build_app_data.py + commit + redéploiement du site).
 
-## Pipeline fondamentaux (prototype, non branché — 2026-07-08)
+## Pipeline fondamentaux (curé, partiellement branché — 2026-07-08)
 
 Reconnaissance et prototypes pour aller au-delà des prix : la BRVM publie
 de vrais états financiers par société, une fiche par société sur
 `/fr/rapports-societe-cotes/[slug]` (ex. `/sonatel`, `/palm-ci`,
 `/coris-bank-international`), avec des PDF téléchargeables remontant à
-2019. Les 15 sociétés modélisées ont été mappées à leur slug (voir
-historique git).
+2019. Les sociétés priorisées pour les fiches curées ont été mappées à
+leur slug (voir historique git).
 
 **Deux familles de documents, deux approches, résultats très différents :**
 
@@ -253,12 +253,26 @@ historique git).
 curé société par société (PDF épinglé + unité vérifiée manuellement +
 extracteur validé), normalisation en millions de FCFA, sortie
 `data/real/fundamentals.json` consommée par la fiche action (avec lien
-vers le document source). **6 sociétés en production** sur l'exercice
-2025 : SPHC, PALC, CIEC, ONTBF, SIVC (SYSCOHADA) et NSBC (banque).
-Vérifications d'unités documentées dans le docstring de
-`fundamentals.py` (dont la triangulation PALC par le PER officiel du
-BOC : 8,82 publié vs 8,86 implicite). Exécution à la main quand de
-nouveaux états sortent — ajouter une société = validation, pas de la
-configuration. Restent hors production : SNTS/ORAC (rapports longs,
-mauvaise page ciblée), UNXC (PDF scanné, OCR), TTLC (détection de
-tableau sans traits), et les 4 autres banques (un gabarit par banque).
+vers le document source). Étendu par vagues jusqu'à **26 sociétés en production** (2026-07-10) :
+extraction tableau quand elle marche, sinon saisie manuelle recoupée
+(entrées `extractor="manual"` avec les valeurs et leur méthode de
+vérification en commentaire), OCR pour les scans et polices corrompues
+(tesseract pour SETAO, ocrmac/Vision d'Apple pour NEIC/SLBC/UNXC —
+tesseract échouait spécifiquement sur ces documents). Méthode de
+recoupement systématique : actions implicites (PER BOC × RN / cours)
+vs capital ÷ nominal, convergence exigée.
+
+**8 sociétés portent aussi nombre d'actions + capitaux propres
+vérifiés** (ABJC, SOGC, NTLC, TTLC, NEIC, SDSC, SDCC, SEMC), inscrits
+uniquement sur double source concordante et validés par l'identité
+P/B = PER × ROE — ce qui débloque capitalisation, BPA, P/B et ROE
+réels sur leurs fiches. Exécution à la main quand de nouveaux états
+sortent — ajouter une société = validation, pas de la configuration.
+Restent hors production : SNTS/ORAC (rapports longs, données
+contradictoires entre millésimes pour Sonatel) et les 4 autres banques
+(un gabarit par banque).
+
+Autres scripts du dossier : `build_alerts.py` (alertes factuelles),
+`fetch_documents.py` / `fetch_operations.py` (publications et
+opérations sur capital depuis brvm.org), `check_freshness.py`
+(watchdog de staleness, workflow `freshness.yml`).

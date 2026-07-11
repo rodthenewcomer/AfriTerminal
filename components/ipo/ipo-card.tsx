@@ -96,8 +96,8 @@ export function IPOCard({ ipo, featured }: { ipo: IPOItem; featured?: boolean })
             <p className="text-xs leading-relaxed text-ink-2">{ipo.risk}</p>
           </div>
           <p className="border-t border-line pt-3 text-[10px] text-ink-3">
-            Opération simulée à des fins de démonstration. Ceci n&apos;est pas un
-            conseil en investissement.
+            Scénario pédagogique simulé, distinct des avis officiels BRVM.
+            Ceci n&apos;est pas un conseil en investissement.
           </p>
         </div>
       </Dialog>

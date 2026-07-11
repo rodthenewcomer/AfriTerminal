@@ -15,7 +15,8 @@ type TabId = (typeof TABS)[number]["id"];
 
 /**
  * Trois sections → trois onglets : la page IPO empilait avis + historique
- * + pédagogie en un long défilement. Le badge distingue le réel du simulé.
+ * + pédagogie en un long défilement. Le badge distingue le réel des
+ * scénarios pédagogiques.
  */
 export function IpoTabs({
   avis,
@@ -49,7 +50,7 @@ export function IpoTabs({
           ))}
         </div>
         <Badge tone={TABS.find((t) => t.id === tab)?.real ? "positive" : "gold"}>
-          {TABS.find((t) => t.id === tab)?.real ? "Données réelles" : "Exemples simulés"}
+          {TABS.find((t) => t.id === tab)?.real ? "Données réelles" : "Scénarios pédagogiques"}
         </Badge>
       </div>
       <div className="fade-in" key={tab}>

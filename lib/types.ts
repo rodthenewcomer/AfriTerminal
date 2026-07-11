@@ -169,9 +169,9 @@ export type DocType =
 /**
  * "réel" : les chiffres cités (cours, dividende versé, date) sont
  * cohérents avec le pipeline scripts/boc/, vérifiés le 2026-07-08.
- * "illustratif" : scénario construit pour démontrer le produit — repose
- * sur des fondamentaux (résultat net, ROE, PNB...) qu'aucun pipeline ne
- * collecte réellement. Voir DocumentCard/AlertCard pour le badge affiché.
+ * "illustratif" : scénario pédagogique signalé comme tel — repose sur des
+ * fondamentaux (résultat net, ROE, PNB...) qu'aucun pipeline ne collecte
+ * réellement. Voir DocumentCard/AlertCard pour le badge affiché.
  */
 export type ContentBasis = "réel" | "illustratif";
 

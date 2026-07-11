@@ -1,8 +1,8 @@
 import type { AlertItem } from "../types";
 
 // basis: "réel" = vérifié contre data/real/snapshot.json le 2026-07-08.
-// basis: "illustratif" = scénario démontrant le produit, construit sur des
-// fondamentaux (résultat net, PNB, ROE, coût du risque...) qu'aucun
+// basis: "illustratif" = scénario pédagogique signalé comme tel, construit
+// sur des fondamentaux (résultat net, PNB, ROE, coût du risque...) qu'aucun
 // pipeline ne collecte réellement — voir scripts/boc/README.md.
 //
 // Plusieurs alertes ont été corrigées ou retirées le 2026-07-08 après
@@ -125,7 +125,7 @@ export const ALERTS: AlertItem[] = [
     ticker: "BICC",
     title: "IPO Bridge Bank : note d'information disponible",
     detail:
-      "Prix indicatif 6 750 FCFA, PER implicite 12,4. Analyse comparative disponible sur la page IPO. (Simulation)",
+      "Prix indicatif 6 750 FCFA, PER implicite 12,4. Analyse comparative disponible sur la page IPO. (Scénario pédagogique)",
     time: "2026-06-27T10:00:00Z",
     severity: "info",
     active: true,

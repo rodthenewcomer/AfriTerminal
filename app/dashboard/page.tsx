@@ -112,8 +112,8 @@ export default function DashboardPage() {
             le prix. Comprends le mouvement.
           </p>
         </div>
-        <Badge tone="positive" title="Cours, variations, volumes, indices, alertes et documents réels (bulletins officiels BRVM et fiches sociétés) — seules les opérations IPO restent simulées pour la démo">
-          Données réelles · IPO en démo
+        <Badge tone="positive" title="Cours, variations, volumes, indices, alertes et documents réels (bulletins officiels BRVM et fiches sociétés) — seuls les cas pédagogiques de l'onglet Apprendre sont simulés">
+          Données réelles · scénarios séparés
         </Badge>
       </div>
 

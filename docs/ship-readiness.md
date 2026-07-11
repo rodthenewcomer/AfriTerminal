@@ -1,13 +1,14 @@
 # AfriTerminal ship readiness
 
-Last reviewed: 2026-07-09
+Last reviewed: 2026-07-11
 
 This file turns the 22-role review into release gates. It keeps the product honest while the app is still a static public MVP.
 
 ## Product truth
 
-- Real today: BRVM prices, indices, dividends, documents, news, generated factual alerts, watchlists and saved filters in local browser storage.
-- Demo today: IPO/opérations, accounts, personalized notifications, billing, broker integrations, portfolio sync, advanced AI summaries.
+- Real today: BRVM prices and indices, full dividend history per ticker, official documents, market notices and capital operations (ESV), news, factual alerts, hand-verified financial statements for 26/48 companies (8 of them complete through market cap/EPS/P/B/ROE with double-sourced share counts), computed risk stats (volatility, beta, max drawdown), and a local portfolio tracker (transactions, average cost, realized/unrealized P&L, dividend income, projections) — plus watchlists and saved filters, all in local browser storage with JSON backup/restore.
+- Simulated today: only the educational scenarios in the IPO "Apprendre" tab and legacy illustrative data under `lib/mock/` when explicitly labeled.
+- Not live today: accounts, delivered personalized notifications, billing, broker integrations, portfolio sync, and advanced AI summaries.
 - Never claim: investment advice, real-time execution-grade prices, paid Pro features, or official BRVM affiliation.
 
 ## Release gates by role
@@ -18,7 +19,7 @@ This file turns the 22-role review into release gates. It keeps the product hone
 4. Full-Stack Engineer: no "Pro" CTA ships without auth, persistence, pricing, and support path.
 5. Senior Backend Engineer: generated JSON must be reproducible from scripts and protected by tests before deploy.
 6. Senior Frontend Engineer: dashboard, stock page, screener, alerts, documents, and settings must pass desktop and mobile smoke checks.
-7. Applied AI / LLM Engineer: AI copy must be grounded in real extracted data or explicitly marked unavailable/demo.
+7. Applied AI / LLM Engineer: AI copy must be grounded in real extracted data or explicitly marked unavailable/educational simulation.
 8. Data Engineer: no impossible dates, duplicate records, or future dividends in `data/real/snapshot.json`.
 9. DevOps / Cloud Engineer: CI must pass TypeScript tests, Python pipeline tests, build, and high+ production audit.
 10. Security & Compliance Advisor: financial disclaimers and data-source labels stay visible; secrets never enter repo/workflows.
@@ -41,3 +42,4 @@ This file turns the 22-role review into release gates. It keeps the product hone
 - Personalized alerts do not deliver email, push, SMS, or webhook notifications.
 - Some fundamentals remain curated company by company, not universal.
 - Real-time data rights and redistribution terms need legal/partnership review.
+- Public copy must avoid loose synthetic-feature wording: use "scénario pédagogique simulé" for learning cases and "non disponible" for unbuilt product features.

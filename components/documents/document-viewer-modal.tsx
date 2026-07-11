@@ -116,10 +116,16 @@ export function DocumentViewerModal({
           )}
 
           <footer className="flex items-center justify-between border-t border-line pt-4">
-            <p className="text-[10px] text-ink-3">Document simulé — démo produit.</p>
-            <Button size="sm" variant="outline">
-              <ExternalLink className="h-3.5 w-3.5" /> Voir la source officielle
-            </Button>
+            <p className="text-[10px] text-ink-3">
+              {doc.basis === "réel"
+                ? "Données cohérentes avec les sources BRVM référencées."
+                : "Scénario illustratif — aucune source officielle associée."}
+            </p>
+            {doc.basis === "réel" ? (
+              <Button size="sm" variant="outline">
+                <ExternalLink className="h-3.5 w-3.5" /> Voir la source officielle
+              </Button>
+            ) : null}
           </footer>
         </div>
       ) : null}

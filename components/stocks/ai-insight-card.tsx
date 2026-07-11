@@ -62,8 +62,8 @@ export function AIInsightCard({ insight }: { insight: AIInsight }) {
         </div>
 
         <p className="border-t border-line pt-3 text-[10px] text-ink-3">
-          Analyse générée automatiquement à partir de données simulées. Ceci
-          n&apos;est pas un conseil en investissement.
+          Analyse illustrative générée à partir de données non vérifiées par
+          le pipeline réel. Ceci n&apos;est pas un conseil en investissement.
         </p>
       </CardBody>
     </Card>

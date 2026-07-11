@@ -10,8 +10,8 @@ en data/real/operations.json — liens vers les PDF sources, on ne copie rien.
    d'opération (augmentation de capital, fractionnement, réduction de
    capital, consolidation) — émetteur, dates, parité, avis/communiqué PDF.
 
-Remplace les opérations IPO fictives de la démo par du réel. Même
-philosophie que fetch_documents.py : stdlib uniquement, exécution en CI.
+Remplace les anciens scénarios IPO illustratifs par des opérations réelles.
+Même philosophie que fetch_documents.py : stdlib uniquement, exécution en CI.
 
 Usage :
     python3 scripts/boc/fetch_operations.py --out data/real/operations.json

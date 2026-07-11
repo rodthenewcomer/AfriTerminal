@@ -82,7 +82,7 @@ export function DocumentCard({
         <Button
           size="sm"
           variant="ghost"
-          title="Télécharger (démo)"
+          title="Téléchargement indisponible pour ce scénario"
           aria-label="Télécharger"
         >
           <Download className="h-3.5 w-3.5" />

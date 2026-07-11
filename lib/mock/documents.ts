@@ -172,12 +172,12 @@ export const DOCUMENTS: DocItem[] = [
   {
     id: "bridge-ipo-2026",
     ticker: "BICC",
-    title: "Bridge Bank Group CI — Note d'information IPO (simulation)",
+    title: "Bridge Bank Group CI — Note d'information IPO (scénario pédagogique)",
     type: "IPO",
     date: "2026-06-27",
     importance: 3,
     summary:
-      "Introduction en bourse simulée : prix indicatif de 6 750 FCFA, environ 20 % du capital ouvert au public. PER implicite de 12,4 et P/B de 1,9 — une valorisation exigeante face aux banques déjà cotées.",
+      "Scénario pédagogique d'introduction en bourse : prix indicatif de 6 750 FCFA, environ 20 % du capital ouvert au public. PER implicite de 12,4 et P/B de 1,9 — une valorisation exigeante face aux banques déjà cotées.",
     keyPoints: [
       "Prix indicatif : 6 750 FCFA",
       "Part du capital offerte : ~20 %",
