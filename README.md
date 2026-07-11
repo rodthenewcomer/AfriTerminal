@@ -9,12 +9,13 @@ BRVM : les **48 sociétés cotées** (cours, variations, volumes, PER,
 dividendes, historique depuis 2019) et les **3 indices officiels**
 (BRVM Composite, BRVM 30, BRVM Prestige, depuis 2023) alimentent le
 dashboard, le screener, la watchlist, le portefeuille, la recherche et
-les fiches actions. Les fondamentaux d'états financiers (CA, résultat
-net, marges…) sont extraits des PDF officiels pour **26 sociétés**,
-vérifiés à la main ; **8** d'entre elles ont aussi capitalisation, BPA,
-P/B et ROE réels (nombre d'actions et capitaux propres double-vérifiés,
-identité P/B = PER × ROE contrôlée). Pour le reste : masqué (« — »),
-jamais inventé. Les documents officiels sont
+  les fiches actions. Les fondamentaux d'états financiers (CA/PNB,
+  résultat net, marges et agrégats bancaires) couvrent les **48 sociétés**
+  à partir de PDF officiels vérifiés ; **47** ont des capitaux propres
+  lisibles (SGBC ne publie pas le bilan complet dans son rapport 2025) et
+  **12** ont un nombre d'actions confirmé par deux recoupements, ce qui
+  permet de calculer capitalisation, BPA, P/B et ROE sans estimation.
+  Pour tout champ non prouvé : masqué (« — »), jamais inventé. Les documents officiels sont
 référencés depuis brvm.org, les alertes sont factuelles et dérivées des
 dernières séances. Les avis et opérations sur capital viennent de la
 BRVM ; seul l'onglet « Apprendre » de la page IPO contient des scénarios
@@ -127,8 +128,8 @@ artefacts JSON committés dans `data/real/`, `data/news/`, `data/live/` et
   historique des dividendes nets par ticker) depuis `data/boc/series/`.
 - **`fundamentals.py`** — états financiers curés société par société
   (REGISTRY : PDF épinglé, unité vérifiée, extracteur ou saisie manuelle
-  recoupée ; nombre d'actions/capitaux propres uniquement sur double
-  source concordante) → `data/real/fundamentals.json`.
+  recoupée ; nombre d'actions uniquement sur deux preuves concordantes)
+  → `data/real/fundamentals.json` (48/48 sociétés).
 - **`build_alerts.py`** — alertes factuelles des 5 dernières séances.
 - **`fetch_documents.py`** / **`fetch_operations.py`** — publications
   officielles par société et avis/opérations sur capital (ESV) depuis
@@ -145,11 +146,12 @@ jamais tous en même temps) alimentent `lib/real-data.ts`, consommé par
 les fiches actions, le dashboard, les marchés, le screener, la watchlist
 et la recherche.
 
-**Volontairement indisponible quand la donnée n'est pas vérifiée** :
-les fondamentaux ne s'affichent que pour les sociétés extraites (26/48),
-et capitalisation/BPA/P/B/ROE seulement là où nombre d'actions et
-capitaux propres sont double-vérifiés (8/26). Partout ailleurs : masqué
-avec une explication, jamais rempli avec des chiffres inventés. Scores
+**Volontairement indisponible quand la donnée n'est pas vérifiée** : les
+fondamentaux couvrent 48/48 sociétés et les capitaux propres 47/48 ; SGBC
+reste sans equity faute de bilan complet dans la publication officielle.
+Capitalisation/BPA demandent un nombre d'actions doublement recoupé
+(12/48), P/B/ROE demandent en plus les capitaux propres. Partout ailleurs :
+masqué avec une explication, jamais rempli avec un chiffre inventé. Scores
 et analyse IA restent désactivés sur données réelles.
 
 **Mis à jour (2026-07-08)** : `lib/data.ts` centralise le remplacement

@@ -33,7 +33,16 @@ describe("getRealFundamentals (données committées)", () => {
     expect(f!.cirPct).not.toBeNull();
   });
 
-  it("ticker sans états financiers intégrés -> undefined", () => {
-    expect(getRealFundamentals("SNTS")).toBeUndefined();
+  it("SNTS expose les données approuvées et le nombre d'actions recoupé", () => {
+    const f = getRealFundamentals("SNTS");
+    expect(f).toBeDefined();
+    expect(f!.fiscalYear).toBe(2025);
+    expect(f!.sharesOutstanding).toBe(100_000_000);
+    expect(f!.equityM).toBe(1_399_263);
+    expect(f!.source).toContain("brvm.org");
+  });
+
+  it("ticker inconnu -> undefined", () => {
+    expect(getRealFundamentals("INCONNU")).toBeUndefined();
   });
 });

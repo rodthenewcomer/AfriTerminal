@@ -436,12 +436,12 @@ export function StockView({ ticker }: { ticker: string }) {
                 </a>
                 , extraction vérifiée manuellement.
                 {realFund.sharesOutstanding
-                  ? realFund.equityM
+                  ? realFund.equityM !== null
                     ? " Capitalisation, BPA, P/B et ROE sont calculés sur le nombre d'actions et les capitaux propres vérifiés au document."
                     : " Capitalisation et BPA sont calculés sur le nombre d'actions vérifié (deux sources concordantes) ; P/B et ROE attendent des capitaux propres lisibles au bilan."
-                  : realFund.equityM
+                  : realFund.equityM !== null
                     ? " ROE calculé sur les capitaux propres vérifiés au document ; capitalisation, BPA et P/B attendent un nombre d'actions confirmé par deux sources concordantes."
-                    : " Capitalisation, P/B et ROE restent indisponibles (nombre d'actions et capitaux propres non encore vérifiés pour cette société)."}
+                    : " Capitalisation, BPA, P/B et ROE restent indisponibles : nombre d'actions non confirmé par deux sources et capitaux propres absents ou non lisibles dans la publication liée."}
               </p>
             ) : (
               <p className="mt-2.5 text-[11px] text-ink-3">
@@ -508,8 +508,8 @@ export function StockView({ ticker }: { ticker: string }) {
             <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-ink-3" />
             <p className="text-xs leading-relaxed text-ink-2">
               {realFund
-                ? `L'analyse IA, les signaux et la comparaison sectorielle ne sont pas encore calculés sur données réelles — les états financiers ${realFund.fiscalYear} de cette société sont intégrés (voir Fondamentaux), mais scores et signaux exigent des données que le pipeline ne couvre pas encore (ROE, capitaux propres, historique pluriannuel).`
-                : "L'analyse IA, les signaux et la comparaison sectorielle ne sont pas disponibles pour cette valeur : ils reposent sur des données d'états financiers (résultat net, ROE, coût du risque...) que le pipeline ne collecte pas encore pour cette société. Seuls les cours, volumes, PER et dividendes affichés ici sont réels."}
+                ? `L'analyse IA, les signaux et la comparaison sectorielle ne sont pas encore calculés sur données réelles — les états financiers ${realFund.fiscalYear} de cette société sont intégrés (voir Fondamentaux), mais un score robuste exige encore un historique pluriannuel normalisé, un benchmark sectoriel et une méthodologie publiée.`
+                : "L'analyse IA, les signaux et la comparaison sectorielle restent indisponibles tant qu'aucune publication financière vérifiée n'est intégrée pour cette valeur. Les cours, volumes, PER et dividendes affichés restent issus des sources BRVM."}
             </p>
           </CardBody>
         </Card>

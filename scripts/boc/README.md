@@ -164,113 +164,67 @@ bulletin quotidien est lui aussi automatisé
 (`.github/workflows/boc-daily.yml` : fetch + merge_day.py +
 build_app_data.py + commit + redéploiement du site).
 
-## Pipeline fondamentaux (curé, partiellement branché — 2026-07-08)
+## Pipeline fondamentaux (48/48 sociétés — 2026-07-11)
 
-Reconnaissance et prototypes pour aller au-delà des prix : la BRVM publie
-de vrais états financiers par société, une fiche par société sur
-`/fr/rapports-societe-cotes/[slug]` (ex. `/sonatel`, `/palm-ci`,
-`/coris-bank-international`), avec des PDF téléchargeables remontant à
-2019. Les sociétés priorisées pour les fiches curées ont été mappées à
-leur slug (voir historique git).
+`fundamentals.py` épingle un PDF BRVM officiel par société, normalise les
+montants en millions de FCFA et produit `data/real/fundamentals.json`.
+Chaque enregistrement expose sa source et sa date de publication. Le run
+complet couvre les **48 sociétés cotées**, dont les **16 établissements
+financiers** avec PNB, résultat net, coefficient d'exploitation, coût du
+risque, dépôts et crédits. Les capitaux propres sont présents pour 47/48 ;
+SGBC reste volontairement vide sur ce champ, son rapport annuel 2025 ne
+publiant pas de bilan complet.
 
-**Deux familles de documents, deux approches, résultats très différents :**
+### Architecture retenue
 
-1. **Sociétés non-bancaires (SYSCOHADA "Système Normal")** —
-   `parse_fundamentals_syscohada.py`. Le compte de résultat suit une
-   nomenclature légalement standardisée ("CHIFFRE D'AFFAIRES",
-   "RESULTAT DES ACTIVITES ORDINAIRES", "RESULTAT NET") — en théorie
-   identique d'une société à l'autre. Extraction **par tableau**
-   (`pdfplumber.extract_tables()`), pas par regex sur texte brut : les
-   nombres français groupés par espaces ("10 074 573 973") deviennent
-   ambigus une fois aplatis en texte, mais restent des cellules
-   distinctes dans les tables détectées.
-   - **Validé** sur ERIUM CI (ex Air Liquide), Palm CI et CIE CI : CA et
-     résultat net corrects (vérifiés à la main contre le PDF) sur les 3.
-   - **Résolu** : CIEC utilise "Chiffre d'affaires"/"RÉSULTAT NET"
-     (casse/accents différents de la norme SYSCOHADA en capitales sans
-     accent). Stratégie à 2 niveaux : essai strict d'abord (le cas
-     normal), puis repli insensible à la casse/aux accents **avec
-     garde-fou** — toute ligne qui mentionne aussi un terme propre au
-     bilan ("capitaux propres", "report à nouveau"...) est rejetée,
-     pour ne pas confondre le "Résultat net" du bilan (report à
-     nouveau) avec celui du compte de résultat.
-   - Un deuxième piège a été trouvé et corrigé au passage : certaines
-     mises en page (CIEC) placent 3 sections côte à côte sur une même
-     ligne de tableau (bilan, compte de résultat, flux de trésorerie).
-     Prendre "les 2 dernières cellules numériques de la ligne" attrapait
-     par erreur les valeurs de la section suivante (le CA de CIEC
-     ressortait à 43 912 au lieu de 302 320). Corrigé en prenant les 2
-     premières cellules numériques *après* la cellule du libellé, pas
-     les 2 dernières de toute la ligne.
-   - **Limite restante assumée** : le résultat des activités ordinaires
-     de CIEC n'est pas extrait (le garde-fou anti-bilan rejette sa
-     ligne, qui partage un fragment "Report à nouveau" d'une colonne
-     voisine) — absence de donnée préférée à une donnée fausse.
-   - **Étendu à 6 sociétés de plus (2026-07-08)** — résultat : 2/6
-     fonctionnent du premier coup (**ONTBF**, **SPHC** : les 3 champs
-     corrects), 4/6 révèlent chacun un problème structurellement
-     différent, aucun n'étant un simple ajustement de regex :
-     - **SNTS** : rapport annuel de 31 pages (pas les états financiers
-       compacts habituels), 0 tableau détecté sur la 1ère page — la
-       "valeur" trouvée vient d'une correspondance fortuite ailleurs
-       dans le document, **pas fiable**, à ne pas utiliser telle quelle.
-     - **ORAC** : même symptôme (valeurs trouvées mais suspectes,
-       probablement une page/ligne non pertinente).
-     - **UNXC** : le PDF est une **image scannée** (0 caractère de texte
-       extrait) — un problème d'OCR, pas de parsing de tableau. Hors de
-       portée de cette approche.
-     - **TTLC** : contient bien les bons libellés ("Chiffre d'affaires",
-       "Résultat des activités ordinaires"...) mais utilise "**Bénéfice
-       net**" au lieu de "Résultat net", et surtout `pdfplumber` ne
-       détecte la mise en page qu'en tableaux à **1 seule colonne**
-       (pas de lignes de tableau visibles dans le PDF pour guider la
-       détection) — nécessiterait une stratégie de détection différente
-       (`table_settings` basée sur le texte plutôt que les traits).
+Trois approches ont été comparées : un parseur universel, un parseur par
+famille de documents et une curation entièrement manuelle. Aucun parseur
+universel n'est suffisamment sûr : tableaux fusionnés, rapports IFRS ou
+SYSCOHADA, communiqués bancaires à deux colonnes, scans et polices mal
+encodées produisent des erreurs silencieuses différentes. Une saisie 100 %
+manuelle serait fiable au premier passage mais coûteuse à maintenir.
 
-   **Bilan cumulé sur les 9 sociétés non-bancaires testées** : 5/9
-   pleinement validées (ERIUM, Palm CI, CIEC, ONTBF, SPHC), 2/9 avec des
-   résultats suspects à ne pas utiliser (SNTS, ORAC), 2/9 bloquées par
-   des problèmes fondamentalement différents nécessitant chacun sa
-   propre solution (OCR pour UNXC, stratégie de détection de tableau
-   pour TTLC). Confirme la conclusion : c'est un travail par société,
-   pas un format unique à généraliser.
+Le compromis retenu est donc hybride :
 
-2. **Banques** — `parse_fundamentals_bank.py`. Les indicateurs clés
-   (PNB, résultat net, coefficient d'exploitation, coût du risque)
-   apparaissent en texte libre dans un communiqué de résultats, **en
-   mise en page 2 colonnes** (nécessite un découpage gauche/droite
-   avant extraction, sinon les phrases sont entrelacées entre colonnes).
-   - **Validé** sur NSIA Banque CI : les 4 indicateurs extraits
-     correctement par regex sur des tournures récurrentes ("X s'établit
-     à N milliards FCFA contre M milliards FCFA au 31 décembre AAAA").
-   - **Ne généralise pas** : testé sur SGBC, gabarit de rapport
-     complètement différent (rapport d'activité façon "executive
-     summary" vs communiqué court chez NSIA). Chaque banque semble
-     avoir son propre template — un extracteur par société serait
-     probablement nécessaire, pas un extracteur par secteur.
+1. `parse_fundamentals_syscohada.py` extrait les tableaux non bancaires
+   réguliers, avec garde-fous sur le libellé et l'ordre des cellules.
+2. `parse_fundamentals_bank.py` extrait les communiqués bancaires compatibles
+   après séparation des colonnes.
+3. `extractor="manual"` et les surcharges `raw` portent uniquement les
+   cellules relues dans le PDF approuvé quand le gabarit résiste aux deux
+   extracteurs. Les documents scannés sont rendus puis lus par OCR ; les
+   valeurs critiques sont confirmées sur une seconde occurrence ou un
+   tableau indépendant.
 
-**Branché dans l'app le 2026-07-08** via `fundamentals.py` : registre
-curé société par société (PDF épinglé + unité vérifiée manuellement +
-extracteur validé), normalisation en millions de FCFA, sortie
-`data/real/fundamentals.json` consommée par la fiche action (avec lien
-vers le document source). Étendu par vagues jusqu'à **26 sociétés en production** (2026-07-10) :
-extraction tableau quand elle marche, sinon saisie manuelle recoupée
-(entrées `extractor="manual"` avec les valeurs et leur méthode de
-vérification en commentaire), OCR pour les scans et polices corrompues
-(tesseract pour SETAO, ocrmac/Vision d'Apple pour NEIC/SLBC/UNXC —
-tesseract échouait spécifiquement sur ces documents). Méthode de
-recoupement systématique : actions implicites (PER BOC × RN / cours)
-vs capital ÷ nominal, convergence exigée.
+Cette architecture conserve l'automatisation là où elle est reproductible
+et rend chaque exception explicite dans le registre. SNTS, ORAC, FTSC,
+SCRC et TTLS ont notamment été résolus par lecture visuelle des publications
+approuvées ; le millésime SICC est 2024 malgré le nom de fichier BRVM qui
+mentionne 2025.
 
-**8 sociétés portent aussi nombre d'actions + capitaux propres
-vérifiés** (ABJC, SOGC, NTLC, TTLC, NEIC, SDSC, SDCC, SEMC), inscrits
-uniquement sur double source concordante et validés par l'identité
-P/B = PER × ROE — ce qui débloque capitalisation, BPA, P/B et ROE
-réels sur leurs fiches. Exécution à la main quand de nouveaux états
-sortent — ajouter une société = validation, pas de la configuration.
-Restent hors production : SNTS/ORAC (rapports longs, données
-contradictoires entre millésimes pour Sonatel) et les 4 autres banques
-(un gabarit par banque).
+### Règles de confiance
+
+- CA/PNB et résultat net sont obligatoires : une extraction incomplète est
+  refusée au lieu d'écrire un enregistrement partiel.
+- Les unités, colonnes N/N-1 et millésimes sont vérifiés contre le document.
+- Les capitaux propres viennent du bilan publié, y compris lorsqu'ils sont
+  négatifs ; aucune valeur n'est reconstruite sans lignes explicites.
+- `sharesOutstanding` n'est écrit qu'avec deux preuves concordantes
+  (nombre publié ou capital/nominal, puis BPA, PER ou dividende global).
+  **12 sociétés** satisfont ce seuil ; les autres restent à `null`.
+- La cohérence `P/B = PER × ROE` sert de contrôle lorsqu'elle est calculable,
+  jamais de source primaire.
+
+```bash
+python3 fundamentals.py \
+  --out ../../data/real/fundamentals.json \
+  --pdf-cache ../../data/fundamentals-pdf-cache
+```
+
+Ajouter ou actualiser une société signifie épingler la nouvelle publication,
+vérifier visuellement le millésime et les unités, choisir l'extracteur le plus
+étroit qui fonctionne, recouper les champs sensibles, puis exécuter les tests
+et le run 48/48. Le cache PDF est régénérable et n'est pas une source produit.
 
 Autres scripts du dossier : `build_alerts.py` (alertes factuelles),
 `fetch_documents.py` / `fetch_operations.py` (publications et

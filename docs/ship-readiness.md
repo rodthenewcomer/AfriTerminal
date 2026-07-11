@@ -6,7 +6,7 @@ This file turns the 22-role review into release gates. It keeps the product hone
 
 ## Product truth
 
-- Real today: BRVM prices and indices, full dividend history per ticker, official documents, market notices and capital operations (ESV), news, factual alerts, hand-verified financial statements for 26/48 companies (8 of them complete through market cap/EPS/P/B/ROE with double-sourced share counts), computed risk stats (volatility, beta, max drawdown), and a local portfolio tracker (transactions, average cost, realized/unrealized P&L, dividend income, projections) — plus watchlists and saved filters, all in local browser storage with JSON backup/restore.
+- Real today: BRVM prices and indices, full dividend history per ticker, official documents, market notices and capital operations (ESV), news, factual alerts, hand-verified financial statements for 48/48 companies (47 with published equity; 12 with double-sourced share counts enabling market cap/EPS and, where equity is available, P/B/ROE), computed risk stats (volatility, beta, max drawdown), and a local portfolio tracker (transactions, average cost, realized/unrealized P&L, dividend income, projections) — plus watchlists and saved filters, all in local browser storage with JSON backup/restore.
 - Simulated today: only the educational scenarios in the IPO "Apprendre" tab and legacy illustrative data under `lib/mock/` when explicitly labeled.
 - Not live today: accounts, delivered personalized notifications, billing, broker integrations, portfolio sync, and advanced AI summaries.
 - Never claim: investment advice, real-time execution-grade prices, paid Pro features, or official BRVM affiliation.
