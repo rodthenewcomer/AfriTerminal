@@ -11,7 +11,8 @@ from __future__ import annotations
 
 import unittest
 
-from fundamentals import normalize, to_millions
+from fundamentals import REGISTRY, normalize, to_millions
+from fetch_documents import SLUGS
 
 
 class ToMillionsTest(unittest.TestCase):
@@ -93,6 +94,48 @@ class NormalizeTest(unittest.TestCase):
         self.assertEqual(rec["cirPct"], 54.6)
         self.assertEqual(rec["costOfRiskM"], -8_500)
         self.assertEqual(rec["source"], "https://exemple/b.pdf")
+
+
+class RegistryContractTest(unittest.TestCase):
+    def test_full_brvm_universe_is_curated(self) -> None:
+        self.assertEqual(len(REGISTRY), 48)
+        self.assertEqual(len({meta["pdf"] for meta in REGISTRY.values()}), 48)
+        self.assertTrue(
+            all(meta["pdf"].startswith("https://www.brvm.org/") for meta in REGISTRY.values())
+        )
+        self.assertEqual(SLUGS["SGBC"], "sgci")
+
+    def test_financial_institutions_have_bank_shape(self) -> None:
+        banks = [
+            ticker
+            for ticker, meta in REGISTRY.items()
+            if meta["extractor"] == "bank" or meta.get("bank") is True
+        ]
+        self.assertEqual(len(banks), 16)
+        self.assertEqual(
+            {
+                key: REGISTRY["NSBC"]["raw"][key]
+                for key in ("deposits", "deposits_prev", "loans", "loans_prev")
+            },
+            {
+                "deposits": 2_242.218,
+                "deposits_prev": 1_700.893,
+                "loans": 1_818.671,
+                "loans_prev": 1_536.122,
+            },
+        )
+
+    def test_equity_and_share_count_confidence_thresholds(self) -> None:
+        missing_equity = [
+            ticker
+            for ticker, meta in REGISTRY.items()
+            if "equity" not in meta.get("raw", {})
+        ]
+        self.assertEqual(missing_equity, ["SGBC"])
+        self.assertEqual(
+            sum("sharesOutstanding" in meta for meta in REGISTRY.values()),
+            12,
+        )
 
 
 if __name__ == "__main__":

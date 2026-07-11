@@ -41,7 +41,7 @@ SLUGS: dict[str, str] = {
     "ONTBF": "onatel-bf", "ORAC": "orange-ci", "ORGT": "oragroup",
     "PALC": "palm-ci", "PRSC": "tractafric-ci", "SAFC": "safca-ci",
     "SCRC": "sucrivoire", "SDCC": "sodeci", "SDSC": "bollore-transport-logistics",
-    "SEMC": "crown-siem-ci", "SGBC": "sgb-ci", "SHEC": "vivo-energy-ci",
+    "SEMC": "crown-siem-ci", "SGBC": "sgci", "SHEC": "vivo-energy-ci",
     "SIBC": "sib", "SICC": "sicor", "SIVC": "air-liquide-ci",
     "SLBC": "solibra", "SMBC": "smb", "SNTS": "sonatel",
     "SOGC": "sogb", "SPHC": "saph-ci", "STAC": "setao-ci",

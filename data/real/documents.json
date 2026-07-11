@@ -350,6 +350,13 @@
   "url": "https://www.brvm.org/sites/default/files/20260430_-_etats_financiers_syscohada_-_exercice_2025_-_sucrivoire_ci.pdf"
  },
  {
+  "ticker": "SGBC",
+  "title": "Rapport dactivites — 1er trimestre 2026",
+  "type": "Résultats",
+  "date": "2026-04-30",
+  "url": "https://www.brvm.org/sites/default/files/20260430_-_rapport_dactivites_-_1er_trimestre_2026_-_societe_generale_ci.pdf"
+ },
+ {
   "ticker": "SLBC",
   "title": "Rapport dactivites — 1er trimestre 2026",
   "type": "Résultats",
@@ -428,6 +435,13 @@
  },
  {
   "ticker": "ABJC",
+  "title": "Etats financiers ifrs — exercice 2025",
+  "type": "États financiers",
+  "date": "2026-04-27",
+  "url": "https://www.brvm.org/sites/default/files/20260427_-_etats_financiers_ifrs_-_exercice_2025_-_servair_abidjan_ci.pdf"
+ },
+ {
+  "ticker": "ABJC",
   "title": "Etats financiers syscohada — exercice 2025",
   "type": "États financiers",
   "date": "2026-04-27",
@@ -439,13 +453,6 @@
   "type": "Résultats",
   "date": "2026-04-27",
   "url": "https://www.brvm.org/sites/default/files/20260427_-_rapport_dactivites_-_1er_trimestre_2026_-_servair_abidjan_ci.pdf"
- },
- {
-  "ticker": "ABJC",
-  "title": "Etats financiers ifrs — exercice 2025",
-  "type": "États financiers",
-  "date": "2026-04-27",
-  "url": "https://www.brvm.org/sites/default/files/20260427_-_etats_financiers_ifrs_-_exercice_2025_-_servair_abidjan_ci.pdf"
  },
  {
   "ticker": "SDCC",
@@ -518,6 +525,13 @@
   "url": "https://www.brvm.org/sites/default/files/20260422_-_rapport_dactivites_-_1er_trimestre_2026_-_totalenergies_marketing_ci.pdf"
  },
  {
+  "ticker": "SGBC",
+  "title": "Rapport dactivites annuel et etats financiers — exercice 2025",
+  "type": "États financiers",
+  "date": "2026-04-21",
+  "url": "https://www.brvm.org/sites/default/files/20260421_-_rapport_dactivites_annuel_et_etats_financiers_-_exercice_2025_-_societe_generale_ci_annule_et_remplace_le_precedent.pdf"
+ },
+ {
   "ticker": "SIBC",
   "title": "Rapport dactivites annuel et etats financiers — exercice 2025",
   "type": "États financiers",
@@ -551,6 +565,13 @@
   "type": "Résultats",
   "date": "2026-04-17",
   "url": "https://www.brvm.org/sites/default/files/20260417_-_rapport_dactivites_-_1er_trimestre_2026_-_sonatel_sn.pdf"
+ },
+ {
+  "ticker": "SGBC",
+  "title": "Rapport dactivites annuel et etats financiers — exercice 2025",
+  "type": "États financiers",
+  "date": "2026-04-16",
+  "url": "https://www.brvm.org/sites/default/files/20260416_-_rapport_dactivites_annuel_et_etats_financiers_-_exercice_2025_-_societe_generale_ci.pdf"
  },
  {
   "ticker": "BOAB",
@@ -757,13 +778,6 @@
  },
  {
   "ticker": "SIVC",
-  "title": "Attestation des cacs sur le montant global des remunerations versees aux cinq dirigeants sociaux et salaries les mieux remuneres",
-  "type": "États financiers",
-  "date": "2025-12-05",
-  "url": "https://www.brvm.org/sites/default/files/20251205_-_attestation_des_cacs_sur_le_montant_global_des_remunerations_versees_aux_cinq_dirigeants_sociaux_et_salaries_les_mieux_remuneres_-_air_liquide_ci.pdf"
- },
- {
-  "ticker": "SIVC",
   "title": "Rapport des cacs sur les etats financiers",
   "type": "États financiers",
   "date": "2025-12-05",
@@ -775,6 +789,13 @@
   "type": "États financiers",
   "date": "2025-12-05",
   "url": "https://www.brvm.org/sites/default/files/20251205_-_rapport_des_cacs_sur_les_etats_financiers_au_ca_-_air_liquide_ci.pdf"
+ },
+ {
+  "ticker": "SIVC",
+  "title": "Attestation des cacs sur le montant global des remunerations versees aux cinq dirigeants sociaux et salaries les mieux remuneres",
+  "type": "États financiers",
+  "date": "2025-12-05",
+  "url": "https://www.brvm.org/sites/default/files/20251205_-_attestation_des_cacs_sur_le_montant_global_des_remunerations_versees_aux_cinq_dirigeants_sociaux_et_salaries_les_mieux_remuneres_-_air_liquide_ci.pdf"
  },
  {
   "ticker": "BICB",
@@ -1085,11 +1106,11 @@
   "url": "https://www.brvm.org/sites/default/files/20251029_-_rapport_dactivites_-_3eme_trimestre_2025_-_palm_ci.pdf"
  },
  {
-  "ticker": "SMBC",
-  "title": "Rapport dactivites — 1er semestre 2025",
+  "ticker": "SGBC",
+  "title": "Rapport dactivites — 3eme trimestre 2025",
   "type": "Résultats",
   "date": "2025-10-29",
-  "url": "https://www.brvm.org/sites/default/files/20251029_-_rapport_dactivites_-_1er_semestre_2025_-_smb_ci.pdf"
+  "url": "https://www.brvm.org/sites/default/files/20251029_-_rapport_dactivites_-_3eme_trimestre_2025_-_societe_generale_ci.pdf"
  },
  {
   "ticker": "SMBC",
@@ -1097,6 +1118,13 @@
   "type": "Résultats",
   "date": "2025-10-29",
   "url": "https://www.brvm.org/sites/default/files/20251029_-_rapport_dactivites_-_3eme_trimestre_2025_-_smb_ci.pdf"
+ },
+ {
+  "ticker": "SMBC",
+  "title": "Rapport dactivites — 1er semestre 2025",
+  "type": "Résultats",
+  "date": "2025-10-29",
+  "url": "https://www.brvm.org/sites/default/files/20251029_-_rapport_dactivites_-_1er_semestre_2025_-_smb_ci.pdf"
  },
  {
   "ticker": "STBC",
@@ -1156,17 +1184,17 @@
  },
  {
   "ticker": "ORAC",
-  "title": "Attestation des cacs et rapport dactivites — 1er semestre 2025",
-  "type": "Résultats",
-  "date": "2025-10-23",
-  "url": "https://www.brvm.org/sites/default/files/20251023_-_attestation_des_cacs_et_rapport_dactivites_-_1er_semestre_2025_-_orange_ci.pdf"
- },
- {
-  "ticker": "ORAC",
   "title": "Rapport dactivites -1er semestre 2025",
   "type": "Résultats",
   "date": "2025-10-23",
   "url": "https://www.brvm.org/sites/default/files/20251023_-_rapport_dactivites_-1er_semestre_2025_-_orange_ci.pdf"
+ },
+ {
+  "ticker": "ORAC",
+  "title": "Attestation des cacs et rapport dactivites — 1er semestre 2025",
+  "type": "Résultats",
+  "date": "2025-10-23",
+  "url": "https://www.brvm.org/sites/default/files/20251023_-_attestation_des_cacs_et_rapport_dactivites_-_1er_semestre_2025_-_orange_ci.pdf"
  },
  {
   "ticker": "ORGT",
@@ -1372,6 +1400,13 @@
   "url": "https://www.brvm.org/sites/default/files/20250829_-_etats_financiers_et_rapport_des_cac_-_exercice_2024_-_africa_global_logistics_ci.pdf"
  },
  {
+  "ticker": "SGBC",
+  "title": "Rapport dactivites — 1er semestre 2025",
+  "type": "Résultats",
+  "date": "2025-08-28",
+  "url": "https://www.brvm.org/sites/default/files/20250828_-_rapport_dactivites_-_1er_semestre_2025_-_societe_generale_ci.pdf"
+ },
+ {
   "ticker": "UNXC",
   "title": "Etats financiers — exercice 2024",
   "type": "États financiers",
@@ -1513,17 +1548,17 @@
  },
  {
   "ticker": "PRSC",
-  "title": "Etats financiers — exercices 2018-2023",
-  "type": "États financiers",
-  "date": "2025-06-13",
-  "url": "https://www.brvm.org/sites/default/files/20250613_-_etats_financiers_-_exercices_2018-2023_-_tractafric_motors_ci.pdf"
- },
- {
-  "ticker": "PRSC",
   "title": "Etats financiers — normes ifrs — exercice 2024",
   "type": "États financiers",
   "date": "2025-06-13",
   "url": "https://www.brvm.org/sites/default/files/20250613_-_etats_financiers_-_normes_ifrs_-_exercice_2024_-_tractafric_motors_ci.pdf"
+ },
+ {
+  "ticker": "PRSC",
+  "title": "Etats financiers — exercices 2018-2023",
+  "type": "États financiers",
+  "date": "2025-06-13",
+  "url": "https://www.brvm.org/sites/default/files/20250613_-_etats_financiers_-_exercices_2018-2023_-_tractafric_motors_ci.pdf"
  },
  {
   "ticker": "TTLS",
@@ -1600,14 +1635,14 @@
   "title": "Etats financiers 2024 et rapport dactivites du 1er trimestre 2025",
   "type": "États financiers",
   "date": "2025-05-16",
-  "url": "https://www.brvm.org/sites/default/files/20250516_-_etats_financiers_2024_et_rapport_dactivites_du_1er_trimestre_2025_-_vivo_energy_ci_1.pdf"
+  "url": "https://www.brvm.org/sites/default/files/20250516_-_etats_financiers_2024_et_rapport_dactivites_du_1er_trimestre_2025_-_vivo_energy_ci.pdf"
  },
  {
   "ticker": "SHEC",
   "title": "Etats financiers 2024 et rapport dactivites du 1er trimestre 2025",
   "type": "États financiers",
   "date": "2025-05-16",
-  "url": "https://www.brvm.org/sites/default/files/20250516_-_etats_financiers_2024_et_rapport_dactivites_du_1er_trimestre_2025_-_vivo_energy_ci.pdf"
+  "url": "https://www.brvm.org/sites/default/files/20250516_-_etats_financiers_2024_et_rapport_dactivites_du_1er_trimestre_2025_-_vivo_energy_ci_1.pdf"
  },
  {
   "ticker": "CABC",
@@ -1702,17 +1737,17 @@
  },
  {
   "ticker": "TTLS",
+  "title": "Rapport dactivites — 1er trimestre 2025",
+  "type": "Résultats",
+  "date": "2025-05-02",
+  "url": "https://www.brvm.org/sites/default/files/20250502_-_rapport_dactivites_-_1er_trimestre_2025_-_totalenergies_marketing_sn.pdf"
+ },
+ {
+  "ticker": "TTLS",
   "title": "Etats financiers — norme ifrs — exercice 2024",
   "type": "États financiers",
   "date": "2025-05-02",
   "url": "https://www.brvm.org/sites/default/files/20250502_-_etats_financiers_-_norme_ifrs_-_exercice_2024_-_totalenergies_marketing_sn.pdf"
- },
- {
-  "ticker": "TTLS",
-  "title": "Etats financiers — norme syscohada — exercice 2024",
-  "type": "États financiers",
-  "date": "2025-05-02",
-  "url": "https://www.brvm.org/sites/default/files/20250502_-_etats_financiers_-_norme_syscohada_-_exercice_2024_-_totalenergies_marketing_sn.pdf"
  },
  {
   "ticker": "ABJC",
@@ -1876,6 +1911,13 @@
   "url": "https://www.brvm.org/sites/default/files/20250425_-_rapport_dactivites_-_1er_trimestre_2025_-_saph_ci.pdf"
  },
  {
+  "ticker": "SGBC",
+  "title": "Rapport dactivites — 1er trimestre 2025",
+  "type": "Résultats",
+  "date": "2025-04-23",
+  "url": "https://www.brvm.org/sites/default/files/20250423_-_rapport_dactivites_-_1er_trimestre_2025_-_societe_generale_ci.pdf"
+ },
+ {
   "ticker": "BOAB",
   "title": "Etats financiers certifies par les commissaires aux comptes — exercice 2024",
   "type": "États financiers",
@@ -1978,14 +2020,14 @@
   "title": "Etats financiers certifies par les cacs — exercice 2024",
   "type": "États financiers",
   "date": "2025-03-19",
-  "url": "https://www.brvm.org/sites/default/files/20250319_-_etats_financiers_certifies_par_les_cacs_-_exercice_2024_-_boa_mali.pdf"
+  "url": "https://www.brvm.org/sites/default/files/20250319_-_etats_financiers_certifies_par_les_cacs_-_exercice_2024_-_boa_mali_0.pdf"
  },
  {
   "ticker": "BOAM",
   "title": "Etats financiers certifies par les cacs — exercice 2024",
   "type": "États financiers",
   "date": "2025-03-19",
-  "url": "https://www.brvm.org/sites/default/files/20250319_-_etats_financiers_certifies_par_les_cacs_-_exercice_2024_-_boa_mali_0.pdf"
+  "url": "https://www.brvm.org/sites/default/files/20250319_-_etats_financiers_certifies_par_les_cacs_-_exercice_2024_-_boa_mali.pdf"
  },
  {
   "ticker": "BOAS",
@@ -2021,6 +2063,13 @@
   "type": "Résultats",
   "date": "2025-02-12",
   "url": "https://www.brvm.org/sites/default/files/20250212_-_rapport_dactivites_annuel_-_exercice_2024_-_sucrivoire_ci.pdf"
+ },
+ {
+  "ticker": "SGBC",
+  "title": "Rapport dactivites annuel — exercice 2024",
+  "type": "Résultats",
+  "date": "2025-02-07",
+  "url": "https://www.brvm.org/sites/default/files/20250207_-_rapport_dactivites_annuel_-_exercice_2024_-_societe_generale_ci.pdf"
  },
  {
   "ticker": "SEMC",
@@ -2087,17 +2136,17 @@
  },
  {
   "ticker": "SDSC",
-  "title": "Rapport dactivites et attestation des cacs — 1er semestre 2024",
-  "type": "Résultats",
-  "date": "2024-11-27",
-  "url": "https://www.brvm.org/sites/default/files/20241127_-_rapport_dactivites_et_attestation_des_cacs_-_1er_semestre_2024_-_africa_global_logistics_ci.pdf"
- },
- {
-  "ticker": "SDSC",
   "title": "Rapport dactivites — 3eme trimestre 2024",
   "type": "Résultats",
   "date": "2024-11-27",
   "url": "https://www.brvm.org/sites/default/files/20241127_-_rapport_dactivites_-_3eme_trimestre_2024_-_africa_global_logistics_ci.pdf"
+ },
+ {
+  "ticker": "SDSC",
+  "title": "Rapport dactivites et attestation des cacs — 1er semestre 2024",
+  "type": "Résultats",
+  "date": "2024-11-27",
+  "url": "https://www.brvm.org/sites/default/files/20241127_-_rapport_dactivites_et_attestation_des_cacs_-_1er_semestre_2024_-_africa_global_logistics_ci.pdf"
  },
  {
   "ticker": "BOAB",
@@ -2220,17 +2269,17 @@
  },
  {
   "ticker": "CFAC",
-  "title": "Rapport dactivites — 1er trimestre 2024",
+  "title": "Rapport dactivites — 1er semestre 2024",
   "type": "Résultats",
   "date": "2024-10-30",
-  "url": "https://www.brvm.org/sites/default/files/20241030_-_rapport_dactivites_-_1er_trimestre_2024_-_cfao_motors_ci.pdf"
+  "url": "https://www.brvm.org/sites/default/files/20241030_-_rapport_dactivites_-_1er_semestre_2024_-_cfao_motors_ci.pdf"
  },
  {
   "ticker": "CFAC",
   "title": "Rapport dactivites — 1er trimestre 2024",
   "type": "Résultats",
   "date": "2024-10-30",
-  "url": "https://www.brvm.org/sites/default/files/20241030_-_rapport_dactivites_-_1er_trimestre_2024_-_cfao_motors_ci_1.pdf"
+  "url": "https://www.brvm.org/sites/default/files/20241030_-_rapport_dactivites_-_1er_trimestre_2024_-_cfao_motors_ci.pdf"
  },
  {
   "ticker": "CIEC",
@@ -2245,6 +2294,13 @@
   "type": "Résultats",
   "date": "2024-10-30",
   "url": "https://www.brvm.org/sites/default/files/20241030_-_rapport_dactivites_-_3eme_trimestre_2024_-_ecobank_ci_annule_et_remplace_le_precedent.pdf"
+ },
+ {
+  "ticker": "SGBC",
+  "title": "Rapport dactivites — 3eme trimestre 2024",
+  "type": "Résultats",
+  "date": "2024-10-30",
+  "url": "https://www.brvm.org/sites/default/files/20241030_-_rapport_dactivites_-_3eme_trimestre_2024_-_societe_generale_ci.pdf"
  },
  {
   "ticker": "ETIT",
