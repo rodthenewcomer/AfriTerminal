@@ -275,22 +275,24 @@ export function StockView({ ticker }: { ticker: string }) {
                     hint="Bénéfice net par action"
                   />
                   {realFund.equityM ? (
-                    <>
-                      <MetricCard
-                        label="P/B"
-                        term="pb"
-                        value={ratio(
-                          lastPrice / ((realFund.equityM * 1e6) / realFund.sharesOutstanding)
-                        )}
-                      />
-                      <MetricCard
-                        label={`ROE ${realFund.fiscalYear}`}
-                        term="roe"
-                        value={pct((realFund.netIncomeM / realFund.equityM) * 100, { signed: false, digits: 1 })}
-                      />
-                    </>
+                    <MetricCard
+                      label="P/B"
+                      term="pb"
+                      value={ratio(
+                        lastPrice / ((realFund.equityM * 1e6) / realFund.sharesOutstanding)
+                      )}
+                    />
                   ) : null}
                 </>
+              ) : null}
+              {/* Le ROE n'a pas besoin du nombre d'actions — affiché dès
+                  que les capitaux propres sont vérifiés (ex. ETIT). */}
+              {realFund?.equityM ? (
+                <MetricCard
+                  label={`ROE ${realFund.fiscalYear}`}
+                  term="roe"
+                  value={pct((realFund.netIncomeM / realFund.equityM) * 100, { signed: false, digits: 1 })}
+                />
               ) : null}
               {realFund ? (
                 <>
@@ -366,7 +368,9 @@ export function StockView({ ticker }: { ticker: string }) {
                   ? realFund.equityM
                     ? " Capitalisation, BPA, P/B et ROE sont calculés sur le nombre d'actions et les capitaux propres vérifiés au document."
                     : " Capitalisation et BPA sont calculés sur le nombre d'actions vérifié (deux sources concordantes) ; P/B et ROE attendent des capitaux propres lisibles au bilan."
-                  : " Capitalisation, P/B et ROE restent indisponibles (nombre d'actions et capitaux propres non encore vérifiés pour cette société)."}
+                  : realFund.equityM
+                    ? " ROE calculé sur les capitaux propres vérifiés au document ; capitalisation, BPA et P/B attendent un nombre d'actions confirmé par deux sources concordantes."
+                    : " Capitalisation, P/B et ROE restent indisponibles (nombre d'actions et capitaux propres non encore vérifiés pour cette société)."}
               </p>
             ) : (
               <p className="mt-2.5 text-[11px] text-ink-3">

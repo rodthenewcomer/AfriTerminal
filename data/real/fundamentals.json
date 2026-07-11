@@ -104,6 +104,27 @@
     "source": "https://www.brvm.org/sites/default/files/20260520_-_etats_financiers_syscohada_et_ifrs_-_exercice_2025_-_cie_ci.pdf",
     "publishedOn": "2026-05-20"
   },
+  "ETIT": {
+    "ticker": "ETIT",
+    "fiscalYear": 2025,
+    "revenueLabel": "PNB",
+    "revenueM": 1424261,
+    "revenuePrevM": 1266559,
+    "netIncomeM": 345523,
+    "netIncomePrevM": 299708,
+    "ordinaryIncomeM": null,
+    "ordinaryIncomePrevM": null,
+    "cirPct": 48.3,
+    "cirPrevPct": 52.8,
+    "costOfRiskM": 270217,
+    "costOfRiskPrevM": 195720,
+    "proposedGrossDividend": null,
+    "sharesOutstanding": null,
+    "equityM": 1597846,
+    "equityPrevM": 1133230,
+    "source": "https://www.brvm.org/sites/default/files/20260413_-_etats_financiers_ifrs_-_exercice_2025_-_eti_tg.pdf",
+    "publishedOn": "2026-04-13"
+  },
   "LNBB": {
     "ticker": "LNBB",
     "fiscalYear": 2025,

@@ -152,6 +152,38 @@ REGISTRY: dict[str, dict] = {
         "extractor": "bank",
         "unit": 1_000_000_000,
     },
+    "ETIT": {
+        "pdf": f"{BASE}/20260413_-_etats_financiers_ifrs_-_exercice_2025_-_eti_tg.pdf",
+        "publishedOn": "2026-04-13",
+        "fiscalYear": 2025,
+        "extractor": "manual",
+        "bank": True,
+        "unit": 1_000_000,
+        # Comptes CONSOLIDÉS IFRS du groupe (colonne FCFA millions du
+        # document bilingue $EU/FCFA). RN = résultat net consolidé
+        # (345,5 Md ; part du groupe 236,8 Md après minoritaires
+        # 104,5 Md — pas de champ dédié, précisé ici). Cohérences
+        # vérifiées : CIR calculé 688 426/1 424 261 = 48,3 % = annoncé ;
+        # PER BOC 3,35 = 64 F × ~18,09 Md titres / RN consolidé, exact.
+        # PAS de sharesOutstanding : le BPA officiel (10 F) est calculé
+        # sur la part du groupe et un nombre moyen pondéré (~24 Md) qui
+        # ne recoupe pas les ~18,1 Md du référentiel BRVM — les deux
+        # sources ne convergent pas, on n'inscrit rien.
+        "raw": {
+            "pnb": 1_424_261,
+            "pnb_prev": 1_266_559,
+            "net_income": 345_523,
+            "net_income_prev": 299_708,
+            "cir": 48.3,
+            "cir_prev": 52.8,
+            "cost_of_risk": 270_217,
+            "cost_of_risk_prev": 195_720,
+            # Total capitaux propres consolidés (part du groupe :
+            # 1 077 652 ; minoritaires : 478 853).
+            "equity": 1_597_846,
+            "equity_prev": 1_133_230,
+        },
+    },
     # Les 4 entrées ci-dessous (2026-07-09) utilisent extractor="manual" :
     # ni l'extracteur tableau ni un scan ligne-à-ligne générique n'ont
     # fonctionné sur leur gabarit (colonnes BILAN/COMPTE DE RESULTAT
@@ -515,7 +547,7 @@ def normalize(ticker: str, raw: dict, meta: dict) -> dict:
     tout en millions de FCFA. Les champs absents restent absents (None) —
     absence de donnée préférée à une donnée fausse."""
     unit = meta["unit"]
-    is_bank = meta["extractor"] == "bank"
+    is_bank = meta["extractor"] == "bank" or meta.get("bank") is True
     rec: dict = {
         "ticker": ticker,
         "fiscalYear": meta["fiscalYear"],
