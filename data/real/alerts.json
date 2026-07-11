@@ -1,5 +1,192 @@
 [
  {
+  "id": "prix-BOABF-2026-07-10",
+  "type": "prix",
+  "ticker": "BOABF",
+  "title": "BOABF au plus haut 52 semaines",
+  "detail": "BANK OF AFRICA BF clôture à 6 050 FCFA le 2026-07-10 — au-delà de son plus haut des 52 dernières semaines (6 000 FCFA).",
+  "time": "2026-07-10T15:30:00+00:00",
+  "severity": "positive",
+  "active": true,
+  "basis": "réel"
+ },
+ {
+  "id": "prix-BOAC-2026-07-10",
+  "type": "prix",
+  "ticker": "BOAC",
+  "title": "BOAC au plus haut 52 semaines",
+  "detail": "BANK OF AFRICA CI clôture à 9 500 FCFA le 2026-07-10 — au-delà de son plus haut des 52 dernières semaines (9 490 FCFA).",
+  "time": "2026-07-10T15:30:00+00:00",
+  "severity": "positive",
+  "active": true,
+  "basis": "réel"
+ },
+ {
+  "id": "prix-BOAM-2026-07-10",
+  "type": "prix",
+  "ticker": "BOAM",
+  "title": "BOAM au plus haut 52 semaines",
+  "detail": "BANK OF AFRICA ML clôture à 5 450 FCFA le 2026-07-10 — au-delà de son plus haut des 52 dernières semaines (5 425 FCFA).",
+  "time": "2026-07-10T15:30:00+00:00",
+  "severity": "positive",
+  "active": true,
+  "basis": "réel"
+ },
+ {
+  "id": "prix-BOAN-2026-07-10",
+  "type": "prix",
+  "ticker": "BOAN",
+  "title": "BOAN : +6,44 % sur la séance",
+  "detail": "BANK OF AFRICA NG clôture à 4 790 FCFA le 2026-07-10  contre 4 500 FCFA la séance précédente (11 023 titres échangés).",
+  "time": "2026-07-10T15:30:00+00:00",
+  "severity": "positive",
+  "active": true,
+  "basis": "réel"
+ },
+ {
+  "id": "prix-BOAN-2026-07-10",
+  "type": "prix",
+  "ticker": "BOAN",
+  "title": "BOAN au plus haut 52 semaines",
+  "detail": "BANK OF AFRICA NG clôture à 4 790 FCFA le 2026-07-10 — au-delà de son plus haut des 52 dernières semaines (4 500 FCFA).",
+  "time": "2026-07-10T15:30:00+00:00",
+  "severity": "positive",
+  "active": true,
+  "basis": "réel"
+ },
+ {
+  "id": "prix-CBIBF-2026-07-10",
+  "type": "prix",
+  "ticker": "CBIBF",
+  "title": "CBIBF : +7,5 % sur la séance",
+  "detail": "CORIS BANK INTERNATIONAL clôture à 29 610 FCFA le 2026-07-10  contre 27 545 FCFA la séance précédente (1 181 titres échangés).",
+  "time": "2026-07-10T15:30:00+00:00",
+  "severity": "positive",
+  "active": true,
+  "basis": "réel"
+ },
+ {
+  "id": "prix-CBIBF-2026-07-10",
+  "type": "prix",
+  "ticker": "CBIBF",
+  "title": "CBIBF au plus haut 52 semaines",
+  "detail": "CORIS BANK INTERNATIONAL clôture à 29 610 FCFA le 2026-07-10 — au-delà de son plus haut des 52 dernières semaines (27 625 FCFA).",
+  "time": "2026-07-10T15:30:00+00:00",
+  "severity": "positive",
+  "active": true,
+  "basis": "réel"
+ },
+ {
+  "id": "prix-ETIT-2026-07-10",
+  "type": "prix",
+  "ticker": "ETIT",
+  "title": "ETIT : +6,67 % sur la séance",
+  "detail": "ECOBANK TRANS. INCORP. TG clôture à 64 FCFA le 2026-07-10  contre 60 FCFA la séance précédente (4 615 129 titres échangés).",
+  "time": "2026-07-10T15:30:00+00:00",
+  "severity": "positive",
+  "active": true,
+  "basis": "réel"
+ },
+ {
+  "id": "prix-ETIT-2026-07-10",
+  "type": "prix",
+  "ticker": "ETIT",
+  "title": "ETIT au plus haut 52 semaines",
+  "detail": "ECOBANK TRANS. INCORP. TG clôture à 64 FCFA le 2026-07-10 — au-delà de son plus haut des 52 dernières semaines (60 FCFA).",
+  "time": "2026-07-10T15:30:00+00:00",
+  "severity": "positive",
+  "active": true,
+  "basis": "réel"
+ },
+ {
+  "id": "volume-ETIT-2026-07-10",
+  "type": "volume",
+  "ticker": "ETIT",
+  "title": "Volume inhabituel sur ETIT",
+  "detail": "4 615 129 titres ECOBANK TRANS. INCORP. TG échangés le 2026-07-10  soit 3.4× la moyenne des 30 séances précédentes.",
+  "time": "2026-07-10T15:30:00+00:00",
+  "severity": "info",
+  "active": true,
+  "basis": "réel"
+ },
+ {
+  "id": "prix-LNBB-2026-07-10",
+  "type": "prix",
+  "ticker": "LNBB",
+  "title": "LNBB : +7,42 % sur la séance",
+  "detail": "LOTERIE NATIONALE DU BENIN clôture à 4 415 FCFA le 2026-07-10  contre 4 110 FCFA la séance précédente (13 261 titres échangés).",
+  "time": "2026-07-10T15:30:00+00:00",
+  "severity": "positive",
+  "active": true,
+  "basis": "réel"
+ },
+ {
+  "id": "volume-LNBB-2026-07-10",
+  "type": "volume",
+  "ticker": "LNBB",
+  "title": "Volume inhabituel sur LNBB",
+  "detail": "13 261 titres LOTERIE NATIONALE DU BENIN échangés le 2026-07-10  soit 4.1× la moyenne des 30 séances précédentes.",
+  "time": "2026-07-10T15:30:00+00:00",
+  "severity": "info",
+  "active": true,
+  "basis": "réel"
+ },
+ {
+  "id": "prix-SCRC-2026-07-10",
+  "type": "prix",
+  "ticker": "SCRC",
+  "title": "SCRC : +5,75 % sur la séance",
+  "detail": "SUCRIVOIRE clôture à 3 495 FCFA le 2026-07-10  contre 3 305 FCFA la séance précédente (6 944 titres échangés).",
+  "time": "2026-07-10T15:30:00+00:00",
+  "severity": "positive",
+  "active": true,
+  "basis": "réel"
+ },
+ {
+  "id": "prix-SEMC-2026-07-10",
+  "type": "prix",
+  "ticker": "SEMC",
+  "title": "SEMC : +5,05 % sur la séance",
+  "detail": "EVIOSYS PACKAGING SIEM CI clôture à 1 455 FCFA le 2026-07-10  contre 1 385 FCFA la séance précédente (3 212 titres échangés).",
+  "time": "2026-07-10T15:30:00+00:00",
+  "severity": "positive",
+  "active": true,
+  "basis": "réel"
+ },
+ {
+  "id": "prix-SIVC-2026-07-10",
+  "type": "prix",
+  "ticker": "SIVC",
+  "title": "SIVC : +7,29 % sur la séance",
+  "detail": "ERIUM CI (Ex AIR LIQUIDE CI) clôture à 2 060 FCFA le 2026-07-10  contre 1 920 FCFA la séance précédente (15 169 titres échangés).",
+  "time": "2026-07-10T15:30:00+00:00",
+  "severity": "positive",
+  "active": true,
+  "basis": "réel"
+ },
+ {
+  "id": "prix-UNLC-2026-07-10",
+  "type": "prix",
+  "ticker": "UNLC",
+  "title": "UNLC : -6,02 % sur la séance",
+  "detail": "UNILEVER CI clôture à 50 500 FCFA le 2026-07-10  contre 53 735 FCFA la séance précédente (20 titres échangés).",
+  "time": "2026-07-10T15:30:00+00:00",
+  "severity": "warning",
+  "active": true,
+  "basis": "réel"
+ },
+ {
+  "id": "prix-UNXC-2026-07-10",
+  "type": "prix",
+  "ticker": "UNXC",
+  "title": "UNXC : +7,2 % sur la séance",
+  "detail": "UNIWAX CI clôture à 1 340 FCFA le 2026-07-10  contre 1 250 FCFA la séance précédente (9 655 titres échangés).",
+  "time": "2026-07-10T15:30:00+00:00",
+  "severity": "positive",
+  "active": true,
+  "basis": "réel"
+ },
+ {
   "id": "prix-BICB-2026-07-09",
   "type": "prix",
   "ticker": "BICB",
@@ -22,44 +209,11 @@
   "basis": "réel"
  },
  {
-  "id": "prix-BOAM-2026-07-09",
-  "type": "prix",
-  "ticker": "BOAM",
-  "title": "BOAM au plus haut 52 semaines",
-  "detail": "BANK OF AFRICA ML clôture à 5 425 FCFA le 2026-07-09 — au-delà de son plus haut des 52 dernières semaines (5 395 FCFA).",
-  "time": "2026-07-09T15:30:00+00:00",
-  "severity": "positive",
-  "active": true,
-  "basis": "réel"
- },
- {
-  "id": "prix-BOAN-2026-07-09",
-  "type": "prix",
-  "ticker": "BOAN",
-  "title": "BOAN au plus haut 52 semaines",
-  "detail": "BANK OF AFRICA NG clôture à 4 500 FCFA le 2026-07-09 — au-delà de son plus haut des 52 dernières semaines (4 340 FCFA).",
-  "time": "2026-07-09T15:30:00+00:00",
-  "severity": "positive",
-  "active": true,
-  "basis": "réel"
- },
- {
   "id": "prix-ETIT-2026-07-09",
   "type": "prix",
   "ticker": "ETIT",
   "title": "ETIT : +7,14 % sur la séance",
   "detail": "ECOBANK TRANS. INCORP. TG clôture à 60 FCFA le 2026-07-09  contre 56 FCFA la séance précédente (1 553 051 titres échangés).",
-  "time": "2026-07-09T15:30:00+00:00",
-  "severity": "positive",
-  "active": true,
-  "basis": "réel"
- },
- {
-  "id": "prix-ETIT-2026-07-09",
-  "type": "prix",
-  "ticker": "ETIT",
-  "title": "ETIT au plus haut 52 semaines",
-  "detail": "ECOBANK TRANS. INCORP. TG clôture à 60 FCFA le 2026-07-09 — au-delà de son plus haut des 52 dernières semaines (56 FCFA).",
   "time": "2026-07-09T15:30:00+00:00",
   "severity": "positive",
   "active": true,
@@ -132,17 +286,6 @@
   "basis": "réel"
  },
  {
-  "id": "prix-BOAC-2026-07-08",
-  "type": "prix",
-  "ticker": "BOAC",
-  "title": "BOAC au plus haut 52 semaines",
-  "detail": "BANK OF AFRICA CI clôture à 9 490 FCFA le 2026-07-08 — au-delà de son plus haut des 52 dernières semaines (9 450 FCFA).",
-  "time": "2026-07-08T15:30:00+00:00",
-  "severity": "positive",
-  "active": true,
-  "basis": "réel"
- },
- {
   "id": "prix-BOAM-2026-07-08",
   "type": "prix",
   "ticker": "BOAM",
@@ -170,17 +313,6 @@
   "ticker": "CBIBF",
   "title": "CBIBF : +7,49 % sur la séance",
   "detail": "CORIS BANK INTERNATIONAL clôture à 27 625 FCFA le 2026-07-08  contre 25 700 FCFA la séance précédente (548 titres échangés).",
-  "time": "2026-07-08T15:30:00+00:00",
-  "severity": "positive",
-  "active": true,
-  "basis": "réel"
- },
- {
-  "id": "prix-CBIBF-2026-07-08",
-  "type": "prix",
-  "ticker": "CBIBF",
-  "title": "CBIBF au plus haut 52 semaines",
-  "detail": "CORIS BANK INTERNATIONAL clôture à 27 625 FCFA le 2026-07-08 — au-delà de son plus haut des 52 dernières semaines (25 700 FCFA).",
   "time": "2026-07-08T15:30:00+00:00",
   "severity": "positive",
   "active": true,
@@ -440,17 +572,6 @@
   "basis": "réel"
  },
  {
-  "id": "prix-BOABF-2026-07-06",
-  "type": "prix",
-  "ticker": "BOABF",
-  "title": "BOABF au plus haut 52 semaines",
-  "detail": "BANK OF AFRICA BF clôture à 6 000 FCFA le 2026-07-06 — au-delà de son plus haut des 52 dernières semaines (5 945 FCFA).",
-  "time": "2026-07-06T15:30:00+00:00",
-  "severity": "positive",
-  "active": true,
-  "basis": "réel"
- },
- {
   "id": "volume-CFAC-2026-07-06",
   "type": "volume",
   "ticker": "CFAC",
@@ -524,72 +645,6 @@
   "detail": "BICI CI a payé un dividende net de 1 157 FCFA par action le 2026-07-06 (source : bulletin officiel).",
   "time": "2026-07-06T09:00:00+00:00",
   "severity": "info",
-  "active": true,
-  "basis": "réel"
- },
- {
-  "id": "prix-BICB-2026-07-03",
-  "type": "prix",
-  "ticker": "BICB",
-  "title": "BICB : +5,37 % sur la séance",
-  "detail": "BIIC BN clôture à 6 275 FCFA le 2026-07-03  contre 5 955 FCFA la séance précédente (6 580 titres échangés).",
-  "time": "2026-07-03T15:30:00+00:00",
-  "severity": "positive",
-  "active": true,
-  "basis": "réel"
- },
- {
-  "id": "volume-ETIT-2026-07-03",
-  "type": "volume",
-  "ticker": "ETIT",
-  "title": "Volume inhabituel sur ETIT",
-  "detail": "3 915 461 titres ECOBANK TRANS. INCORP. TG échangés le 2026-07-03  soit 3.7× la moyenne des 30 séances précédentes.",
-  "time": "2026-07-03T15:30:00+00:00",
-  "severity": "info",
-  "active": true,
-  "basis": "réel"
- },
- {
-  "id": "prix-NTLC-2026-07-03",
-  "type": "prix",
-  "ticker": "NTLC",
-  "title": "NTLC au plus haut 52 semaines",
-  "detail": "NESTLE CI clôture à 16 500 FCFA le 2026-07-03 — au-delà de son plus haut des 52 dernières semaines (16 490 FCFA).",
-  "time": "2026-07-03T15:30:00+00:00",
-  "severity": "positive",
-  "active": true,
-  "basis": "réel"
- },
- {
-  "id": "prix-SGBC-2026-07-03",
-  "type": "prix",
-  "ticker": "SGBC",
-  "title": "SGBC : -5,1 % sur la séance",
-  "detail": "SOCIETE GENERALE COTE D'IVOIRE clôture à 37 000 FCFA le 2026-07-03  contre 38 990 FCFA la séance précédente (5 299 titres échangés).",
-  "time": "2026-07-03T15:30:00+00:00",
-  "severity": "warning",
-  "active": true,
-  "basis": "réel"
- },
- {
-  "id": "prix-UNLC-2026-07-03",
-  "type": "prix",
-  "ticker": "UNLC",
-  "title": "UNLC : -7,49 % sur la séance",
-  "detail": "UNILEVER CI clôture à 51 395 FCFA le 2026-07-03  contre 55 555 FCFA la séance précédente (209 titres échangés).",
-  "time": "2026-07-03T15:30:00+00:00",
-  "severity": "warning",
-  "active": true,
-  "basis": "réel"
- },
- {
-  "id": "volume-UNXC-2026-07-03",
-  "type": "volume",
-  "ticker": "UNXC",
-  "title": "Volume inhabituel sur UNXC",
-  "detail": "111 753 titres UNIWAX CI échangés le 2026-07-03  soit 11.5× la moyenne des 30 séances précédentes.",
-  "time": "2026-07-03T15:30:00+00:00",
-  "severity": "warning",
   "active": true,
   "basis": "réel"
  },
