@@ -178,6 +178,12 @@ REGISTRY: dict[str, dict] = {
             "cir_prev": 52.8,
             "cost_of_risk": 270_217,
             "cost_of_risk_prev": 195_720,
+            # « Dépôts de la clientèle » / « Crédits à la clientèle »
+            # (tableau chiffres clés, colonne FCFA millions).
+            "deposits": 14_120_139,
+            "deposits_prev": 12_895_459,
+            "loans": 6_570_385,
+            "loans_prev": 6_255_123,
             # Total capitaux propres consolidés (part du groupe :
             # 1 077 652 ; minoritaires : 478 853).
             "equity": 1_597_846,
@@ -562,6 +568,14 @@ def normalize(ticker: str, raw: dict, meta: dict) -> dict:
         "ordinaryIncomePrevM": to_millions(raw.get("ordinary_income_prev"), unit),
         "cirPct": raw.get("cir"),
         "cirPrevPct": raw.get("cir_prev"),
+        # Banques : les deux agrégats bilanciels fondamentaux. ROTE et
+        # CASA volontairement absents — le ROTE annoncé (fonds propres
+        # tangibles) n'est pas recalculable depuis le dépôt BRVM, et le
+        # CASA n'est publié que par ETI : on n'affiche que du vérifiable.
+        "depositsM": to_millions(raw.get("deposits"), unit),
+        "depositsPrevM": to_millions(raw.get("deposits_prev"), unit),
+        "loansM": to_millions(raw.get("loans"), unit),
+        "loansPrevM": to_millions(raw.get("loans_prev"), unit),
         "costOfRiskM": to_millions(raw.get("cost_of_risk"), unit),
         "costOfRiskPrevM": to_millions(raw.get("cost_of_risk_prev"), unit),
         # dividende par action : déjà en FCFA, pas de normalisation

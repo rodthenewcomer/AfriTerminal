@@ -25,6 +25,11 @@ export interface RealFundamentals {
   /** Banques uniquement : coût du risque (négatif = reprise nette) */
   costOfRiskM: number | null;
   costOfRiskPrevM: number | null;
+  /** Banques uniquement : dépôts et crédits clientèle, millions FCFA */
+  depositsM: number | null;
+  depositsPrevM: number | null;
+  loansM: number | null;
+  loansPrevM: number | null;
   /** Dividende brut par action proposé à l'AG, en FCFA */
   proposedGrossDividend: number | null;
   /** Nombre d'actions — présent seulement si deux sources indépendantes

@@ -341,6 +341,27 @@ export function StockView({ ticker }: { ticker: string }) {
                       hint={realFund.costOfRiskM < 0 ? "Négatif = reprise nette" : undefined}
                     />
                   ) : null}
+                  {realFund.depositsM !== null ? (
+                    <MetricCard
+                      label="Dépôts clientèle"
+                      value={millions(realFund.depositsM)}
+                      hint={(() => {
+                        const g = growthPct(realFund.depositsM, realFund.depositsPrevM);
+                        return g !== null ? `${pct(g, { digits: 1 })} vs ${realFund.fiscalYear - 1} — l'argent que les clients confient` : "L'argent que les clients confient à la banque";
+                      })()}
+                    />
+                  ) : null}
+                  {realFund.loansM !== null ? (
+                    <MetricCard
+                      label="Crédits clientèle"
+                      value={millions(realFund.loansM)}
+                      hint={
+                        realFund.depositsM
+                          ? `${pct((realFund.loansM / realFund.depositsM) * 100, { signed: false, digits: 0 })} des dépôts sont prêtés`
+                          : "Ce que la banque prête"
+                      }
+                    />
+                  ) : null}
                   {realFund.proposedGrossDividend !== null ? (
                     <MetricCard
                       label="Dividende brut proposé"
