@@ -1,9 +1,9 @@
 # AfriTerminal Mobile — plan Expo (iOS/Android)
 
-Statut : **planifié, non démarré**. Ce document sert de référence avant
-d'ouvrir le chantier — architecture, choix techniques, périmètre par
-écran, risques. Le site web (ce dépôt, Next.js, GitHub Pages) n'est
-**pas remplacé** : il continue de vivre à l'identique, en parallèle.
+Statut : **Phase 0 terminée ; Phase 1 exportée, confirmation sur appareil
+en attente**. Ce document reste la référence d'architecture, de périmètre
+et de go/no-go. Le site web (Next.js, GitHub Pages) n'est **pas remplacé** :
+il continue de vivre à l'identique, en parallèle.
 
 ## Contraintes fixées par le produit
 
@@ -114,52 +114,76 @@ est le prix du rendu 100 % natif demandé.
 - ✅ **Phase 0 — terminée** (commit `7d4bda1`). `packages/core` extrait,
   ~70 imports migrés, site web vérifié inchangé (tsc, 81 tests vitest,
   63 tests Python, build statique, CI + deploy GitHub Actions verts).
-- ✅ **Phase 1 (spike) — code écrit et type-vérifié, rendu non confirmé
-  visuellement.** Détail ci-dessous.
+- 🟡 **Phase 1 (spike) — code corrigé, poli, type-vérifié et exporté pour
+  iOS/Android ; rendu sur appareil non confirmé.** Le go/no-go reste soumis
+  au test iPhone physique décrit ci-dessous. Ne pas démarrer la Phase 2
+  avant cette confirmation.
 
 ## Résultat du spike (Phase 1)
 
-`apps/mobile` : app Expo SDK 57 + TypeScript, dépend de
-`@afriterminal/core` en workspace. Composant `CandleChart`
-(`apps/mobile/src/components/CandleChart.tsx`) : chandelles construites
-en `SkPath` via `useDerivedValue` (recalcul réactif sur `translateX`/
-`scale`, thread UI), pan + pinch-zoom via `Gesture.Pan`/`Gesture.Pinch`
-(react-native-gesture-handler), double-tap pour recadrer, overlay SMA 20
-calculé par `@afriterminal/core/indicators` sur 180 séances réelles
-SNTS (`data/real/series/SNTS.json`).
+`apps/mobile` utilise Expo SDK 54, React Native 0.81.5, React 19.1,
+Skia 2.2.12, Reanimated 4.1.x, Gesture Handler 2.28 et Worklets 0.5.1.
+Cette pile correspond exactement à l'Expo Go SDK 54 disponible sur le
+seul iPhone de test.
 
-**Ce qui est vérifié :** le code type-check intégralement contre les
-vraies définitions TypeScript des packages installés (`@shopify/
-react-native-skia@2.6.2`, `react-native-gesture-handler`, `react-native-
-reanimated@4.5.0`) — signal fort que l'API utilisée (Path/Canvas/
-Gesture/useDerivedValue) est correcte pour ces versions.
+Le composant `CandleChart` dessine les chandelles et la SMA 20 en
+`SkPath` via `useDerivedValue`. Pan, pinch et crosshair restent sur le
+thread UI. Le spike comprend désormais :
 
-**Ce qui n'est PAS vérifié — limite d'environnement, pas du code
-métier :** cette machine n'a ni Simulateur iOS (Xcode incomplet, pas de
-`simctl`) ni émulateur Android. La voie de repli — l'aperçu web d'Expo
-(`expo start --web`, react-native-skia y dessine via CanvasKit/WASM) —
-bute sur un problème d'initialisation : le singleton `Skia` de la
-librairie semble se construire avant que `LoadSkiaWeb()`/`WithSkiaWeb`
-n'aient fini de charger le WASM (`Skia.Path.Make()` échoue avec
-`Cannot read properties of undefined (reading 'PathBuilder')`), cohérent
-avec un bundle Metro web qui n'effectue pas de vrai découpage
-asynchrone par défaut dans cette config. Aucune des deux méthodes
-documentées par Shopify (code-splitting `WithSkiaWeb`, enregistrement
-différé `LoadSkiaWeb` + entrée `index.web.ts`) n'a résolu le problème
-après investigation ciblée ; approfondir demanderait de creuser la
-config Metro/`web.output` — non prioritaire puisque **le natif n'a pas
-du tout ce problème** (Skia y est compilé dans le binaire, pas chargé en
-WASM à l'exécution). Le code du spike a été laissé propre (pas
-d'artefacts web cassés committés) plutôt que de garder un faux-semblant
-qui donnerait l'impression que l'aperçu web fonctionne.
+- axe de prix à droite, axe de dates en bas et grille légère ;
+- appui long avec crosshair et tooltip date/OHLC ;
+- pan inertiel borné (`withDecay`), zoom autour du point focal et reset
+  au ressort (`withSpring`) ;
+- haptique légère au reset et à l'engagement du crosshair ;
+- chrome natif conforme aux tokens web sombres, surfaces pleines et
+  bordures fines, sans blur ni shader décoratif.
+
+### Incident Hermes SDK 54
+
+Le crash appareil `SyntaxError: private properties are not supported`
+venait d'un graphe workspace incohérent après le downgrade SDK 57 → 54 :
+le lockfile gardait `react-native-worklets 0.8.3` alors que Reanimated
+4.1/Expo 54 attend Worklets 0.5.1. Metro pouvait donc inclure du code JS
+et un plugin Worklets d'une autre génération que les modules natifs
+fournis par Expo Go.
+
+Correction : Worklets verrouillé à 0.5.1, arbre npm régénéré et dédupliqué,
+React partagé en 19.1, New Architecture explicitement activée et preset
+Babel Expo présent. `expo-haptics` utilise la version SDK 54.
+
+**Vérifié sur cette machine :**
+
+- TypeScript racine et mobile sans erreur ;
+- `expo install --check` : dépendances à jour ;
+- `expo-doctor apps/mobile` : 18/18 contrôles réussis ;
+- export Metro/Hermes iOS : 1 238 modules, bundle `.hbc` généré ;
+- export Metro/Hermes Android : 1 237 modules, bundle `.hbc` généré.
+
+**Non vérifié :** démarrage dans Expo Go, rendu Skia, fluidité et haptique
+sur l'iPhone physique. Cette machine ne dispose toujours d'aucun
+simulateur iOS ni émulateur Android. Le correctif **devrait** résoudre le
+crash, mais ne sera déclaré confirmé qu'après le test appareil.
 
 ## Prochaine étape concrète
 
-Le go/no-go réel de la Phase 1 (fluidité du pan/pinch-zoom, rendu
-correct des chandelles) ne peut être tranché que sur un vrai
-Simulateur iOS / émulateur Android / device physique — à faire sur une
-machine qui en dispose (`cd apps/mobile && npx expo start`, puis `i`
-pour iOS ou `a` pour Android, ou scanner le QR code avec Expo Go). Si
-le rendu et les gestes sont concluants : passer en Phase 2 (squelette
-de navigation + écrans). Sinon, ce spike aura coûté une fraction de la
-Phase 3 complète — exactement ce pour quoi il a été fait.
+Depuis la racine du dépôt :
+
+```bash
+cd apps/mobile
+npx expo start -c --lan
+```
+
+Ouvrir ensuite l'URL `exp://` dans Expo Go SDK 54 sur l'iPhone et vérifier :
+
+1. l'écran SNTS s'ouvre sans erreur Hermes/Worklets ;
+2. chandelles, mèches, SMA 20, axes prix/date et grille sont visibles ;
+3. le pan finit avec une inertie courte sans sortir des bornes ;
+4. le pinch zoome autour des doigts ;
+5. l'appui long affiche le crosshair et le tooltip OHLC, avec haptique ;
+6. le double-tap recadre au ressort et déclenche une haptique légère ;
+7. aucune saccade, disparition du chart ou erreur rouge après plusieurs
+   cycles pan/zoom/crosshair.
+
+Si ces sept points passent, marquer Phase 1 « confirmée sur appareil » et
+commencer Phase 2. Sinon, conserver le go/no-go bloqué et relever le texte
+exact de l'erreur ou une vidéo du geste défaillant.
