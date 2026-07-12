@@ -227,3 +227,11 @@ Fraîcheur en heures — le temps réel exigera un hébergement serveur
 
 Aucune machine locale n'est nécessaire : la fraîcheur des données et le
 déploiement sont entièrement portés par GitHub Actions.
+
+## Roadmap — app mobile (iOS/Android)
+
+Planifiée, non démarrée : une app native (Expo/React Native, chart
+100 % natif via Skia, pas de wrapper web) partageant sa logique métier
+(`lib/`) avec ce site via un monorepo, sans rien changer au
+fonctionnement actuel du site. Détail complet, choix techniques,
+découpage par phases : [docs/mobile-app-plan.md](docs/mobile-app-plan.md).
