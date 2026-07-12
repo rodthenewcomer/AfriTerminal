@@ -126,6 +126,28 @@ export function ActionButton({ label, icon, onPress, active = false }: { label: 
   );
 }
 
+export function SegmentedTabs<T extends string>({ tabs, active, onChange }: {
+  tabs: readonly { id: T; label: string }[];
+  active: T;
+  onChange: (id: T) => void;
+}) {
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <View style={styles.segmented}>
+        {tabs.map((tab) => (
+          <Pressable
+            key={tab.id}
+            onPress={() => onChange(tab.id)}
+            style={[styles.segment, active === tab.id && styles.segmentActive]}
+          >
+            <Text style={[styles.segmentText, active === tab.id && styles.segmentTextActive]}>{tab.label}</Text>
+          </Pressable>
+        ))}
+      </View>
+    </ScrollView>
+  );
+}
+
 export function LoadingState({ label = "Chargement des données BRVM…" }: { label?: string }) {
   const pulse = useSharedValue(0.4);
   useEffect(() => { pulse.value = withRepeat(withTiming(1, { duration: 700 }), -1, true); }, [pulse]);
@@ -184,6 +206,14 @@ const styles = StyleSheet.create({
   rowRight: { alignItems: "flex-end" },
   rowValue: { color: colors.ink, fontSize: 14, fontWeight: "700", fontVariant: tabular },
   rowValueDetail: { ...type.caption, marginTop: 2, fontVariant: tabular },
+  segmented: {
+    flexDirection: "row", gap: 2, padding: 3,
+    backgroundColor: colors.surface2, borderColor: colors.line, borderWidth: 1, borderRadius: radius.md,
+  },
+  segment: { height: 32, alignItems: "center", justifyContent: "center", paddingHorizontal: 13, borderRadius: radius.sm },
+  segmentActive: { backgroundColor: colors.surface, borderColor: colors.lineStrong, borderWidth: 1 },
+  segmentText: { color: colors.ink3, fontSize: 12.5, fontWeight: "600" },
+  segmentTextActive: { color: colors.ink },
   action: {
     minHeight: 38, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6,
     paddingHorizontal: 13, borderRadius: radius.full, borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: colors.surface,

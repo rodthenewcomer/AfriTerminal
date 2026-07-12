@@ -39,6 +39,7 @@ export default function RootLayout() {
           headerTintColor: colors.ink,
           headerTitleStyle: { fontSize: 15, fontWeight: "700" },
           headerShadowVisible: false,
+          headerBackButtonDisplayMode: "minimal",
           contentStyle: { backgroundColor: colors.background },
           animation: "slide_from_right",
         }}>
@@ -46,9 +47,10 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="stocks/[ticker]" options={{ title: "Fiche action" }} />
           <Stack.Screen name="alerts" options={{ title: "Alertes" }} />
-          <Stack.Screen name="screener" options={{ title: "Screener" }} />
+          <Stack.Screen name="portfolio" options={{ title: "Portefeuille" }} />
+          <Stack.Screen name="news" options={{ title: "Actualités" }} />
           <Stack.Screen name="dividends" options={{ title: "Dividendes" }} />
-          <Stack.Screen name="documents" options={{ title: "Documents & actualités" }} />
+          <Stack.Screen name="documents" options={{ title: "Documents" }} />
           <Stack.Screen name="ipo" options={{ title: "IPO & opérations" }} />
           <Stack.Screen name="map" options={{ title: "Carte du marché" }} />
           <Stack.Screen name="settings" options={{ title: "Réglages" }} />

@@ -5,11 +5,12 @@ import { colors } from "../../src/theme";
 
 type IconName = ComponentProps<typeof Ionicons>["name"];
 
+/** Même dock que la barre mobile du site : Accueil · Recherche · Watchlist · Screener · Plus. */
 const ICONS: Record<string, [IconName, IconName]> = {
   index: ["home-outline", "home"],
-  market: ["trending-up-outline", "trending-up"],
+  search: ["search-outline", "search"],
   watchlist: ["star-outline", "star"],
-  portfolio: ["pie-chart-outline", "pie-chart"],
+  screener: ["funnel-outline", "funnel"],
   more: ["ellipsis-horizontal", "ellipsis-horizontal"],
 };
 
@@ -28,9 +29,9 @@ export default function TabLayout() {
       },
     })}>
       <Tabs.Screen name="index" options={{ title: "Accueil" }} />
-      <Tabs.Screen name="market" options={{ title: "Marché" }} />
+      <Tabs.Screen name="search" options={{ title: "Recherche" }} />
       <Tabs.Screen name="watchlist" options={{ title: "Watchlist" }} />
-      <Tabs.Screen name="portfolio" options={{ title: "Portefeuille" }} />
+      <Tabs.Screen name="screener" options={{ title: "Screener" }} />
       <Tabs.Screen name="more" options={{ title: "Plus" }} />
     </Tabs>
   );

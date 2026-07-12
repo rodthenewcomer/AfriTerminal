@@ -6,7 +6,7 @@ import { QuoteRow } from "../../src/components/QuoteRow";
 import { useMarketData } from "../../src/providers/MarketDataProvider";
 import { colors, radius } from "../../src/theme";
 
-export default function MarketScreen() {
+export default function SearchScreen() {
   const router = useRouter();
   const market = useMarketData();
   const [query, setQuery] = useState("");
@@ -19,7 +19,7 @@ export default function MarketScreen() {
   if (market.loading && quotes.length === 0) return <LoadingState />;
 
   return (
-    <Page title="Marché" subtitle={`${quotes.length} valeurs · cours officiels BRVM`} refreshing={market.refreshing} onRefresh={() => void market.refresh()}>
+    <Page title="Recherche" subtitle={`${quotes.length} valeurs cotées · cours officiels BRVM`} refreshing={market.refreshing} onRefresh={() => void market.refresh()}>
       <View style={styles.actions}>
         <ActionButton label="Screener" icon="filter-outline" onPress={() => router.push("/screener")} />
         <ActionButton label="Carte" icon="grid-outline" onPress={() => router.push("/map")} />

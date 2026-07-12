@@ -5,6 +5,7 @@ import { compactFcfa, compactVolume, pct } from "@afriterminal/core/format";
 import type { IndexRecord } from "../../src/data/types";
 import { ActionButton, ChangePill, EmptyState, LoadingState, Metric, Page, Row, Section } from "../../src/components/ui";
 import { QuoteRow } from "../../src/components/QuoteRow";
+import { SectorPerformance } from "../../src/components/SectorPerformance";
 import { Sparkline } from "../../src/components/Sparkline";
 import { useMarketData } from "../../src/providers/MarketDataProvider";
 import { colors, radius, tabular, type } from "../../src/theme";
@@ -100,6 +101,10 @@ export default function DashboardScreen() {
         </View>
       </Section>
 
+      <Section title="Performance par secteur" detail="Moyenne des variations du jour">
+        <SectorPerformance quotes={quotes} />
+      </Section>
+
       <Section title="Plus fortes hausses" detail="Variation du jour">
         {gainers.length
           ? gainers.map((quote, index) => <QuoteRow key={quote.ticker} quote={quote} rank={index + 1} />)
@@ -124,7 +129,7 @@ export default function DashboardScreen() {
             />
           ))}
           <View style={styles.moreRow}>
-            <ActionButton label="Toutes les actualités" icon="arrow-forward" onPress={() => router.push("/documents?tab=news")} />
+            <ActionButton label="Toutes les actualités" icon="arrow-forward" onPress={() => router.push("/news")} />
           </View>
         </> : <EmptyState icon="newspaper-outline" title="Aucune actualité" detail="Les articles sourcés apparaîtront ici." />}
       </Section>

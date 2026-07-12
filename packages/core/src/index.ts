@@ -11,4 +11,5 @@ export * from "./risk";
 export * from "./indicators";
 export * from "./glossary";
 export * from "./company-profiles";
+export * from "./treemap";
 export * from "./utils";

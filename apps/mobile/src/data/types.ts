@@ -16,8 +16,14 @@ export interface FundamentalRecord {
   depositsM: number | null;
   loansM: number | null;
   costOfRiskM: number | null;
+  costOfRiskPrevM: number | null;
   sharesOutstanding: number | null;
   equityM: number | null;
+  equityPrevM: number | null;
+  depositsPrevM: number | null;
+  loansPrevM: number | null;
+  ordinaryIncomePrevM: number | null;
+  proposedGrossDividend: number | null;
   source: string;
   publishedOn: string;
 }
