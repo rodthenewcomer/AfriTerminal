@@ -6,7 +6,7 @@ export default function MoreScreen() {
   return (
     <Page title="Plus" subtitle="Toutes les sections du poste de travail">
       <Section title="Suivi">
-        <Row icon="pie-chart-outline" title="Portefeuille" detail="PRU, P&L et allocation calculés localement" onPress={() => router.push("/portfolio")} />
+        <Row icon="funnel-outline" title="Screener" detail="Filtres, tris et recherches enregistrées" onPress={() => router.push("/screener")} />
         <Row icon="notifications-outline" title="Alertes" detail="Alertes factuelles et seuils de prix locaux" onPress={() => router.push("/alerts")} />
         <Row icon="cash-outline" title="Dividendes" detail="Saisonnalité et journal des versements nets" onPress={() => router.push("/dividends")} />
       </Section>

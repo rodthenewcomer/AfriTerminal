@@ -9,7 +9,7 @@ import {
   calculateMACD, calculateRSI, calculateSMA, calculateStochastic, calculateVWAP,
 } from "@afriterminal/core/indicators";
 import { WebChart, type WebChartHandle, type WebChartMarker, type WebChartOverlay, type WebChartPanes, type WebChartPayload } from "./chart/WebChart";
-import { ActionButton } from "./ui";
+import { ActionButton, SegmentedTabs } from "./ui";
 import { useChartLevelStore, useChartStore } from "../stores";
 import { colors, type } from "../theme";
 
@@ -142,24 +142,16 @@ export function AdvancedChart({
   }, [chartType, data, events, fit, indicators, levelMode, levels, logarithmic, percentMode, previousClose, since, ticker, visible, week52High, week52Low]);
 
   const paneCount = ["rsi", "macd", "atr", "stoch"].filter((id) => indicators.includes(id as IndicatorId)).length;
-  const height = 380 + paneCount * 90;
+  const height = 400 + paneCount * 90;
 
-  const rangeChips = (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.rangeRow}>
-      {RANGES.map((item) => (
-        <ActionButton key={item.id} label={item.label} active={range === item.id} onPress={() => setRange(item.id)} />
-      ))}
-    </ScrollView>
-  );
+  const rangeChips = <SegmentedTabs tabs={RANGES} active={range} onChange={setRange} />;
 
   return (
     <View style={styles.root}>
       {rangeChips}
       <WebChart ref={chartRef} payload={payload} height={height} onLevelTap={(price) => toggleLevel(ticker, price)} />
       {levelMode ? <Text style={styles.levelHint}>Touchez le graphique pour poser ou retirer un niveau de prix.</Text> : null}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.toolbar}>
-        {TYPES.map((item) => <ActionButton key={item.id} label={item.label} active={chartType === item.id} onPress={() => setType(item.id)} />)}
-      </ScrollView>
+      <SegmentedTabs tabs={TYPES} active={chartType} onChange={setType} />
       <View style={styles.actions}>
         <ActionButton label="Indicateurs" icon="options-outline" active={showIndicators} onPress={() => setShowIndicators((value) => !value)} />
         <ActionButton label="Log" active={logarithmic} onPress={toggleLog} />

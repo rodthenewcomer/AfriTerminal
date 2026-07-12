@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 import { ScrollView, StyleSheet, TextInput, View } from "react-native";
-import { EmptyState, ActionButton, Page, Section } from "../../src/components/ui";
-import { QuoteRow } from "../../src/components/QuoteRow";
-import { useMarketData } from "../../src/providers/MarketDataProvider";
-import { colors, radius } from "../../src/theme";
-import { useScreenerStore, type ScreenerSort } from "../../src/stores";
+import { EmptyState, ActionButton, Page, Section } from "../src/components/ui";
+import { QuoteRow } from "../src/components/QuoteRow";
+import { useMarketData } from "../src/providers/MarketDataProvider";
+import { colors, radius } from "../src/theme";
+import { useScreenerStore, type ScreenerSort } from "../src/stores";
 
 const SORTS: { id: ScreenerSort; label: string }[] = [
   { id: "variation", label: "Variation" },
@@ -31,7 +31,7 @@ export default function ScreenerScreen() {
     }), [market.quotes, query, sector, sort]);
 
   return (
-    <Page title="Screener" subtitle={`${quotes.length} résultats sur ${Object.keys(market.quotes).length} valeurs · données officielles uniquement`}>
+    <Page subtitle={`${quotes.length} résultats sur ${Object.keys(market.quotes).length} valeurs · données officielles uniquement`}>
       <TextInput
         value={query}
         onChangeText={setQuery}

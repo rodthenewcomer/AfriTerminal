@@ -1,5 +1,5 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef } from "react";
-import { StyleSheet, View } from "react-native";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
 import { WebView, type WebViewMessageEvent } from "react-native-webview";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
@@ -62,7 +62,8 @@ const BRIDGE = `
     layout: {
       background: { type: LWC.ColorType.Solid, color: "transparent" },
       textColor: "#a1a1aa",
-      fontSize: 11,
+      fontSize: 11.5,
+      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       attributionLogo: false,
     },
     grid: {
@@ -85,6 +86,7 @@ const BRIDGE = `
   var markersPlugin = null;
   var mainSeries = null;
   var levelMode = false;
+  var lastDataKey = "";
 
   function track(series) { tracked.push(series); return series; }
 
@@ -239,7 +241,10 @@ const BRIDGE = `
         lines: [{ text: payload.ticker, color: "rgba(255,255,255,0.045)", fontSize: 72, fontStyle: "bold" }],
       });
 
-      if (payload.fit) chart.timeScale().fitContent();
+      var dataKey = payload.ticker + "|" + payload.chartType + "|" + bars.length + "|" +
+        (bars.length ? bars[0].time + "|" + bars[bars.length - 1].time : "");
+      if (payload.fit || dataKey !== lastDataKey) chart.timeScale().fitContent();
+      lastDataKey = dataKey;
       post({ type: "ready" });
     } catch (err) {
       post({ type: "error", message: String(err && err.message ? err.message : err) });
@@ -274,6 +279,7 @@ export const WebChart = forwardRef<WebChartHandle, {
   onLevelTap?: (price: number) => void;
 }>(function WebChart({ payload, height, onLevelTap }, handleRef) {
   const webRef = useRef<WebView>(null);
+  const [bridgeError, setBridgeError] = useState<string | null>(null);
   useImperativeHandle(handleRef, () => ({
     shoot: () => { webRef.current?.injectJavaScript("window.__shoot(); true;"); },
   }), []);
@@ -298,14 +304,18 @@ export const WebChart = forwardRef<WebChartHandle, {
 
   const onMessage = useCallback((event: WebViewMessageEvent) => {
     try {
-      const message = JSON.parse(event.nativeEvent.data) as { type: string; price?: number; dataUrl?: string };
+      const message = JSON.parse(event.nativeEvent.data) as { type: string; price?: number; dataUrl?: string; message?: string };
       if (message.type === "boot") {
         bootedRef.current = true;
         send(payload);
+      } else if (message.type === "ready") {
+        setBridgeError(null);
       } else if (message.type === "levelTap" && typeof message.price === "number") {
         onLevelTap?.(message.price);
       } else if (message.type === "png" && message.dataUrl) {
         void sharePng(message.dataUrl);
+      } else if (message.type === "error" && message.message) {
+        setBridgeError(message.message);
       }
     } catch {
       // Message non JSON — ignoré.
@@ -327,6 +337,7 @@ export const WebChart = forwardRef<WebChartHandle, {
         javaScriptCanOpenWindowsAutomatically={false}
         style={styles.web}
       />
+      {bridgeError ? <Text style={styles.error}>Erreur moteur chart : {bridgeError}</Text> : null}
     </View>
   );
 });
@@ -337,4 +348,9 @@ const styles = StyleSheet.create({
     overflow: "hidden", backgroundColor: colors.surface,
   },
   web: { flex: 1, backgroundColor: "transparent" },
+  error: {
+    position: "absolute", left: 10, right: 10, bottom: 10,
+    color: colors.warn, fontSize: 11, lineHeight: 15,
+    backgroundColor: "rgba(9,9,11,0.9)", borderRadius: radius.sm, padding: 8,
+  },
 });

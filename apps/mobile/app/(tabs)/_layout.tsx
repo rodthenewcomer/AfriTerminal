@@ -1,17 +1,17 @@
 import { Tabs } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import type { ComponentProps } from "react";
 import { colors } from "../../src/theme";
 
-type IconName = ComponentProps<typeof Ionicons>["name"];
+type IconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
 
-/** Même dock que la barre mobile du site : Accueil · Recherche · Watchlist · Screener · Plus. */
+/** Dock : Accueil · Recherche · Watchlist · Portefeuille · Plus. */
 const ICONS: Record<string, [IconName, IconName]> = {
-  index: ["home-outline", "home"],
-  search: ["search-outline", "search"],
+  index: ["view-dashboard-outline", "view-dashboard"],
+  search: ["magnify", "magnify"],
   watchlist: ["star-outline", "star"],
-  screener: ["funnel-outline", "funnel"],
-  more: ["ellipsis-horizontal", "ellipsis-horizontal"],
+  portfolio: ["wallet-outline", "wallet"],
+  more: ["dots-horizontal", "dots-horizontal"],
 };
 
 export default function TabLayout() {
@@ -25,13 +25,13 @@ export default function TabLayout() {
       tabBarLabelStyle: { fontSize: 10.5, fontWeight: "600", letterSpacing: 0.1 },
       tabBarIcon: ({ color, focused }) => {
         const pair = ICONS[route.name] ?? ICONS.more;
-        return <Ionicons name={pair[focused ? 1 : 0]} size={23} color={color} />;
+        return <MaterialCommunityIcons name={pair[focused ? 1 : 0]} size={24} color={color} />;
       },
     })}>
       <Tabs.Screen name="index" options={{ title: "Accueil" }} />
       <Tabs.Screen name="search" options={{ title: "Recherche" }} />
       <Tabs.Screen name="watchlist" options={{ title: "Watchlist" }} />
-      <Tabs.Screen name="screener" options={{ title: "Screener" }} />
+      <Tabs.Screen name="portfolio" options={{ title: "Portefeuille" }} />
       <Tabs.Screen name="more" options={{ title: "Plus" }} />
     </Tabs>
   );

@@ -2,10 +2,10 @@ import { useMemo, useState } from "react";
 import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { computePositions, valuePortfolio } from "@afriterminal/core/portfolio";
 import { fcfa, pct } from "@afriterminal/core/format";
-import { ActionButton, ChangePill, EmptyState, Page, Row, Section } from "../src/components/ui";
-import { useMarketData } from "../src/providers/MarketDataProvider";
-import { usePortfolioStore } from "../src/stores";
-import { colors, radius, tabular, type } from "../src/theme";
+import { ActionButton, ChangePill, EmptyState, Page, Row, Section } from "../../src/components/ui";
+import { useMarketData } from "../../src/providers/MarketDataProvider";
+import { usePortfolioStore } from "../../src/stores";
+import { colors, radius, tabular, type } from "../../src/theme";
 
 export default function PortfolioScreen() {
   const market = useMarketData();
@@ -42,6 +42,7 @@ export default function PortfolioScreen() {
 
   return (
     <Page
+      title="Portefeuille"
       subtitle="PRU et performance calculés localement — les données restent sur cet appareil"
       action={<ActionButton label="Ajouter" icon="add" onPress={() => setOpen(true)} />}
     >
