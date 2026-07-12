@@ -27,6 +27,7 @@ import { getSnapshot } from "@/lib/data";
 import { dateFr, fcfa, pct } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { InfoHint } from "@/components/ui/info-hint";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { PriceChange } from "@/components/stocks/badges";
@@ -254,11 +255,23 @@ export default function PortfolioPage() {
                   <tr className="border-b border-line bg-surface-2/50 text-[11px] uppercase tracking-wide text-ink-3">
                     <th className="px-4 py-2.5 text-left font-medium">Valeur</th>
                     <th className="px-3 py-2.5 text-right font-medium">Qté</th>
-                    <th className="px-3 py-2.5 text-right font-medium" title="Prix de revient unitaire (coût moyen, frais inclus)">PRU</th>
+                    <th className="px-3 py-2.5 text-right font-medium">
+                      <InfoHint label="PRU" text="Prix de revient unitaire (coût moyen, frais inclus)." className="underline decoration-dotted decoration-ink-3/60 underline-offset-2">
+                        PRU
+                      </InfoHint>
+                    </th>
                     <th className="px-3 py-2.5 text-right font-medium">Cours</th>
                     <th className="px-3 py-2.5 text-right font-medium">Valeur</th>
                     <th className="px-3 py-2.5 text-right font-medium">+/- value</th>
-                    <th className="px-3 py-2.5 text-right font-medium" title="Rendement sur PRU : dernier dividende net / votre prix de revient — votre rendement personnel">Rdt/PRU</th>
+                    <th className="px-3 py-2.5 text-right font-medium">
+                      <InfoHint
+                        label="Rdt/PRU"
+                        text="Rendement sur PRU : dernier dividende net / votre prix de revient — votre rendement personnel."
+                        className="underline decoration-dotted decoration-ink-3/60 underline-offset-2"
+                      >
+                        Rdt/PRU
+                      </InfoHint>
+                    </th>
                     <th className="px-3 py-2.5 text-right font-medium">Poids</th>
                   </tr>
                 </thead>
@@ -276,9 +289,9 @@ export default function PortfolioPage() {
                               {snap?.name ?? p.ticker}
                             </span>
                             {p.oversold ? (
-                              <Badge tone="warning" title="Une vente dépasse la quantité détenue — vérifiez vos saisies">
-                                à vérifier
-                              </Badge>
+                              <InfoHint label="à vérifier" text="Une vente dépasse la quantité détenue — vérifiez vos saisies.">
+                                <Badge tone="warning">à vérifier</Badge>
+                              </InfoHint>
                             ) : null}
                           </Link>
                         </td>

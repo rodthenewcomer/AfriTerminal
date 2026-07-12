@@ -5,6 +5,7 @@ import { Download, FileSearch, FileText } from "lucide-react";
 import type { DocItem } from "@/lib/types";
 import { dateFr } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
+import { DataBasisBadge } from "@/components/ui/data-basis-badge";
 import { Button } from "@/components/ui/button";
 
 const TYPE_TONES: Record<DocItem["type"], "accent" | "gold" | "neutral" | "warning"> = {
@@ -37,15 +38,7 @@ export function DocumentCard({
         <div className="flex items-center gap-2 flex-wrap">
           <Badge tone={TYPE_TONES[doc.type]}>{doc.type}</Badge>
           <ImportanceBadge level={doc.importance} />
-          {doc.basis === "réel" ? (
-            <Badge tone="positive" title="Chiffres vérifiés contre les données réelles BRVM">
-              Données réelles
-            </Badge>
-          ) : (
-            <Badge tone="gold" title="Scénario illustratif — repose sur des fondamentaux non collectés (résultat net, ROE, PNB...)">
-              Scénario illustratif
-            </Badge>
-          )}
+          <DataBasisBadge basis={doc.basis} />
           {showTicker ? (
             <Link
               href={`/stocks/${doc.ticker}`}

@@ -25,6 +25,7 @@ import { PriceChange, SignalBadges } from "@/components/stocks/badges";
 import { AlertCard } from "@/components/alerts/alert-card";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { InfoHint } from "@/components/ui/info-hint";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -112,9 +113,12 @@ export default function DashboardPage() {
             le prix. Comprends le mouvement.
           </p>
         </div>
-        <Badge tone="positive" title="Cours, variations, volumes, indices, alertes et documents réels (bulletins officiels BRVM et fiches sociétés) — seuls les cas pédagogiques de l'onglet Apprendre sont simulés">
-          Données réelles · scénarios séparés
-        </Badge>
+        <InfoHint
+          label="Données réelles · scénarios séparés"
+          text="Cours, variations, volumes, indices, alertes et documents réels (bulletins officiels BRVM et fiches sociétés) — seuls les cas pédagogiques de l'onglet Apprendre sont simulés."
+        >
+          <Badge tone="positive">Données réelles · scénarios séparés</Badge>
+        </InfoHint>
       </div>
 
       {/* Indices */}
