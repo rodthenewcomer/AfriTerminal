@@ -111,7 +111,9 @@ export function MainChart({ ticker }: { ticker: string }) {
   const [epoch, setEpoch] = useState(0);
   const [levelsMode, setLevelsMode] = useState(false);
   useChartPrefsHydrated();
-  useEffect(() => rehydrateChartLevels(), []);
+  useEffect(() => {
+    void rehydrateChartLevels();
+  }, []);
   // Sélecteur SANS `?? []` inline : un nouveau tableau à chaque snapshot
   // ferait boucler useSyncExternalStore (React #185) — le défaut est
   // une constante module.

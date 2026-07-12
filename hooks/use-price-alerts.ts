@@ -26,6 +26,7 @@ interface PriceAlertsState {
   alerts: PriceAlert[];
   add: (a: Omit<PriceAlert, "id" | "createdAt">) => void;
   remove: (id: string) => void;
+  clear: () => void;
 }
 
 export const usePriceAlerts = create<PriceAlertsState>()(
@@ -45,6 +46,7 @@ export const usePriceAlerts = create<PriceAlertsState>()(
         })),
       remove: (id) =>
         set((state) => ({ alerts: state.alerts.filter((x) => x.id !== id) })),
+      clear: () => set({ alerts: [] }),
     }),
     { name: "afriterminal-price-alerts", skipHydration: true }
   )

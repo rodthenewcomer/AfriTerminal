@@ -3,12 +3,19 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { Database, Monitor, Moon, Sun, User } from "lucide-react";
+import { Database, Eraser, Keyboard, Monitor, Moon, Sun, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Select } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { BackupCard } from "@/components/settings/backup-card";
+import { usePortfolio, usePortfolioHydrated } from "@/hooks/use-portfolio";
+import { useWatchlist, useWatchlistHydrated } from "@/hooks/use-watchlist";
+import { useSavedFilters, useSavedFiltersHydrated } from "@/hooks/use-saved-filters";
+import { usePriceAlerts, usePriceAlertsHydrated } from "@/hooks/use-price-alerts";
+import { useChartLevels, useChartLevelsHydrated } from "@/hooks/use-chart-levels";
+import { useChartPrefs, useChartPrefsHydrated } from "@/hooks/use-chart-prefs";
 
 function Toggle({
   checked,
@@ -55,6 +62,30 @@ function Toggle({
   );
 }
 
+function ResetRow({
+  label,
+  hint,
+  onReset,
+  disabled = false,
+}: {
+  label: string;
+  hint: string;
+  onReset: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 py-2">
+      <span className="min-w-0">
+        <span className="block text-sm font-medium text-ink">{label}</span>
+        <span className="block text-[11px] text-ink-3">{hint}</span>
+      </span>
+      <Button variant="danger" size="sm" onClick={onReset} disabled={disabled}>
+        Effacer
+      </Button>
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -65,6 +96,23 @@ export default function SettingsPage() {
   const [notifDividends, setNotifDividends] = useState(false);
   const [advanced, setAdvanced] = useState(false);
   useEffect(() => setMounted(true), []);
+
+  const portfolioHydrated = usePortfolioHydrated();
+  const clearPortfolio = usePortfolio((s) => s.replaceAll);
+  const watchlistHydrated = useWatchlistHydrated();
+  const resetWatchlists = useWatchlist((s) => s.replaceAll);
+  const filtersHydrated = useSavedFiltersHydrated();
+  const clearFilters = useSavedFilters((s) => s.replaceAll);
+  const alertsHydrated = usePriceAlertsHydrated();
+  const clearAlerts = usePriceAlerts((s) => s.clear);
+  const levelsHydrated = useChartLevelsHydrated();
+  const clearLevels = useChartLevels((s) => s.clearAll);
+  const chartPrefsHydrated = useChartPrefsHydrated();
+  const resetMaColors = useChartPrefs((s) => s.resetMaColors);
+
+  const confirmAndRun = (question: string, run: () => void) => {
+    if (window.confirm(question)) run();
+  };
 
   return (
     <div className="stagger space-y-4">
@@ -155,6 +203,35 @@ export default function SettingsPage() {
         </CardBody>
       </Card>
 
+      <Card>
+        <CardHeader
+          title={
+            <span className="inline-flex items-center gap-1.5">
+              <Keyboard className="h-3.5 w-3.5 text-accent" /> Raccourcis clavier
+            </span>
+          }
+          subtitle="Actifs sur la fiche d'une action, hors champ de saisie."
+        />
+        <CardBody className="space-y-1.5">
+          {(
+            [
+              ["F", "Plein écran"],
+              ["L", "Échelle logarithmique"],
+              ["V", "Afficher/masquer le volume"],
+              ["Double-clic sur le graphique", "Recadrer sur l'historique visible"],
+              ["⌘K / Ctrl K", "Ouvrir la recherche"],
+            ] as const
+          ).map(([key, label]) => (
+            <div key={key} className="flex items-center justify-between gap-3 text-xs">
+              <span className="text-ink-2">{label}</span>
+              <kbd className="rounded-md border border-line bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-ink-3">
+                {key}
+              </kbd>
+            </div>
+          ))}
+        </CardBody>
+      </Card>
+
       </div>
       <div className="space-y-4">
       <Card>
@@ -180,8 +257,8 @@ export default function SettingsPage() {
           <Toggle
             checked={notifDividends}
             onChange={setNotifDividends}
-            label="Calendrier des dividendes — à venir"
-            hint="Rappel avant chaque date de détachement."
+            label="Rappel avant versement — à venir"
+            hint="La saisonnalité historique est déjà visible dans Calendrier des dividendes."
             disabled
           />
         </CardBody>
@@ -219,6 +296,64 @@ export default function SettingsPage() {
       </Card>
 
       <BackupCard />
+
+      <Card>
+        <CardHeader
+          title={
+            <span className="inline-flex items-center gap-1.5">
+              <Eraser className="h-3.5 w-3.5 text-down" /> Réinitialiser
+            </span>
+          }
+          subtitle="Efface définitivement les données choisies, dans ce navigateur. Téléchargez une sauvegarde avant si besoin."
+        />
+        <CardBody className="divide-y divide-line/60">
+          <ResetRow
+            label="Watchlists"
+            hint="Revient à une liste unique vide."
+            disabled={!watchlistHydrated}
+            onReset={() =>
+              confirmAndRun("Effacer toutes vos watchlists ?", () =>
+                resetWatchlists([{ id: "default", name: "Ma watchlist", tickers: [] }], "default")
+              )
+            }
+          />
+          <ResetRow
+            label="Portefeuille"
+            hint="Supprime toutes les transactions enregistrées."
+            disabled={!portfolioHydrated}
+            onReset={() =>
+              confirmAndRun("Effacer tout votre portefeuille ?", () => clearPortfolio([]))
+            }
+          />
+          <ResetRow
+            label="Filtres enregistrés (Screener)"
+            hint="Supprime vos combinaisons de filtres sauvegardées."
+            disabled={!filtersHydrated}
+            onReset={() =>
+              confirmAndRun("Effacer tous vos filtres enregistrés ?", () => clearFilters([]))
+            }
+          />
+          <ResetRow
+            label="Alertes de prix"
+            hint="Supprime toutes vos alertes de seuil."
+            disabled={!alertsHydrated}
+            onReset={() =>
+              confirmAndRun("Effacer toutes vos alertes de prix ?", clearAlerts)
+            }
+          />
+          <ResetRow
+            label="Niveaux et couleurs de graphique"
+            hint="Supprime vos niveaux tracés et réinitialise les couleurs des moyennes mobiles."
+            disabled={!levelsHydrated || !chartPrefsHydrated}
+            onReset={() =>
+              confirmAndRun("Effacer vos niveaux de graphique et réinitialiser les couleurs ?", () => {
+                clearLevels();
+                resetMaColors();
+              })
+            }
+          />
+        </CardBody>
+      </Card>
       </div>
       </div>
 
