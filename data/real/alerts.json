@@ -572,6 +572,17 @@
   "basis": "réel"
  },
  {
+  "id": "fondamental-CBIBF-2026-07-07",
+  "type": "fondamental",
+  "ticker": "CBIBF",
+  "title": "CBIBF : états financiers 2025 publiés",
+  "detail": "CORIS BANK INTERNATIONAL a publié ses états financiers 2025 le 2026-07-07. Résultat net +36,63 % vs 2024.",
+  "time": "2026-07-07T09:00:00+00:00",
+  "severity": "info",
+  "active": true,
+  "basis": "réel"
+ },
+ {
   "id": "volume-CFAC-2026-07-06",
   "type": "volume",
   "ticker": "CFAC",
@@ -660,12 +671,67 @@
   "basis": "réel"
  },
  {
+  "id": "fondamental-STBC-2026-06-25",
+  "type": "fondamental",
+  "ticker": "STBC",
+  "title": "STBC : états financiers 2025 publiés",
+  "detail": "SITAB CI a publié ses états financiers 2025 le 2026-06-25. Résultat net -17,45 % vs 2024.",
+  "time": "2026-06-25T09:00:00+00:00",
+  "severity": "info",
+  "active": true,
+  "basis": "réel"
+ },
+ {
+  "id": "fondamental-BICB-2026-06-19",
+  "type": "fondamental",
+  "ticker": "BICB",
+  "title": "BICB : états financiers 2025 publiés",
+  "detail": "BIIC BN a publié ses états financiers 2025 le 2026-06-19. Résultat net +24,71 % vs 2024.",
+  "time": "2026-06-19T09:00:00+00:00",
+  "severity": "info",
+  "active": true,
+  "basis": "réel"
+ },
+ {
+  "id": "fondamental-BOAC-2026-06-12",
+  "type": "fondamental",
+  "ticker": "BOAC",
+  "title": "BOAC : états financiers 2025 publiés",
+  "detail": "BANK OF AFRICA CI a publié ses états financiers 2025 le 2026-06-12. Résultat net +10,91 % vs 2024.",
+  "time": "2026-06-12T09:00:00+00:00",
+  "severity": "info",
+  "active": true,
+  "basis": "réel"
+ },
+ {
+  "id": "fondamental-SICC-2026-06-12",
+  "type": "fondamental",
+  "ticker": "SICC",
+  "title": "SICC : états financiers 2024 publiés",
+  "detail": "SICOR CI a publié ses états financiers 2024 le 2026-06-12. Résultat net +578,95 % vs 2023.",
+  "time": "2026-06-12T09:00:00+00:00",
+  "severity": "info",
+  "active": true,
+  "basis": "réel"
+ },
+ {
   "id": "fondamental-ONTBF-2026-06-11",
   "type": "fondamental",
   "ticker": "ONTBF",
   "title": "ONTBF : états financiers 2025 publiés",
   "detail": "ONATEL BF a publié ses états financiers 2025 le 2026-06-11. Résultat net -26,01 % vs 2024.",
   "time": "2026-06-11T09:00:00+00:00",
+  "severity": "info",
+  "active": true,
+  "basis": "réel"
+ },
+ {
+  "id": "fondamental-FTSC-2026-06-10",
+  "type": "fondamental",
+  "ticker": "FTSC",
+  "title": "FTSC : états financiers 2025 publiés",
+  "detail": "FILTISAC CI a publié ses états financiers 2025 le 2026-06-10. Résultat net -97,49 % vs 2024.",
+  "time": "2026-06-10T09:00:00+00:00",
   "severity": "info",
   "active": true,
   "basis": "réel"
