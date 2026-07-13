@@ -96,9 +96,14 @@ export default function StockScreen() {
     : 100;
   const bpa = fundamental?.sharesOutstanding ? (fundamental.netIncomeM * 1e6) / fundamental.sharesOutstanding : null;
 
+  const refreshAll = async () => {
+    const [, nextSeries] = await Promise.all([market.refresh(), market.loadSeries(ticker, { force: true })]);
+    setSeries(nextSeries);
+  };
+
   return (
     <View style={styles.screen}>
-    <Page>
+    <Page refreshing={market.refreshing} onRefresh={() => void refreshAll()}>
       <Stack.Screen options={{ title: ticker }} />
 
       <View style={styles.hero}>

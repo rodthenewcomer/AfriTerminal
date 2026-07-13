@@ -17,7 +17,7 @@ interface MarketContextValue extends MarketPayload {
   error: string | null;
   updatedAt: string | null;
   refresh: () => Promise<void>;
-  loadSeries: (ticker: string) => Promise<SeriesPayload>;
+  loadSeries: (ticker: string, options?: { force?: boolean }) => Promise<SeriesPayload>;
 }
 
 const MarketContext = createContext<MarketContextValue | null>(null);
@@ -58,10 +58,10 @@ export function MarketDataProvider({ children }: { children: React.ReactNode }) 
     return () => subscription.remove();
   }, [refresh, updatedAt]);
 
-  const loadSeries = useCallback(async (ticker: string) => {
+  const loadSeries = useCallback(async (ticker: string, options?: { force?: boolean }) => {
     const key = ticker.toUpperCase();
     const cached = seriesCache.current.get(key);
-    if (cached) return cached;
+    if (cached && !options?.force) return cached;
     const result = await fetchSeries(key);
     seriesCache.current.set(key, result.data);
     if (result.fromCache) setOffline(true);

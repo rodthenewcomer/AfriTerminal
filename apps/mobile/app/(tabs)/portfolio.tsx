@@ -115,7 +115,12 @@ export default function PortfolioScreen() {
               </View>
             </View>
           );
-        }) : <EmptyState icon="pie-chart-outline" title="Portefeuille vide" detail="Ajoutez un achat ou une vente — tout est calculé et stocké localement." />}
+        }) : <>
+          <EmptyState icon="pie-chart-outline" title="Portefeuille vide" detail="Ajoutez un achat ou une vente — tout est calculé et stocké localement." />
+          <View style={styles.emptyCta}>
+            <ActionButton label="Ajouter ma première transaction" icon="add" onPress={() => setOpen(true)} />
+          </View>
+        </>}
       </Section>
 
       {income.events.length ? (
@@ -179,6 +184,7 @@ export default function PortfolioScreen() {
 
 const styles = StyleSheet.create({
   metrics: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  emptyCta: { alignSelf: "center", marginTop: 14 },
   donutCard: {
     padding: 16, marginBottom: 10,
     backgroundColor: colors.surface, borderColor: colors.line, borderWidth: 1, borderRadius: radius.lg,
