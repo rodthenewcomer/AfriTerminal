@@ -6,6 +6,7 @@ import { ActionButton, ChangePill, EmptyState, Metric, Page, Row, Section } from
 import { useMarketData } from "../../src/providers/MarketDataProvider";
 import { usePortfolioStore } from "../../src/stores";
 import { AllocationDonut } from "../../src/components/AllocationDonut";
+import * as Haptics from "expo-haptics";
 import { colors, radius, tabular, type } from "../../src/theme";
 
 export default function PortfolioScreen() {
@@ -19,6 +20,7 @@ export default function PortfolioScreen() {
   const [price, setPrice] = useState("");
   const [fees, setFees] = useState("0");
   const [side, setSide] = useState<"achat" | "vente">("achat");
+  const [formError, setFormError] = useState<string | null>(null);
   const summary = useMemo(
     () => valuePortfolio(computePositions(transactions), (symbol) => market.quotes[symbol]?.lastClose),
     [transactions, market.quotes]
@@ -33,9 +35,22 @@ export default function PortfolioScreen() {
     const parsedQuantity = Number(quantity.replace(",", "."));
     const parsedPrice = Number(price.replace(/\s/g, "").replace(",", "."));
     const parsedFees = Number(fees.replace(/\s/g, "").replace(",", ".")) || 0;
-    if (!market.quotes[ticker.toUpperCase()] || parsedQuantity <= 0 || parsedPrice <= 0) return;
-    add({ id: `${Date.now()}`, ticker: ticker.toUpperCase(), side, date: new Date().toISOString().slice(0, 10), quantity: parsedQuantity, price: parsedPrice, fees: parsedFees });
-    setQuantity(""); setPrice(""); setFees("0"); setOpen(false);
+    const symbol = ticker.toUpperCase();
+    const problem = !market.quotes[symbol]
+      ? `Ticker inconnu : ${symbol} n'est pas coté à la BRVM.`
+      : parsedQuantity <= 0
+        ? "Indiquez une quantité supérieure à zéro."
+        : parsedPrice <= 0
+          ? "Indiquez un prix par action supérieur à zéro."
+          : null;
+    if (problem) {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      setFormError(problem);
+      return;
+    }
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    add({ id: `${Date.now()}`, ticker: symbol, side, date: new Date().toISOString().slice(0, 10), quantity: parsedQuantity, price: parsedPrice, fees: parsedFees });
+    setQuantity(""); setPrice(""); setFees("0"); setFormError(null); setOpen(false);
   };
 
   const confirmRemove = (id: string, label: string) => {
@@ -172,6 +187,7 @@ export default function PortfolioScreen() {
             <TextInput value={quantity} onChangeText={setQuantity} keyboardType="decimal-pad" placeholder="Quantité" placeholderTextColor={colors.ink3} style={styles.input} />
             <TextInput value={price} onChangeText={setPrice} keyboardType="decimal-pad" placeholder="Prix par action (FCFA)" placeholderTextColor={colors.ink3} style={styles.input} />
             <TextInput value={fees} onChangeText={setFees} keyboardType="decimal-pad" placeholder="Frais (FCFA)" placeholderTextColor={colors.ink3} style={styles.input} />
+            {formError ? <Text style={styles.formError}>{formError}</Text> : null}
             <Pressable onPress={submit} style={({ pressed }) => [styles.submit, pressed && { opacity: 0.75 }]}>
               <Text style={styles.submitText}>Enregistrer</Text>
             </Pressable>
@@ -225,6 +241,7 @@ const styles = StyleSheet.create({
     height: 46, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.line,
     backgroundColor: colors.surface2, color: colors.ink, paddingHorizontal: 14, fontSize: 13.5, fontVariant: tabular,
   },
+  formError: { color: colors.down, fontSize: 12, lineHeight: 16 },
   submit: { height: 48, alignItems: "center", justifyContent: "center", borderRadius: radius.lg, backgroundColor: colors.accent },
   submitText: { color: colors.background, fontSize: 14, fontWeight: "800" },
 });

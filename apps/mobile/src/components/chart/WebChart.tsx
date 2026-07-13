@@ -1,5 +1,5 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { WebView, type WebViewMessageEvent } from "react-native-webview";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
@@ -288,6 +288,7 @@ export const WebChart = forwardRef<WebChartHandle, {
 }>(function WebChart({ payload, height, onLevelTap }, handleRef) {
   const webRef = useRef<WebView>(null);
   const [bridgeError, setBridgeError] = useState<string | null>(null);
+  const [engineReady, setEngineReady] = useState(false);
   useImperativeHandle(handleRef, () => ({
     shoot: () => { webRef.current?.injectJavaScript("window.__shoot(); true;"); },
   }), []);
@@ -318,6 +319,7 @@ export const WebChart = forwardRef<WebChartHandle, {
         send(payload);
       } else if (message.type === "ready") {
         setBridgeError(null);
+        setEngineReady(true);
       } else if (message.type === "levelTap" && typeof message.price === "number") {
         onLevelTap?.(message.price);
       } else if (message.type === "png" && message.dataUrl) {
@@ -345,6 +347,12 @@ export const WebChart = forwardRef<WebChartHandle, {
         javaScriptCanOpenWindowsAutomatically={false}
         style={styles.web}
       />
+      {!engineReady && !bridgeError ? (
+        <View style={styles.booting}>
+          <ActivityIndicator size="small" color={colors.accent} />
+          <Text style={styles.bootingText}>Préparation du graphique…</Text>
+        </View>
+      ) : null}
       {bridgeError ? <Text style={styles.error}>Erreur moteur chart : {bridgeError}</Text> : null}
     </View>
   );
@@ -356,6 +364,11 @@ const styles = StyleSheet.create({
     overflow: "hidden", backgroundColor: colors.surface,
   },
   web: { flex: 1, backgroundColor: "transparent" },
+  booting: {
+    ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center", gap: 10,
+    backgroundColor: colors.surface,
+  },
+  bootingText: { color: colors.ink3, fontSize: 12 },
   error: {
     position: "absolute", left: 10, right: 10, bottom: 10,
     color: colors.warn, fontSize: 11, lineHeight: 15,

@@ -34,7 +34,12 @@ export function QuoteRow({ quote, rank, onRemove }: { quote: RealQuote; rank?: n
 
   const content = (
     <Animated.View style={flashStyle}>
-      <Pressable onPress={() => router.push(`/stocks/${quote.ticker}`)} style={({ pressed }) => [styles.row, pressed && { opacity: 0.6 }]}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${quote.name}, ${quote.lastClose.toLocaleString("fr-FR")} francs CFA, ${quote.dayChangePct >= 0 ? "hausse" : "baisse"} de ${Math.abs(quote.dayChangePct).toFixed(2)} %`}
+        onPress={() => router.push(`/stocks/${quote.ticker}`)}
+        style={({ pressed }) => [styles.row, pressed && { opacity: 0.6 }]}
+      >
         {rank ? <Text style={styles.rank}>{rank}</Text> : null}
         <View style={styles.identity}>
           <Text style={styles.ticker}>{quote.ticker}</Text>
@@ -51,7 +56,12 @@ export function QuoteRow({ quote, rank, onRemove }: { quote: RealQuote; rank?: n
             <Text style={styles.blockText}>{pct(quote.dayChangePct, { signed: true, digits: 2 })}</Text>
           </View>
         </View>
-        <Pressable hitSlop={10} onPress={(event) => { event.stopPropagation(); void Haptics.selectionAsync(); toggle(quote.ticker); }}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={watched ? `Retirer ${quote.ticker} de la watchlist` : `Ajouter ${quote.ticker} à la watchlist`}
+          hitSlop={10}
+          onPress={(event) => { event.stopPropagation(); void Haptics.selectionAsync(); toggle(quote.ticker); }}
+        >
           <Ionicons name={watched ? "star" : "star-outline"} size={17} color={watched ? colors.accent : colors.ink3} />
         </Pressable>
       </Pressable>

@@ -25,6 +25,8 @@ export function Page({
   return (
     <ScrollView
       style={styles.page}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
       contentContainerStyle={[
         styles.content,
         { paddingTop: title ? insets.top + 14 : 20, paddingBottom: 36 + insets.bottom },

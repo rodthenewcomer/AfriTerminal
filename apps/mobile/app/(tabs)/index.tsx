@@ -134,6 +134,9 @@ export default function DashboardScreen() {
         {losers.length
           ? losers.map((quote, index) => <QuoteRow key={quote.ticker} quote={quote} rank={index + 1} />)
           : <EmptyState icon="trending-down-outline" title="Aucune baisse" detail="Aucune valeur n'a reculé sur la dernière séance." />}
+        <View style={styles.moreRow}>
+          <ActionButton label="Toute la cote" icon="list-outline" onPress={() => router.push("/search")} />
+        </View>
       </Section>
 
       <Section title="Actualités" detail={market.news.length ? `${market.news.length} articles sourcés` : undefined}>
