@@ -5,6 +5,7 @@ import { fcfa, pct } from "@afriterminal/core/format";
 import { ActionButton, ChangePill, EmptyState, Metric, Page, Row, Section } from "../../src/components/ui";
 import { useMarketData } from "../../src/providers/MarketDataProvider";
 import { usePortfolioStore } from "../../src/stores";
+import { AllocationDonut } from "../../src/components/AllocationDonut";
 import { colors, radius, tabular, type } from "../../src/theme";
 
 export default function PortfolioScreen() {
@@ -79,6 +80,18 @@ export default function PortfolioScreen() {
       </View>
 
       <Section title="Positions" detail="Cours de la dernière clôture">
+        {summary.positions.length > 1 ? (
+          <View style={styles.donutCard}>
+            <AllocationDonut
+              slices={(() => {
+                const ordered = [...summary.positions].sort((a, b) => b.marketValue - a.marketValue);
+                const top = ordered.slice(0, 5).map((position) => ({ label: position.ticker, value: position.marketValue }));
+                const rest = ordered.slice(5).reduce((sum, position) => sum + position.marketValue, 0);
+                return rest > 0 ? [...top, { label: "Autres", value: rest }] : top;
+              })()}
+            />
+          </View>
+        ) : null}
         {summary.positions.length ? summary.positions.map((position) => {
           const weight = summary.totalValue > 0 ? position.marketValue / summary.totalValue : 0;
           return (
@@ -166,6 +179,10 @@ export default function PortfolioScreen() {
 
 const styles = StyleSheet.create({
   metrics: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  donutCard: {
+    padding: 16, marginBottom: 10,
+    backgroundColor: colors.surface, borderColor: colors.line, borderWidth: 1, borderRadius: radius.lg,
+  },
   hero: {
     padding: 18, gap: 8,
     backgroundColor: colors.surface, borderColor: colors.line, borderWidth: 1, borderRadius: radius.xl,

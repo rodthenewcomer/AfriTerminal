@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Linking, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { compactFcfa, compactVolume, pct } from "@afriterminal/core/format";
 import type { IndexRecord } from "../../src/data/types";
@@ -12,11 +12,15 @@ import { useWatchlistStore } from "../../src/stores";
 import { colors, radius, tabular, type } from "../../src/theme";
 
 /** Carte héro : l'indice principal avec sa courbe 30 séances en grand. */
-function HeroIndex({ index }: { index: IndexRecord }) {
+function HeroIndex({ index, onPress }: { index: IndexRecord; onPress: () => void }) {
   const [width, setWidth] = useState(0);
   const up = index.dayChangePct >= 0;
   return (
-    <View style={styles.hero} onLayout={(event) => setWidth(event.nativeEvent.layout.width)}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.hero, pressed && { opacity: 0.75 }]}
+      onLayout={(event) => setWidth(event.nativeEvent.layout.width)}
+    >
       <View style={styles.heroTop}>
         <View>
           <Text style={styles.heroLabel}>{index.name}</Text>
@@ -32,15 +36,15 @@ function HeroIndex({ index }: { index: IndexRecord }) {
           <Sparkline values={index.spark} width={width - 32} height={92} color={up ? colors.up : colors.down} fillOpacity={0.12} />
         </View>
       ) : null}
-      <Text style={styles.heroCaption}>30 dernières séances · clôture {index.asOfDate}</Text>
-    </View>
+      <Text style={styles.heroCaption}>30 dernières séances · clôture {index.asOfDate} · toucher pour l'historique complet</Text>
+    </Pressable>
   );
 }
 
-function IndexCard({ index }: { index: IndexRecord }) {
+function IndexCard({ index, onPress }: { index: IndexRecord; onPress: () => void }) {
   const up = index.dayChangePct >= 0;
   return (
-    <View style={styles.indexCard}>
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.indexCard, pressed && { opacity: 0.75 }]}>
       <Text numberOfLines={1} style={styles.indexName}>{index.name}</Text>
       <Text style={styles.indexLevel}>{index.level.toLocaleString("fr-FR", { maximumFractionDigits: 2 })}</Text>
       <View style={styles.indexFooter}>
@@ -51,7 +55,7 @@ function IndexCard({ index }: { index: IndexRecord }) {
           <Sparkline values={index.spark} width={164} height={34} color={up ? colors.up : colors.down} fillOpacity={0.1} />
         </View>
       ) : null}
-    </View>
+    </Pressable>
   );
 }
 
@@ -90,11 +94,11 @@ export default function DashboardScreen() {
     >
       {market.error ? <Text style={styles.error}>{market.error}</Text> : null}
 
-      {mainIndex ? <HeroIndex index={mainIndex} /> : null}
+      {mainIndex ? <HeroIndex index={mainIndex} onPress={() => router.push(`/indices/${mainIndex.code}`)} /> : null}
 
       {otherIndices.length ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.indexRow}>
-          {otherIndices.map((index) => <IndexCard key={index.code} index={index} />)}
+          {otherIndices.map((index) => <IndexCard key={index.code} index={index} onPress={() => router.push(`/indices/${index.code}`)} />)}
         </ScrollView>
       ) : null}
 

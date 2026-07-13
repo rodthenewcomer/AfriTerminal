@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { ActionButton, LoadingState, Page, Section, SegmentedTabs } from "../../src/components/ui";
 import { QuoteRow } from "../../src/components/QuoteRow";
@@ -31,7 +32,15 @@ export default function SearchScreen() {
         <ActionButton label="Screener" icon="filter-outline" onPress={() => router.push("/screener")} />
         <ActionButton label="Carte" icon="grid-outline" onPress={() => router.push("/map")} />
       </View>
-      <TextInput value={query} onChangeText={setQuery} placeholder="Rechercher un ticker ou une société" placeholderTextColor={colors.ink3} style={styles.search} autoCapitalize="characters" />
+      <View style={styles.searchBox}>
+        <Ionicons name="search" size={16} color={colors.ink3} />
+        <TextInput value={query} onChangeText={setQuery} placeholder="Rechercher un ticker ou une société" placeholderTextColor={colors.ink3} style={styles.searchInput} autoCapitalize="characters" returnKeyType="search" />
+        {query.length ? (
+          <Pressable hitSlop={8} onPress={() => setQuery("")}>
+            <Ionicons name="close-circle" size={17} color={colors.ink3} />
+          </Pressable>
+        ) : null}
+      </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
         {sectors.map((item) => <ActionButton key={item} label={item} active={sector === item} onPress={() => setSector(item)} />)}
       </ScrollView>
@@ -52,5 +61,9 @@ export default function SearchScreen() {
 
 const styles = StyleSheet.create({
   actions: { flexDirection: "row", gap: 8 }, filters: { gap: 7 },
-  search: { height: 46, color: colors.ink, backgroundColor: colors.surface, borderColor: colors.line, borderWidth: 1, borderRadius: radius.lg, paddingHorizontal: 14, fontSize: 13.5 },
+  searchBox: {
+    height: 48, flexDirection: "row", alignItems: "center", gap: 9,
+    backgroundColor: colors.surface, borderColor: colors.line, borderWidth: 1, borderRadius: radius.lg, paddingHorizontal: 13,
+  },
+  searchInput: { flex: 1, color: colors.ink, fontSize: 14 },
 });

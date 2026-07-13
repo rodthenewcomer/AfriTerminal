@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { EmptyState, ActionButton, Page, Section } from "../src/components/ui";
 import { QuoteRow } from "../src/components/QuoteRow";
 import { useMarketData } from "../src/providers/MarketDataProvider";
@@ -33,14 +34,23 @@ export default function ScreenerScreen() {
 
   return (
     <Page subtitle={`${quotes.length} résultats sur ${Object.keys(market.quotes).length} valeurs · données officielles uniquement`}>
-      <TextInput
-        value={query}
-        onChangeText={setQuery}
-        placeholder="Ticker ou société"
-        placeholderTextColor={colors.ink3}
-        autoCapitalize="characters"
-        style={styles.search}
-      />
+      <View style={styles.searchBox}>
+        <Ionicons name="search" size={16} color={colors.ink3} />
+        <TextInput
+          value={query}
+          onChangeText={setQuery}
+          placeholder="Ticker ou société"
+          placeholderTextColor={colors.ink3}
+          autoCapitalize="characters"
+          returnKeyType="search"
+          style={styles.searchInput}
+        />
+        {query.length ? (
+          <Pressable hitSlop={8} onPress={() => setQuery("")}>
+            <Ionicons name="close-circle" size={17} color={colors.ink3} />
+          </Pressable>
+        ) : null}
+      </View>
 
       <Section title="Secteur">
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
@@ -79,10 +89,11 @@ export default function ScreenerScreen() {
 }
 
 const styles = StyleSheet.create({
-  search: {
-    height: 46, borderColor: colors.line, borderWidth: 1, borderRadius: radius.lg,
-    backgroundColor: colors.surface, color: colors.ink, paddingHorizontal: 14, fontSize: 13.5,
+  searchBox: {
+    height: 48, flexDirection: "row", alignItems: "center", gap: 9,
+    backgroundColor: colors.surface, borderColor: colors.line, borderWidth: 1, borderRadius: radius.lg, paddingHorizontal: 13,
   },
+  searchInput: { flex: 1, color: colors.ink, fontSize: 14 },
   chips: { flexDirection: "row", gap: 7 },
   chipsWrap: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
 });
