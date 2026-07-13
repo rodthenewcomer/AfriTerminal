@@ -42,6 +42,39 @@ export interface WebChartPayload {
   fit: boolean;
 }
 
+type Point = { time: string; value: number };
+const toTuples = (points: Point[]): [string, number][] => points.map((point) => [point.time, point.value]);
+
+/**
+ * Payload compact : tuples plutôt qu'objets (≈ moitié moins d'octets à
+ * parser), transmis en morceaux de 24 Ko — evaluateJavaScript échoue en
+ * silence au-delà d'une certaine taille sur iOS, ce qui gelait le chart
+ * sur les périodes 1A/3A/5A/Tout.
+ */
+function encodePayload(payload: WebChartPayload): string {
+  const panes: Record<string, unknown> = {};
+  if (payload.panes.rsi) panes.rsi = toTuples(payload.panes.rsi);
+  if (payload.panes.macd) panes.macd = [toTuples(payload.panes.macd.macd), toTuples(payload.panes.macd.signal), toTuples(payload.panes.macd.histogram)];
+  if (payload.panes.atr) panes.atr = toTuples(payload.panes.atr);
+  if (payload.panes.stoch) panes.stoch = [toTuples(payload.panes.stoch.k), toTuples(payload.panes.stoch.d)];
+  return JSON.stringify({
+    ticker: payload.ticker,
+    chartType: payload.chartType,
+    bars: payload.bars.map((bar) => [String(bar.time), bar.open, bar.high, bar.low, bar.close, bar.volume]),
+    overlays: payload.overlays.map((overlay) => ({ id: overlay.id, color: overlay.color, dashed: overlay.dashed, data: toTuples(overlay.data) })),
+    panes,
+    referenceLines: payload.referenceLines,
+    levels: payload.levels,
+    markers: payload.markers,
+    logarithmic: payload.logarithmic,
+    percentMode: payload.percentMode,
+    levelMode: payload.levelMode,
+    fit: payload.fit,
+  });
+}
+
+const CHUNK_SIZE = 24_000;
+
 /**
  * Pont vers le moteur du site web : la même librairie lightweight-charts,
  * le même thème (main-chart.tsx), rendue dans une WebView hors-ligne.
@@ -87,6 +120,51 @@ const BRIDGE = `
   var mainSeries = null;
   var levelMode = false;
   var lastDataKey = "";
+  var rxBuffers = {};
+
+  // Les gros payloads (1A/3A/5A/Tout) dépassent la limite silencieuse
+  // d'evaluateJavaScript sur iOS : ils arrivent en morceaux de ~24 Ko,
+  // réassemblés ici avant décodage.
+  window.__rx = function (id, index, total, chunk) {
+    if (index === 0) rxBuffers = {};
+    var buffer = rxBuffers[id] || (rxBuffers[id] = { parts: new Array(total), received: 0 });
+    if (buffer.parts[index] === undefined) { buffer.parts[index] = chunk; buffer.received++; }
+    if (buffer.received === total) {
+      delete rxBuffers[id];
+      try { window.__render(decodePayload(JSON.parse(buffer.parts.join("")))); }
+      catch (err) { post({ type: "error", message: String(err && err.message ? err.message : err) }); }
+    }
+  };
+
+  // Tuples compacts -> format lightweight-charts.
+  function decodePayload(compact) {
+    function points(list) {
+      return (list || []).map(function (p) { return { time: p[0], value: p[1] }; });
+    }
+    var panes = {};
+    if (compact.panes.rsi) panes.rsi = points(compact.panes.rsi);
+    if (compact.panes.macd) panes.macd = { macd: points(compact.panes.macd[0]), signal: points(compact.panes.macd[1]), histogram: points(compact.panes.macd[2]) };
+    if (compact.panes.atr) panes.atr = points(compact.panes.atr);
+    if (compact.panes.stoch) panes.stoch = { k: points(compact.panes.stoch[0]), d: points(compact.panes.stoch[1]) };
+    return {
+      ticker: compact.ticker,
+      chartType: compact.chartType,
+      bars: compact.bars.map(function (b) {
+        return { time: b[0], open: b[1], high: b[2], low: b[3], close: b[4], volume: b[5] };
+      }),
+      overlays: (compact.overlays || []).map(function (o) {
+        return { id: o.id, color: o.color, dashed: o.dashed, data: points(o.data) };
+      }),
+      panes: panes,
+      referenceLines: compact.referenceLines,
+      levels: compact.levels,
+      markers: compact.markers,
+      logarithmic: compact.logarithmic,
+      percentMode: compact.percentMode,
+      levelMode: compact.levelMode,
+      fit: compact.fit,
+    };
+  }
 
   function track(series) { tracked.push(series); return series; }
 
@@ -151,7 +229,7 @@ const BRIDGE = `
       }));
       chart.priceScale("volume").applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
       volume.setData(bars.map(function (b) {
-        return { time: b.time, value: b.volume, color: b.close >= b.open ? "rgba(34,197,94,0.35)" : "rgba(239,68,68,0.35)" };
+        return { time: b.time, value: b.volume, color: b.close >= b.open ? "rgba(34,197,94,0.26)" : "rgba(239,68,68,0.26)" };
       }));
 
       payload.overlays.forEach(function (overlay) {
@@ -244,14 +322,9 @@ const BRIDGE = `
 
       var dataKey = payload.ticker + "|" + payload.chartType + "|" + bars.length + "|" +
         (bars.length ? bars[0].time + "|" + bars[bars.length - 1].time : "");
-      if (payload.fit || dataKey !== lastDataKey) {
-        var candleLike = payload.chartType === "candlestick" || payload.chartType === "heikin-ashi" || payload.chartType === "bars";
-        if (candleLike && bars.length > 90) {
-          chart.timeScale().setVisibleLogicalRange({ from: bars.length - 80, to: bars.length + 4 });
-        } else {
-          chart.timeScale().fitContent();
-        }
-      }
+      // Changer de période doit montrer TOUTE la période — cadrer une
+      // sous-fenêtre rendrait 1A/3A/5A visuellement identiques.
+      if (payload.fit || dataKey !== lastDataKey) chart.timeScale().fitContent();
       lastDataKey = dataKey;
       post({ type: "ready" });
     } catch (err) {
@@ -296,7 +369,15 @@ export const WebChart = forwardRef<WebChartHandle, {
   const html = useMemo(buildHtml, []);
 
   const send = useCallback((next: WebChartPayload) => {
-    webRef.current?.injectJavaScript(`window.__render(${JSON.stringify(next)}); true;`);
+    const web = webRef.current;
+    if (!web) return;
+    const json = encodePayload(next);
+    const total = Math.max(1, Math.ceil(json.length / CHUNK_SIZE));
+    const id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+    for (let index = 0; index < total; index++) {
+      const chunk = json.slice(index * CHUNK_SIZE, (index + 1) * CHUNK_SIZE);
+      web.injectJavaScript(`window.__rx(${JSON.stringify(id)}, ${index}, ${total}, ${JSON.stringify(chunk)}); true;`);
+    }
   }, []);
 
   useEffect(() => {

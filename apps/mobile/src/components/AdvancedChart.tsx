@@ -76,7 +76,7 @@ export function AdvancedChart({
   const [showIndicators, setShowIndicators] = useState(false);
   const [levelMode, setLevelMode] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
-  const [range, setRange] = useState("6m");
+  const [range, setRange] = useState("3m");
   const window_ = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const chartType = useChartStore((state) => state.type);
