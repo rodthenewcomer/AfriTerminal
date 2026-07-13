@@ -5,6 +5,7 @@ import { QuoteRow } from "../src/components/QuoteRow";
 import { useMarketData } from "../src/providers/MarketDataProvider";
 import { colors, radius } from "../src/theme";
 import { useScreenerStore, type ScreenerSort } from "../src/stores";
+import { sectorLabel } from "../src/lib/sectors";
 
 const SORTS: { id: ScreenerSort; label: string }[] = [
   { id: "variation", label: "Variation" },
@@ -17,11 +18,11 @@ export default function ScreenerScreen() {
   const market = useMarketData();
   const { query, sector, sort, saved, setQuery, setSector, setSort, saveCurrent, apply, remove } = useScreenerStore();
   const sectors = useMemo(
-    () => ["Tous", ...new Set(Object.values(market.quotes).map((quote) => quote.sectorCode ?? "Autre"))],
+    () => ["Tous", ...new Set(Object.values(market.quotes).map((quote) => sectorLabel(quote.sectorCode)))],
     [market.quotes]
   );
   const quotes = useMemo(() => Object.values(market.quotes)
-    .filter((quote) => sector === "Tous" || (quote.sectorCode ?? "Autre") === sector)
+    .filter((quote) => sector === "Tous" || sectorLabel(quote.sectorCode) === sector)
     .filter((quote) => `${quote.ticker} ${quote.name}`.toLowerCase().includes(query.toLowerCase()))
     .sort((a, b) => {
       if (sort === "rendement") return (b.netYieldPct ?? -Infinity) - (a.netYieldPct ?? -Infinity);

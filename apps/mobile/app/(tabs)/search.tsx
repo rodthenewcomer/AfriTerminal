@@ -5,15 +5,16 @@ import { ActionButton, LoadingState, Page, Section } from "../../src/components/
 import { QuoteRow } from "../../src/components/QuoteRow";
 import { useMarketData } from "../../src/providers/MarketDataProvider";
 import { colors, radius } from "../../src/theme";
+import { sectorLabel } from "../../src/lib/sectors";
 
 export default function SearchScreen() {
   const router = useRouter();
   const market = useMarketData();
   const [query, setQuery] = useState("");
   const [sector, setSector] = useState("Tous");
-  const sectors = useMemo(() => ["Tous", ...new Set(Object.values(market.quotes).map((quote) => quote.sectorCode ?? "Autre"))], [market.quotes]);
+  const sectors = useMemo(() => ["Tous", ...new Set(Object.values(market.quotes).map((quote) => sectorLabel(quote.sectorCode)))], [market.quotes]);
   const quotes = useMemo(() => Object.values(market.quotes)
-    .filter((quote) => sector === "Tous" || (quote.sectorCode ?? "Autre") === sector)
+    .filter((quote) => sector === "Tous" || sectorLabel(quote.sectorCode) === sector)
     .filter((quote) => `${quote.ticker} ${quote.name}`.toLowerCase().includes(query.toLowerCase()))
     .sort((a, b) => (b.dayValueFcfa ?? 0) - (a.dayValueFcfa ?? 0)), [market.quotes, query, sector]);
   if (market.loading && quotes.length === 0) return <LoadingState />;

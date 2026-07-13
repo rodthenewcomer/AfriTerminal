@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { computePositions, valuePortfolio } from "@afriterminal/core/portfolio";
+import { computePositions, dividendIncome, valuePortfolio } from "@afriterminal/core/portfolio";
 import { fcfa, pct } from "@afriterminal/core/format";
-import { ActionButton, ChangePill, EmptyState, Page, Row, Section } from "../../src/components/ui";
+import { ActionButton, ChangePill, EmptyState, Metric, Page, Row, Section } from "../../src/components/ui";
 import { useMarketData } from "../../src/providers/MarketDataProvider";
 import { usePortfolioStore } from "../../src/stores";
 import { colors, radius, tabular, type } from "../../src/theme";
@@ -21,6 +21,10 @@ export default function PortfolioScreen() {
   const summary = useMemo(
     () => valuePortfolio(computePositions(transactions), (symbol) => market.quotes[symbol]?.lastClose),
     [transactions, market.quotes]
+  );
+  const income = useMemo(
+    () => dividendIncome(transactions, (symbol) => market.dividends[symbol] ?? []),
+    [transactions, market.dividends]
   );
   const pnlUp = summary.totalUnrealizedPnl >= 0;
 
@@ -101,6 +105,24 @@ export default function PortfolioScreen() {
         }) : <EmptyState icon="pie-chart-outline" title="Portefeuille vide" detail="Ajoutez un achat ou une vente — tout est calculé et stocké localement." />}
       </Section>
 
+      {income.events.length ? (
+        <Section title="Dividendes perçus" detail="Estimation — quantité détenue avant chaque paiement">
+          <View style={styles.metrics}>
+            <Metric label="Total net estimé" value={fcfa(income.total)} tone="accent" detail={`${income.events.length} versement${income.events.length > 1 ? "s" : ""} sur vos titres`} />
+          </View>
+          {[...income.events].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 6).map((event, index) => (
+            <Row
+              key={`${event.ticker}-${event.date}-${index}`}
+              icon="cash-outline"
+              title={event.ticker}
+              detail={`${event.date} · ${event.quantityHeld.toLocaleString("fr-FR")} titres × ${fcfa(event.netPerShare)}`}
+              value={fcfa(event.quantityHeld * event.netPerShare)}
+              valueDetail="net estimé"
+            />
+          ))}
+        </Section>
+      ) : null}
+
       {transactions.length ? (
         <Section title="Transactions" detail={`${transactions.length} enregistrées`}>
           {[...transactions].reverse().slice(0, 8).map((transaction) => (
@@ -143,6 +165,7 @@ export default function PortfolioScreen() {
 }
 
 const styles = StyleSheet.create({
+  metrics: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   hero: {
     padding: 18, gap: 8,
     backgroundColor: colors.surface, borderColor: colors.line, borderWidth: 1, borderRadius: radius.xl,

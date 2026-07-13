@@ -45,17 +45,34 @@ export async function fetchDataFile<T>(path: string): Promise<FetchResult<T>> {
   throw new Error(`Donnée indisponible: ${cleanPath}`);
 }
 
-export async function fetchMarketPayload(): Promise<{ payload: MarketPayload; offline: boolean }> {
-  const [quotes, fundamentals, indices, alerts, dividends, documents, operations, news] = await Promise.all([
-    fetchDataFile<MarketPayload["quotes"]>("real/snapshot.json"),
-    fetchDataFile<MarketPayload["fundamentals"]>("real/fundamentals.json"),
-    fetchDataFile<MarketPayload["indices"]>("real/indices.json"),
-    fetchDataFile<MarketPayload["alerts"]>("real/alerts.json"),
-    fetchDataFile<MarketPayload["dividends"]>("real/dividends.json"),
-    fetchDataFile<MarketPayload["documents"]>("real/documents.json"),
-    fetchDataFile<MarketPayload["operations"]>("real/operations.json"),
-    fetchDataFile<MarketPayload["news"]>("news/news.json"),
+/**
+ * Une source secondaire indisponible (actualités, opérations…) ne doit
+ * jamais vider tout l'écran : chaque fichier est chargé indépendamment,
+ * avec un repli vide et la liste des sources manquantes remontée à l'UI.
+ * Seules les cotations sont indispensables — leur échec est propagé.
+ */
+export async function fetchMarketPayload(): Promise<{ payload: MarketPayload; offline: boolean; missing: string[] }> {
+  const quotes = await fetchDataFile<MarketPayload["quotes"]>("real/snapshot.json");
+
+  const optional = async <T>(label: string, path: string, fallback: T) => {
+    try {
+      const result = await fetchDataFile<T>(path);
+      return { label, data: result.data, fromCache: result.fromCache, failed: false };
+    } catch {
+      return { label, data: fallback, fromCache: false, failed: true };
+    }
+  };
+
+  const [fundamentals, indices, alerts, dividends, documents, operations, news] = await Promise.all([
+    optional<MarketPayload["fundamentals"]>("fondamentaux", "real/fundamentals.json", {}),
+    optional<MarketPayload["indices"]>("indices", "real/indices.json", []),
+    optional<MarketPayload["alerts"]>("alertes", "real/alerts.json", []),
+    optional<MarketPayload["dividends"]>("dividendes", "real/dividends.json", {}),
+    optional<MarketPayload["documents"]>("documents", "real/documents.json", []),
+    optional<MarketPayload["operations"]>("opérations", "real/operations.json", { avis: [], operations: [] }),
+    optional<MarketPayload["news"]>("actualités", "news/news.json", []),
   ]);
+  const secondary = [fundamentals, indices, alerts, dividends, documents, operations, news];
   return {
     payload: {
       quotes: quotes.data,
@@ -67,8 +84,8 @@ export async function fetchMarketPayload(): Promise<{ payload: MarketPayload; of
       operations: operations.data,
       news: news.data,
     },
-    offline: [quotes, fundamentals, indices, alerts, dividends, documents, operations, news]
-      .some((result) => result.fromCache),
+    offline: quotes.fromCache || secondary.some((result) => result.fromCache),
+    missing: secondary.filter((result) => result.failed).map((result) => result.label),
   };
 }
 

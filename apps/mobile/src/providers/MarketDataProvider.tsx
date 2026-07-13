@@ -38,7 +38,7 @@ export function MarketDataProvider({ children }: { children: React.ReactNode }) 
       setPayload(result.payload);
       setOffline(result.offline);
       setUpdatedAt(new Date().toISOString());
-      setError(null);
+      setError(result.missing.length ? `Sources momentanément indisponibles : ${result.missing.join(", ")}.` : null);
       void evaluatePriceAlerts(result.payload.quotes);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Chargement impossible");

@@ -130,7 +130,7 @@ export default function StockScreen() {
         </Section>
       </> : null}
 
-      {tab === "fundamentals" ? (
+      {tab === "fundamentals" ? <>
         <Section
           title="Fondamentaux"
           detail={fundamental ? `Exercice ${fundamental.fiscalYear} · publié le ${dateFr(fundamental.publishedOn)}` : undefined}
@@ -170,7 +170,14 @@ export default function StockScreen() {
             <EmptyState title="Fondamentaux détaillés indisponibles" detail="Aucun état financier vérifié n'est encore curé pour cette société." />
           )}
         </Section>
-      ) : null}
+        <Section title="Historique des dividendes" detail="Montants nets par action, bulletins officiels">
+          {(market.dividends[ticker] ?? []).length
+            ? [...(market.dividends[ticker] ?? [])].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8).map((item, index) => (
+              <Row key={`${item.date}-${index}`} icon="cash-outline" title={`Dividende net`} detail={`Payé le ${dateFr(item.date)}`} value={fcfa(item.net)} valueDetail="par action" />
+            ))
+            : <EmptyState icon="cash-outline" title="Aucun versement" detail={`Aucun dividende enregistré pour ${ticker} depuis 2019.`} />}
+        </Section>
+      </> : null}
 
       {tab === "risk" ? <>
         <Section title="Risque historique" detail="Calculé sur l'historique complet des clôtures">

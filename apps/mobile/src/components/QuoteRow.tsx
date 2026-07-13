@@ -4,6 +4,7 @@ import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeabl
 import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withSequence, withTiming } from "react-native-reanimated";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import type { RealQuote } from "@afriterminal/core/types";
 import { fcfa, pct } from "@afriterminal/core/format";
 import { colors, radius, tabular, type } from "../theme";
@@ -50,7 +51,7 @@ export function QuoteRow({ quote, rank, onRemove }: { quote: RealQuote; rank?: n
             <Text style={[styles.change, { color: up ? colors.up : colors.down }]}>{pct(quote.dayChangePct, { signed: true, digits: 2 })}</Text>
           </View>
         </View>
-        <Pressable hitSlop={10} onPress={(event) => { event.stopPropagation(); toggle(quote.ticker); }}>
+        <Pressable hitSlop={10} onPress={(event) => { event.stopPropagation(); void Haptics.selectionAsync(); toggle(quote.ticker); }}>
           <Ionicons name={watched ? "star" : "star-outline"} size={17} color={watched ? colors.accent : colors.ink3} />
         </Pressable>
       </Pressable>
