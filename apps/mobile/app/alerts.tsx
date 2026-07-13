@@ -3,7 +3,8 @@ import { Pressable, StyleSheet, Switch, Text, TextInput, View } from "react-nati
 import { useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { EmptyState, Page, Row, Section, SegmentedTabs } from "../src/components/ui";
+import { EmptyState, Page, Section, SegmentedTabs } from "../src/components/ui";
+import { AlertRow } from "../src/components/AlertRow";
 import { useMarketData } from "../src/providers/MarketDataProvider";
 import { usePriceAlertStore, useSettingsStore, type PriceAlertRule } from "../src/stores";
 import { disableNotifications, enableNotifications, evaluatePriceAlerts } from "../src/services/alerts";
@@ -112,7 +113,7 @@ export default function AlertsScreen() {
 
       <Section title="Alertes factuelles" detail={`${market.alerts.length} calculées sur la dernière séance`}>
         {market.alerts.length
-          ? market.alerts.map((alert) => <Row key={alert.id} icon="pulse-outline" title={alert.title} detail={alert.detail} />)
+          ? market.alerts.map((alert) => <AlertRow key={alert.id} alert={alert} />)
           : <EmptyState icon="pulse-outline" title="Rien à signaler" detail="Aucun fait notable sur la dernière séance." />}
       </Section>
     </Page>

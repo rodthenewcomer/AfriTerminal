@@ -6,6 +6,8 @@ import type { IndexRecord } from "../../src/data/types";
 import { ActionButton, ChangePill, EmptyState, LoadingState, Metric, Page, Row, Section } from "../../src/components/ui";
 import { QuoteRow } from "../../src/components/QuoteRow";
 import { SectorPerformance } from "../../src/components/SectorPerformance";
+import { BreadthBar } from "../../src/components/BreadthBar";
+import { AlertRow } from "../../src/components/AlertRow";
 import { Sparkline } from "../../src/components/Sparkline";
 import { useMarketData } from "../../src/providers/MarketDataProvider";
 import { useWatchlistStore } from "../../src/stores";
@@ -69,13 +71,11 @@ export default function DashboardScreen() {
     [market.quotes, watchedTickers]
   );
   const stats = useMemo(() => {
-    const up = quotes.filter((quote) => quote.dayChangePct > 0).length;
-    const down = quotes.filter((quote) => quote.dayChangePct < 0).length;
     const pers = quotes.map((quote) => quote.per).filter((value): value is number => value !== null && Number.isFinite(value)).sort((a, b) => a - b);
     const medianPer = pers.length ? pers[Math.floor(pers.length / 2)] : null;
     const yields = quotes.map((quote) => quote.netYieldPct).filter((value): value is number => value !== null && Number.isFinite(value));
     const meanYield = yields.length ? yields.reduce((sum, value) => sum + value, 0) / yields.length : null;
-    return { up, down, medianPer, meanYield };
+    return { medianPer, meanYield };
   }, [quotes]);
   if (market.loading && quotes.length === 0) return <LoadingState />;
 
@@ -112,8 +112,8 @@ export default function DashboardScreen() {
       ) : null}
 
       <Section title="Séance" detail="Dernière clôture officielle">
-        <View style={styles.metrics}>
-          <Metric label="Hausses / baisses" value={`${stats.up} · ${stats.down}`} tone={stats.up >= stats.down ? "up" : "down"} detail={`${quotes.length} valeurs cotées`} />
+        <BreadthBar quotes={quotes} />
+        <View style={[styles.metrics, { marginTop: 10 }]}>
           <Metric label="Valeur échangée" value={compactFcfa(quotes.reduce((sum, quote) => sum + (quote.dayValueFcfa ?? 0), 0))} detail={`${compactVolume(quotes.reduce((sum, quote) => sum + quote.dayVolume, 0))} titres`} />
           <Metric label="PER médian" value={stats.medianPer === null ? "—" : stats.medianPer.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} detail="cote entière" />
           <Metric label="Rendement moyen" value={stats.meanYield === null ? "—" : pct(stats.meanYield, { signed: false, digits: 2 })} tone="accent" detail="dividende net" />
@@ -159,7 +159,7 @@ export default function DashboardScreen() {
       <Section title="Dernières alertes" detail="Faits calculés">
         {market.alerts.length
           ? market.alerts.slice(0, 4).map((alert) => (
-            <Row key={alert.id} icon="pulse-outline" title={alert.title} detail={alert.detail} onPress={alert.ticker ? () => router.push(`/stocks/${alert.ticker}`) : undefined} />
+            <AlertRow key={alert.id} alert={alert} onPress={alert.ticker ? () => router.push(`/stocks/${alert.ticker}`) : undefined} />
           ))
           : <EmptyState icon="pulse-outline" title="Aucune alerte" detail="Rien à signaler sur la dernière séance." />}
       </Section>

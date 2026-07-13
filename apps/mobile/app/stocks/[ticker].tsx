@@ -9,6 +9,7 @@ import { compactFcfa, compactVolume, dateFr, fcfa, millions, num, pct, ratio } f
 import { companyProfile } from "@afriterminal/core/company-profiles";
 import type { OHLCV } from "@afriterminal/core/types";
 import { AdvancedChart } from "../../src/components/AdvancedChart";
+import { YearComparison } from "../../src/components/YearComparison";
 import type { WebChartMarker } from "../../src/components/chart/WebChart";
 import { ChangePill, EmptyState, LoadingState, Metric, Page, Row, Section, SegmentedTabs } from "../../src/components/ui";
 import { useMarketData } from "../../src/providers/MarketDataProvider";
@@ -131,6 +132,11 @@ export default function StockScreen() {
             ) : null}
           </View>
         </View>
+        <View style={styles.heroStats}>
+          <View style={styles.heroStatRow}><Text style={styles.heroStatLabel}>H/B jour</Text><Text style={styles.heroStatValue}>{num(quote.dayHigh)}·{num(quote.dayLow)}</Text></View>
+          <View style={styles.heroStatRow}><Text style={styles.heroStatLabel}>Vol</Text><Text style={styles.heroStatValue}>{compactVolume(quote.dayVolume)}</Text></View>
+          <View style={styles.heroStatRow}><Text style={styles.heroStatLabel}>52 s</Text><Text style={styles.heroStatValue}>{num(quote.week52High)}·{num(quote.week52Low)}</Text></View>
+        </View>
       </Animated.View>
 
       <SegmentedTabs tabs={STOCK_TABS} active={tab} onChange={setTab} />
@@ -215,9 +221,12 @@ export default function StockScreen() {
               {fundamental.proposedGrossDividend !== null ? <Metric label="Dividende brut proposé" value={fcfa(fundamental.proposedGrossDividend)} tone="accent" detail={`Au titre de ${fundamental.fiscalYear}, soumis à l'AG`} /> : null}
             </> : null}
           </View>
-          {fundamental ? (
+          {fundamental ? <>
+            <View style={styles.yearBlock}>
+              <YearComparison fundamental={fundamental} />
+            </View>
             <Row icon="open-outline" title="Document source BRVM" detail="États financiers officiels dont sont issus ces chiffres" onPress={() => void Linking.openURL(fundamental.source)} />
-          ) : (
+          </> : (
             <EmptyState title="Fondamentaux détaillés indisponibles" detail="Aucun état financier vérifié n'est encore curé pour cette société." />
           )}
         </Section>
@@ -311,6 +320,11 @@ const styles = StyleSheet.create({
   footerSecondaryText: { color: colors.ink2, fontSize: 14, fontWeight: "700" },
   hero: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 },
   tabContent: { gap: 26 },
+  heroStats: { gap: 6, paddingTop: 4 },
+  heroStatRow: { flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 8 },
+  heroStatLabel: { ...type.label, fontSize: 9 },
+  heroStatValue: { color: colors.ink2, fontSize: 11, fontWeight: "600", fontVariant: tabular },
+  yearBlock: { marginTop: 12, marginBottom: 12 },
   infoChips: { flexDirection: "row", flexWrap: "wrap", gap: 7, marginTop: 9 },
   infoChip: {
     flexDirection: "row", alignItems: "center", gap: 5,
