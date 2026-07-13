@@ -55,7 +55,8 @@ repli technique et aux scénarios pédagogiques explicitement simulés
   (transactions, PRU, dividendes perçus), filtres screener, préférences
   chart — avec sauvegarde/restauration JSON (Réglages)
 - Expo SDK 54 · React Native 0.81 · Expo Router · Skia · Reanimated pour
-  l'app iOS/Android dans `apps/mobile`, avec Zustand + AsyncStorage
+  l'app iOS/Android dans `apps/mobile`, avec Zustand + AsyncStorage — les
+  sauvegardes JSON sont interchangeables entre le site et l'app
 
 ## Écart connu par rapport au brief initial
 
@@ -233,10 +234,15 @@ déploiement sont entièrement portés par GitHub Actions.
 
 ## Roadmap — app mobile (iOS/Android)
 
-Implémentée dans `apps/mobile` : app Expo/React Native, chart 100 % natif
-via Skia, navigation Router, données réseau/cache, portefeuille,
-watchlist, screener, documents et alertes locales. La logique de calcul
-reste partagée dans `packages/core` et le site conserve son comportement.
-Les exports Hermes iOS/Android passent ; la validation finale des gestes
-sur appareil et les builds signés stores restent à effectuer. Détail :
-[docs/mobile-app-plan.md](docs/mobile-app-plan.md).
+Implémentée dans `apps/mobile` : app Expo/React Native, chart motorisé
+par le build lightweight-charts du site dans une WebView hors-ligne
+(décision 2026-07-12), navigation Router, données réseau/cache,
+portefeuille (transactions rétrodatables, saisies validées et testées),
+watchlist, screener, documents, alertes locales réarmables et
+sauvegarde/restauration JSON compatible avec le site. La logique de
+calcul reste partagée dans `packages/core` et le site conserve son
+comportement. La revue 22 rôles du 2026-07-13 est intégrée (voir
+`docs/ship-readiness.md`). La validation finale sur appareil et les
+builds signés stores restent à effectuer. Détail :
+[docs/mobile-app-plan.md](docs/mobile-app-plan.md) ; comptes et
+onboarding : [docs/auth-onboarding-plan.md](docs/auth-onboarding-plan.md).

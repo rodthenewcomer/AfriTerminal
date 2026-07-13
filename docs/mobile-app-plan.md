@@ -195,8 +195,9 @@ Babel Expo présent. `expo-haptics` utilise la version SDK 54.
   redéployé Pages.
 - **État :** stores Zustand persistés avec `skipHydration` et réhydratation
   centralisée pour watchlist, portefeuille, seuils, chart, niveaux, filtres
-  du screener et réglages. Aucune donnée secrète n'est stockée ; SecureStore
-  est configuré pour une future authentification, pas utilisé artificiellement.
+  du screener et réglages. Aucune donnée secrète n'est stockée ; la
+  dépendance SecureStore, jamais utilisée, a été retirée le 2026-07-13 et
+  sera réintroduite avec l'authentification (voir `docs/auth-onboarding-plan.md`).
 - **Typographie :** police système iOS/Android retenue pour les métriques,
   performances et scripts francophones ; tous les prix et pourcentages ont
   `tabular-nums`. Aucun fichier Geist n'est embarqué.
@@ -212,7 +213,8 @@ Babel Expo présent. `expo-haptics` utilise la version SDK 54.
 - TypeScript racine et mobile sans erreur ;
 - `expo install --check` : dépendances à jour ;
 - `expo-doctor apps/mobile` : 18/18 contrôles réussis ;
-- 83 tests Vitest, dont les invariants du zoom focal ;
+- 97 tests Vitest, dont les invariants du zoom focal et la validation des
+  saisies mobiles (`apps/mobile/src/lib/forms.test.ts`) ;
 - build statique Next.js du site inchangé ;
 - exports Metro/Hermes iOS et Android, bundles `.hbc` générés.
 
@@ -220,6 +222,36 @@ Babel Expo présent. `expo-haptics` utilise la version SDK 54.
 fluidité des longues séries, notifications réelles et partage PNG sur
 l'iPhone physique ; Android réel ; builds EAS signés et soumission stores.
 Cette machine ne dispose d'aucun simulateur iOS ni émulateur Android.
+
+## Revue 22 rôles — correctifs du 2026-07-13
+
+La revue senior multi-rôles de l'app mobile a produit les correctifs
+suivants, tous implémentés et testés :
+
+1. **Validation des saisies (bug)** — `Number("abc")` = NaN passait les
+   contrôles `<= 0` du portefeuille et des alertes. Toutes les saisies
+   passent par `src/lib/forms.ts` (fonctions pures, 16 tests) : montants
+   finis, quantités entières positives, seuils finis.
+2. **Date de transaction rétroactive** — la feuille de saisie accepte
+   JJ/MM/AAAA ou AAAA-MM-JJ (ni future, ni antérieure à l'ouverture de la
+   BRVM), au lieu d'imposer la date du jour ; les dividendes perçus sont
+   désormais corrects pour les positions historiques.
+3. **Restauration de sauvegarde** — Réglages > « Importer une sauvegarde »
+   (expo-document-picker) : validation stricte du JSON entrée par entrée,
+   récapitulatif et confirmation avant remplacement.
+4. **ErrorBoundary racine** — un crash de rendu affiche un écran de
+   reprise (« Réessayer ») au lieu d'un écran noir.
+5. **Fraîcheur honnête** — quand les cotations viennent du cache appareil,
+   `updatedAt` reflète l'horodatage de sauvegarde du cache, pas l'heure de
+   la tentative de rafraîchissement.
+6. **Alertes réarmables** — une alerte déclenchée est signalée inactive et
+   peut être réarmée d'un tap.
+7. **Accessibilité** — rôles, libellés et états sur les contrôles partagés
+   (SegmentedTabs, Row, ActionButton), les boutons de pied de fiche, les
+   Switch et les formulaires.
+8. **WebView du chart durcie** — navigation http(s) bloquée
+   (`onShouldStartLoadWithRequest`), en plus des restrictions existantes.
+9. **Dépendance morte retirée** — `expo-secure-store` (plugin + package).
 
 ## Validation appareil
 

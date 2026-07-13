@@ -1,6 +1,6 @@
 # AfriTerminal ship readiness
 
-Last reviewed: 2026-07-11
+Last reviewed: 2026-07-13
 
 This file turns the 22-role review into release gates. It keeps the product honest while the app is still a static public MVP.
 
@@ -35,6 +35,17 @@ This file turns the 22-role review into release gates. It keeps the product hone
 20. Operations / Project Manager: live site, local build, generated data, and README must tell the same story before release.
 21. Legal Advisor: verify BRVM data redistribution and AMF-UMOA advisory boundaries before monetization.
 22. Partnerships / Integrations Manager: no broker/order-routing integration before legal, security, and support ownership are clear.
+
+## Mobile app gates (apps/mobile, reviewed 2026-07-13)
+
+The 22-role review was applied to the Expo app. All engineering findings were fixed the same day: input validation is centralized and tested (`src/lib/forms.ts`), transactions accept a backdated execution date, backup restore exists next to export, a root ErrorBoundary replaces silent blank screens, cache freshness is reported honestly, triggered alerts can be re-armed, shared controls carry accessibility roles/labels/states, the chart WebView blocks http(s) navigation, and the unused secure-store dependency was removed.
+
+Remaining mobile no-go before store submission:
+
+- Signed EAS builds and store submissions need the Apple/Google developer accounts.
+- Final gesture/performance validation on physical iPhone and any Android device.
+- A hosted privacy policy URL (content is simple: all data stays on device).
+- No account/auth surface ships until `docs/auth-onboarding-plan.md` is executed.
 
 ## Current no-go before monetization
 
