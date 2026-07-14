@@ -2,6 +2,11 @@
   "avis": [
     {
       "title": "Avis : Calendrier de paiement de dividendes",
+      "date": "2026-07-14",
+      "pdf": "https://www.brvm.org/sites/default/files/20260713_-_calendrier_de_paiement_des_dividendes_-_exercice_2025.pdf"
+    },
+    {
+      "title": "Avis : Calendrier de paiement de dividendes",
       "date": "2026-07-11",
       "pdf": "https://www.brvm.org/sites/default/files/20260710_-_calendrier_de_paiement_des_dividendes_-_exercice_2025.pdf"
     },
@@ -144,11 +149,6 @@
       "title": "FIDELIS FINANCE PME ELAN CROISSANCE UMOA 2 - 7,00 % 2025-2030 (FDFINBF.O3) : Résultats de première cotation",
       "date": "2026-06-10",
       "pdf": "https://www.brvm.org/sites/default/files/20260609_-_avis_ndeg160_brvmdg_-_resultat_de_premiere_cotation_-_fidelis_finance_pme_elan_croissance_umoa_2_-_7_2025-2030_fdfinbf.o3.pdf"
-    },
-    {
-      "title": "Avis : Calendrier de paiement de dividendes",
-      "date": "2026-06-07",
-      "pdf": "https://www.brvm.org/sites/default/files/20260605_-_calendrier_de_paiement_des_dividendes_-_exercice_2025.pdf"
     }
   ],
   "operations": [
