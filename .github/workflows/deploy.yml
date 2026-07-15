@@ -18,7 +18,9 @@ on:
   push:
     branches: [main]
     paths-ignore:
-      - "data/live/**" # collecte intraday, pas encore consommée par le build
+      # L'état détaillé reste un artefact de collecte ; le snapshot public
+      # consommé par web/mobile est data/real/live.json et déclenche bien ce workflow.
+      - "data/live/**"
   workflow_dispatch:
   workflow_call:
 

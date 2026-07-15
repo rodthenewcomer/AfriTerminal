@@ -5,6 +5,8 @@
  * Ce barrel existe pour les cas où l'ensemble est utile d'un coup.
  */
 export * from "./types";
+export * from "./live-market";
+export * from "./alerts";
 export * from "./format";
 export * from "./portfolio";
 export * from "./risk";

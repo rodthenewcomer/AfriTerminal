@@ -151,7 +151,7 @@ export function StockTable({ stocks }: { stocks: StockSnapshot[] }) {
                 <td className="px-3 py-2.5 text-right"><PriceChange value={s.ytdChange} arrow={false} /></td>
                 <td className="px-3 py-2.5 text-right num" style={undefined}>
                   <span className={cn(s.volumeRatio >= 3 ? "text-warn font-semibold" : "text-ink-2")}>
-                    {compactVolume(s.dayVolume)}
+                    {s.real?.quoteStatus === "delayed-live" ? "—" : compactVolume(s.dayVolume)}
                   </span>
                 </td>
                 <td className="px-3 py-2.5 text-right num text-ink-2">{s.per > 0 ? ratio(s.per) : "—"}</td>

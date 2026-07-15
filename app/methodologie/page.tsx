@@ -88,7 +88,7 @@ export default function MethodologiePage() {
           officielle</strong>, pas du temps réel. Pendant la séance, les plus
           hauts/plus bas sont affinés par une collecte des cours différés de
           15 minutes (toutes les 15 min). Les actualités sont rafraîchies
-          toutes les 2 h en journée, les documents chaque semaine, les
+          toutes les 15 min en journée, les documents toutes les 15 min, les
           opérations à chaque bulletin. Un chien de garde vérifie chaque matin
           qu&apos;aucun bulletin publié ne manque à nos données ; des
           garde-fous refusent tout bulletin aux valeurs aberrantes (variation

@@ -13,7 +13,9 @@ AMF-UMOA assumée depuis le début du produit) :
 - volume inhabituel : >= 3× la moyenne des 30 séances précédentes ET
   >= 500 titres (les ratios sur valeurs illiquides ne signifient rien) ;
 - dividende payé dans la fenêtre ;
-- états financiers publiés récemment (data/real/fundamentals.json).
+- états financiers publiés récemment (data/real/fundamentals.json) ;
+- toute nouvelle publication officielle de résultats/états financiers
+  (data/real/documents.json), avec lien direct vers la source BRVM.
 
 Usage :
     python3 scripts/boc/build_alerts.py --out data/real/alerts.json
@@ -22,6 +24,7 @@ Usage :
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 
@@ -31,6 +34,19 @@ HIGH_LOW_MIN_HISTORY = 100
 VOLUME_RATIO_MIN = 3.0
 VOLUME_FLOOR = 500
 FUNDAMENTALS_FRESH_DAYS = 30
+DOCUMENTS_FRESH_DAYS = 30
+DECISION_DOCUMENT_TYPES = {"Résultats", "États financiers"}
+DOCUMENT_SUMMARIES = {
+    "20260713_-_etats_financiers_-_exercice_2025_-_uniwax_ci.pdf": (
+        "Exercice 2025 : chiffre d'affaires 29,032 Md FCFA contre 27,333 Md ; "
+        "perte nette ramenée à 624 M FCFA contre 2,189 Md en 2024."
+    ),
+    "20260713_-_rapport_dactivites_-_1er_semestre_2026_-_uniwax_ci.pdf": (
+        "S1 2026 : chiffre d'affaires 15,752 Md FCFA (+0,3 %) ; résultat "
+        "opérationnel +771 M contre -314 M. Résultat net +771 M ; la comparaison "
+        "avec les 8,216 Md du S1 2025 doit intégrer la cession d'actif exceptionnelle."
+    ),
+}
 
 
 def fmt_fcfa(v: float) -> str:
@@ -49,9 +65,14 @@ def alert(
     detail: str,
     severity: str,
     hour: str = "15:30",
+    source_url: str | None = None,
+    identifier: str | None = None,
 ) -> dict:
-    return {
-        "id": f"{kind}-{ticker}-{date}",
+    payload = {
+        "id": identifier or (
+            f"{kind}-{ticker}-{date}-"
+            f"{hashlib.sha1(title.encode()).hexdigest()[:10]}"
+        ),
         "type": kind,
         "ticker": ticker,
         "title": title,
@@ -61,6 +82,9 @@ def alert(
         "active": True,
         "basis": "réel",
     }
+    if source_url:
+        payload["sourceUrl"] = source_url
+    return payload
 
 
 def strong_move_alert(ticker: str, name: str, rec: dict, prev_close: float) -> dict | None:
@@ -158,10 +182,13 @@ def fundamentals_alerts(fundamentals: dict, latest_date: str, names: dict[str, s
         pub = date.fromisoformat(f["publishedOn"])
         if (latest - pub).days > FUNDAMENTALS_FRESH_DAYS:
             continue
-        growth = ""
-        if f.get("netIncomePrevM"):
-            g = (f["netIncomeM"] / f["netIncomePrevM"] - 1) * 100
-            growth = f" Résultat net {fmt_pct(g)} vs {f['fiscalYear'] - 1}."
+        comparison = ""
+        if f.get("netIncomePrevM") is not None:
+            comparison = (
+                f" Résultat net : {fmt_fcfa(f['netIncomeM'] * 1_000_000)} "
+                f"contre {fmt_fcfa(f['netIncomePrevM'] * 1_000_000)} "
+                f"en {f['fiscalYear'] - 1}."
+            )
         out.append(
             alert(
                 "fondamental",
@@ -169,7 +196,7 @@ def fundamentals_alerts(fundamentals: dict, latest_date: str, names: dict[str, s
                 f["publishedOn"],
                 f"{ticker} : états financiers {f['fiscalYear']} publiés",
                 f"{names.get(ticker, ticker)} a publié ses états financiers "
-                f"{f['fiscalYear']} le {f['publishedOn']}.{growth}",
+                f"{f['fiscalYear']} le {f['publishedOn']}.{comparison}",
                 "info",
                 hour="09:00",
             )
@@ -177,7 +204,53 @@ def fundamentals_alerts(fundamentals: dict, latest_date: str, names: dict[str, s
     return out
 
 
-def build(series_dir: Path, fundamentals_path: Path) -> list[dict]:
+def document_alerts(documents: list[dict], latest_date: str, names: dict[str, str]) -> list[dict]:
+    """Transforme une publication financière récente en signal visible.
+
+    Le contenu du PDF n'est jamais interprété automatiquement ici : l'alerte
+    atteste seulement la publication et renvoie à la source primaire. Les
+    chiffres détaillés restent dans le pipeline fondamentaux curé.
+    """
+    from datetime import date
+
+    latest = date.fromisoformat(latest_date)
+    out = []
+    for doc in documents:
+        if doc.get("type") not in DECISION_DOCUMENT_TYPES:
+            continue
+        published = date.fromisoformat(doc["date"])
+        age = (latest - published).days
+        if age < 0 or age > DOCUMENTS_FRESH_DAYS:
+            continue
+        ticker = doc["ticker"]
+        summary = DOCUMENT_SUMMARIES.get(doc["url"].rsplit("/", 1)[-1])
+        out.append(
+            alert(
+                "document",
+                ticker,
+                doc["date"],
+                f"{ticker} : nouvelle publication financière",
+                (
+                    f"{names.get(ticker, ticker)} a publié « {doc['title']} » le "
+                    f"{doc['date']}. {summary} Source officielle à consulter avant "
+                    "toute décision."
+                ) if summary else (
+                    f"{names.get(ticker, ticker)} a publié « {doc['title']} » le "
+                    f"{doc['date']}. Source officielle à consulter avant toute décision."
+                ),
+                "critical" if age <= 7 else "warning",
+                hour="09:05",
+                source_url=doc["url"],
+                identifier=(
+                    f"document-{ticker}-{doc['date']}-"
+                    f"{hashlib.sha1(doc['url'].encode()).hexdigest()[:10]}"
+                ),
+            )
+        )
+    return out
+
+
+def build(series_dir: Path, fundamentals_path: Path, documents_path: Path | None = None) -> list[dict]:
     alerts: list[dict] = []
     latest_date = ""
     names: dict[str, str] = {}
@@ -209,6 +282,9 @@ def build(series_dir: Path, fundamentals_path: Path) -> list[dict]:
     if fundamentals_path.exists() and latest_date:
         fundamentals = json.loads(fundamentals_path.read_text(encoding="utf-8"))
         alerts.extend(fundamentals_alerts(fundamentals, latest_date, names))
+    if documents_path and documents_path.exists() and latest_date:
+        documents = json.loads(documents_path.read_text(encoding="utf-8"))
+        alerts.extend(document_alerts(documents, latest_date, names))
 
     # En période de tendance, une valeur peut inscrire un nouvel extrême
     # 52 semaines plusieurs séances de suite : on ne garde que le plus
@@ -230,10 +306,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--series-dir", default="data/boc/series")
     parser.add_argument("--fundamentals", default="data/real/fundamentals.json")
+    parser.add_argument("--documents", default="data/real/documents.json")
     parser.add_argument("--out", default="data/real/alerts.json")
     args = parser.parse_args()
 
-    alerts = build(Path(args.series_dir), Path(args.fundamentals))
+    alerts = build(Path(args.series_dir), Path(args.fundamentals), Path(args.documents))
     Path(args.out).write_text(
         json.dumps(alerts, ensure_ascii=False, indent=1), encoding="utf-8"
     )

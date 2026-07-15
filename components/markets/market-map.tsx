@@ -285,8 +285,9 @@ export function MarketMap({ compact = false }: { compact?: boolean }) {
               </span>
             </div>
             <p className="mt-1 text-[10px] text-ink-3">
-              {hover.stock.sector} · jour {pct(hover.stock.dayChange)} · volume{" "}
-              {hover.stock.volumeRatio.toFixed(1)}× la moyenne 30 j
+              {hover.stock.sector} · jour {pct(hover.stock.dayChange)} · {hover.stock.real?.quoteStatus === "delayed-live"
+                ? "volume officiel après clôture"
+                : `volume ${hover.stock.volumeRatio.toFixed(1)}× la moyenne 30 j`}
             </p>
           </div>
         ) : null}

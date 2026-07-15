@@ -1,6 +1,6 @@
 [
  {
-  "id": "volume-ABJC-2026-07-14",
+  "id": "volume-ABJC-2026-07-14-d4d056ed80",
   "type": "volume",
   "ticker": "ABJC",
   "title": "Volume inhabituel sur ABJC",
@@ -11,7 +11,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-BOABF-2026-07-14",
+  "id": "prix-BOABF-2026-07-14-997f654fc2",
   "type": "prix",
   "ticker": "BOABF",
   "title": "BOABF au plus haut 52 semaines",
@@ -22,7 +22,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-BOAC-2026-07-14",
+  "id": "prix-BOAC-2026-07-14-cfa1b0a2a6",
   "type": "prix",
   "ticker": "BOAC",
   "title": "BOAC au plus haut 52 semaines",
@@ -33,7 +33,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-BOAM-2026-07-14",
+  "id": "prix-BOAM-2026-07-14-b1bdbba16c",
   "type": "prix",
   "ticker": "BOAM",
   "title": "BOAM au plus haut 52 semaines",
@@ -44,7 +44,7 @@
   "basis": "réel"
  },
  {
-  "id": "volume-CABC-2026-07-14",
+  "id": "volume-CABC-2026-07-14-d1246a994b",
   "type": "volume",
   "ticker": "CABC",
   "title": "Volume inhabituel sur CABC",
@@ -55,7 +55,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-ETIT-2026-07-14",
+  "id": "prix-ETIT-2026-07-14-a22eb9c09c",
   "type": "prix",
   "ticker": "ETIT",
   "title": "ETIT : +7,35 % sur la séance",
@@ -66,7 +66,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-ETIT-2026-07-14",
+  "id": "prix-ETIT-2026-07-14-ce7432f470",
   "type": "prix",
   "ticker": "ETIT",
   "title": "ETIT au plus haut 52 semaines",
@@ -77,7 +77,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-NEIC-2026-07-14",
+  "id": "prix-NEIC-2026-07-14-edcb121826",
   "type": "prix",
   "ticker": "NEIC",
   "title": "NEIC : +7,44 % sur la séance",
@@ -88,7 +88,7 @@
   "basis": "réel"
  },
  {
-  "id": "volume-ORAC-2026-07-14",
+  "id": "volume-ORAC-2026-07-14-423474f1b3",
   "type": "volume",
   "ticker": "ORAC",
   "title": "Volume inhabituel sur ORAC",
@@ -99,7 +99,7 @@
   "basis": "réel"
  },
  {
-  "id": "volume-SDCC-2026-07-14",
+  "id": "volume-SDCC-2026-07-14-5e9b5d4ae6",
   "type": "volume",
   "ticker": "SDCC",
   "title": "Volume inhabituel sur SDCC",
@@ -110,7 +110,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-SDSC-2026-07-14",
+  "id": "prix-SDSC-2026-07-14-7f6a84cd15",
   "type": "prix",
   "ticker": "SDSC",
   "title": "SDSC : +7,31 % sur la séance",
@@ -121,7 +121,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-SIVC-2026-07-14",
+  "id": "prix-SIVC-2026-07-14-ecdbe83e97",
   "type": "prix",
   "ticker": "SIVC",
   "title": "SIVC : +7,47 % sur la séance",
@@ -132,7 +132,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-SNTS-2026-07-14",
+  "id": "prix-SNTS-2026-07-14-d84fddd485",
   "type": "prix",
   "ticker": "SNTS",
   "title": "SNTS au plus haut 52 semaines",
@@ -143,7 +143,7 @@
   "basis": "réel"
  },
  {
-  "id": "volume-SNTS-2026-07-14",
+  "id": "volume-SNTS-2026-07-14-d7beb0e4a2",
   "type": "volume",
   "ticker": "SNTS",
   "title": "Volume inhabituel sur SNTS",
@@ -154,7 +154,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-UNXC-2026-07-14",
+  "id": "prix-UNXC-2026-07-14-c4c073899e",
   "type": "prix",
   "ticker": "UNXC",
   "title": "UNXC : +7,29 % sur la séance",
@@ -165,7 +165,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-BICB-2026-07-13",
+  "id": "prix-BICB-2026-07-13-3c5d5a1a5a",
   "type": "prix",
   "ticker": "BICB",
   "title": "BICB au plus haut 52 semaines",
@@ -176,7 +176,7 @@
   "basis": "réel"
  },
  {
-  "id": "volume-BOAS-2026-07-13",
+  "id": "volume-BOAS-2026-07-13-3042284d39",
   "type": "volume",
   "ticker": "BOAS",
   "title": "Volume inhabituel sur BOAS",
@@ -187,7 +187,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-CBIBF-2026-07-13",
+  "id": "prix-CBIBF-2026-07-13-74bafa3ccd",
   "type": "prix",
   "ticker": "CBIBF",
   "title": "CBIBF au plus haut 52 semaines",
@@ -198,7 +198,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-ETIT-2026-07-13",
+  "id": "prix-ETIT-2026-07-13-b948544956",
   "type": "prix",
   "ticker": "ETIT",
   "title": "ETIT : +6,25 % sur la séance",
@@ -209,7 +209,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-NEIC-2026-07-13",
+  "id": "prix-NEIC-2026-07-13-94f533a601",
   "type": "prix",
   "ticker": "NEIC",
   "title": "NEIC : +7,5 % sur la séance",
@@ -220,7 +220,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-SDCC-2026-07-13",
+  "id": "prix-SDCC-2026-07-13-4b9f338592",
   "type": "prix",
   "ticker": "SDCC",
   "title": "SDCC : -6,4 % sur la séance",
@@ -231,7 +231,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-SIVC-2026-07-13",
+  "id": "prix-SIVC-2026-07-13-215a1aa091",
   "type": "prix",
   "ticker": "SIVC",
   "title": "SIVC : +7,28 % sur la séance",
@@ -242,7 +242,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-TTLC-2026-07-13",
+  "id": "prix-TTLC-2026-07-13-ffd6b47cc6",
   "type": "prix",
   "ticker": "TTLC",
   "title": "TTLC : +6,79 % sur la séance",
@@ -253,7 +253,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-UNLC-2026-07-13",
+  "id": "prix-UNLC-2026-07-13-27e7fb7263",
   "type": "prix",
   "ticker": "UNLC",
   "title": "UNLC : +6,41 % sur la séance",
@@ -264,7 +264,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-UNXC-2026-07-13",
+  "id": "prix-UNXC-2026-07-13-7006a65560",
   "type": "prix",
   "ticker": "UNXC",
   "title": "UNXC : +7,46 % sur la séance",
@@ -275,7 +275,42 @@
   "basis": "réel"
  },
  {
-  "id": "prix-BOAN-2026-07-10",
+  "id": "document-UNXC-2026-07-13-2a40eb6ca7",
+  "type": "document",
+  "ticker": "UNXC",
+  "title": "UNXC : nouvelle publication financière",
+  "detail": "UNIWAX CI a publié « Etats financiers — exercice 2025 » le 2026-07-13. Exercice 2025 : chiffre d'affaires 29,032 Md FCFA contre 27,333 Md ; perte nette ramenée à 624 M FCFA contre 2,189 Md en 2024. Source officielle à consulter avant toute décision.",
+  "time": "2026-07-13T09:05:00+00:00",
+  "severity": "critical",
+  "active": true,
+  "basis": "réel",
+  "sourceUrl": "https://www.brvm.org/sites/default/files/20260713_-_etats_financiers_-_exercice_2025_-_uniwax_ci.pdf"
+ },
+ {
+  "id": "document-UNXC-2026-07-13-2fb18846b2",
+  "type": "document",
+  "ticker": "UNXC",
+  "title": "UNXC : nouvelle publication financière",
+  "detail": "UNIWAX CI a publié « Rapport dactivites — 1er semestre 2026 » le 2026-07-13. S1 2026 : chiffre d'affaires 15,752 Md FCFA (+0,3 %) ; résultat opérationnel +771 M contre -314 M. Résultat net +771 M ; la comparaison avec les 8,216 Md du S1 2025 doit intégrer la cession d'actif exceptionnelle. Source officielle à consulter avant toute décision.",
+  "time": "2026-07-13T09:05:00+00:00",
+  "severity": "critical",
+  "active": true,
+  "basis": "réel",
+  "sourceUrl": "https://www.brvm.org/sites/default/files/20260713_-_rapport_dactivites_-_1er_semestre_2026_-_uniwax_ci.pdf"
+ },
+ {
+  "id": "fondamental-UNXC-2026-07-13-c62997b93b",
+  "type": "fondamental",
+  "ticker": "UNXC",
+  "title": "UNXC : états financiers 2025 publiés",
+  "detail": "UNIWAX CI a publié ses états financiers 2025 le 2026-07-13. Résultat net : -624 000 000 FCFA contre -2 189 000 000 FCFA en 2024.",
+  "time": "2026-07-13T09:00:00+00:00",
+  "severity": "info",
+  "active": true,
+  "basis": "réel"
+ },
+ {
+  "id": "prix-BOAN-2026-07-10-f92e578e2f",
   "type": "prix",
   "ticker": "BOAN",
   "title": "BOAN : +6,44 % sur la séance",
@@ -286,7 +321,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-BOAN-2026-07-10",
+  "id": "prix-BOAN-2026-07-10-670b25c167",
   "type": "prix",
   "ticker": "BOAN",
   "title": "BOAN au plus haut 52 semaines",
@@ -297,7 +332,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-CBIBF-2026-07-10",
+  "id": "prix-CBIBF-2026-07-10-9088d790bd",
   "type": "prix",
   "ticker": "CBIBF",
   "title": "CBIBF : +7,5 % sur la séance",
@@ -308,7 +343,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-ETIT-2026-07-10",
+  "id": "prix-ETIT-2026-07-10-7cd72a155b",
   "type": "prix",
   "ticker": "ETIT",
   "title": "ETIT : +6,67 % sur la séance",
@@ -319,7 +354,7 @@
   "basis": "réel"
  },
  {
-  "id": "volume-ETIT-2026-07-10",
+  "id": "volume-ETIT-2026-07-10-102e9324db",
   "type": "volume",
   "ticker": "ETIT",
   "title": "Volume inhabituel sur ETIT",
@@ -330,7 +365,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-LNBB-2026-07-10",
+  "id": "prix-LNBB-2026-07-10-5951131d27",
   "type": "prix",
   "ticker": "LNBB",
   "title": "LNBB : +7,42 % sur la séance",
@@ -341,7 +376,7 @@
   "basis": "réel"
  },
  {
-  "id": "volume-LNBB-2026-07-10",
+  "id": "volume-LNBB-2026-07-10-24104927d6",
   "type": "volume",
   "ticker": "LNBB",
   "title": "Volume inhabituel sur LNBB",
@@ -352,7 +387,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-SCRC-2026-07-10",
+  "id": "prix-SCRC-2026-07-10-ba899c1792",
   "type": "prix",
   "ticker": "SCRC",
   "title": "SCRC : +5,75 % sur la séance",
@@ -363,7 +398,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-SEMC-2026-07-10",
+  "id": "prix-SEMC-2026-07-10-a94c876b1a",
   "type": "prix",
   "ticker": "SEMC",
   "title": "SEMC : +5,05 % sur la séance",
@@ -374,7 +409,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-SIVC-2026-07-10",
+  "id": "prix-SIVC-2026-07-10-99d737f468",
   "type": "prix",
   "ticker": "SIVC",
   "title": "SIVC : +7,29 % sur la séance",
@@ -385,7 +420,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-UNLC-2026-07-10",
+  "id": "prix-UNLC-2026-07-10-b5d078ed1f",
   "type": "prix",
   "ticker": "UNLC",
   "title": "UNLC : -6,02 % sur la séance",
@@ -396,7 +431,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-UNXC-2026-07-10",
+  "id": "prix-UNXC-2026-07-10-cd4103a1cb",
   "type": "prix",
   "ticker": "UNXC",
   "title": "UNXC : +7,2 % sur la séance",
@@ -407,7 +442,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-BNBC-2026-07-09",
+  "id": "prix-BNBC-2026-07-09-e01df983dc",
   "type": "prix",
   "ticker": "BNBC",
   "title": "BNBC : -7,44 % sur la séance",
@@ -418,7 +453,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-ETIT-2026-07-09",
+  "id": "prix-ETIT-2026-07-09-422e883fd7",
   "type": "prix",
   "ticker": "ETIT",
   "title": "ETIT : +7,14 % sur la séance",
@@ -429,7 +464,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-SCRC-2026-07-09",
+  "id": "prix-SCRC-2026-07-09-98adbd4703",
   "type": "prix",
   "ticker": "SCRC",
   "title": "SCRC : -6,9 % sur la séance",
@@ -440,7 +475,7 @@
   "basis": "réel"
  },
  {
-  "id": "volume-SDCC-2026-07-09",
+  "id": "volume-SDCC-2026-07-09-5e9b5d4ae6",
   "type": "volume",
   "ticker": "SDCC",
   "title": "Volume inhabituel sur SDCC",
@@ -451,7 +486,7 @@
   "basis": "réel"
  },
  {
-  "id": "volume-SIVC-2026-07-09",
+  "id": "volume-SIVC-2026-07-09-030803ae86",
   "type": "volume",
   "ticker": "SIVC",
   "title": "Volume inhabituel sur SIVC",
@@ -462,7 +497,7 @@
   "basis": "réel"
  },
  {
-  "id": "volume-SLBC-2026-07-09",
+  "id": "volume-SLBC-2026-07-09-1cc43b86f9",
   "type": "volume",
   "ticker": "SLBC",
   "title": "Volume inhabituel sur SLBC",
@@ -473,7 +508,7 @@
   "basis": "réel"
  },
  {
-  "id": "volume-SMBC-2026-07-09",
+  "id": "volume-SMBC-2026-07-09-01c37c2d6a",
   "type": "volume",
   "ticker": "SMBC",
   "title": "Volume inhabituel sur SMBC",
@@ -484,7 +519,7 @@
   "basis": "réel"
  },
  {
-  "id": "volume-UNXC-2026-07-09",
+  "id": "volume-UNXC-2026-07-09-7d3b3b14fc",
   "type": "volume",
   "ticker": "UNXC",
   "title": "Volume inhabituel sur UNXC",
@@ -495,7 +530,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-BOAM-2026-07-08",
+  "id": "prix-BOAM-2026-07-08-c8c9f7db21",
   "type": "prix",
   "ticker": "BOAM",
   "title": "BOAM : +5,78 % sur la séance",
@@ -506,7 +541,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-BOAN-2026-07-08",
+  "id": "prix-BOAN-2026-07-08-fd5392625d",
   "type": "prix",
   "ticker": "BOAN",
   "title": "BOAN : +5,34 % sur la séance",
@@ -517,7 +552,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-CBIBF-2026-07-08",
+  "id": "prix-CBIBF-2026-07-08-d0bd6cbe70",
   "type": "prix",
   "ticker": "CBIBF",
   "title": "CBIBF : +7,49 % sur la séance",
@@ -528,7 +563,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-ETIT-2026-07-08",
+  "id": "prix-ETIT-2026-07-08-545084577d",
   "type": "prix",
   "ticker": "ETIT",
   "title": "ETIT : +5,66 % sur la séance",
@@ -539,7 +574,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-LNBB-2026-07-08",
+  "id": "prix-LNBB-2026-07-08-c967c0a673",
   "type": "prix",
   "ticker": "LNBB",
   "title": "LNBB : -6,45 % sur la séance",
@@ -550,7 +585,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-NSBC-2026-07-08",
+  "id": "prix-NSBC-2026-07-08-bec08b07a7",
   "type": "prix",
   "ticker": "NSBC",
   "title": "NSBC : +7,07 % sur la séance",
@@ -561,7 +596,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-NSBC-2026-07-08",
+  "id": "prix-NSBC-2026-07-08-ec4caf3cca",
   "type": "prix",
   "ticker": "NSBC",
   "title": "NSBC au plus haut 52 semaines",
@@ -572,7 +607,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-SAFC-2026-07-08",
+  "id": "prix-SAFC-2026-07-08-8158172359",
   "type": "prix",
   "ticker": "SAFC",
   "title": "SAFC : -5,11 % sur la séance",
@@ -583,7 +618,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-SEMC-2026-07-08",
+  "id": "prix-SEMC-2026-07-08-21ed19e69d",
   "type": "prix",
   "ticker": "SEMC",
   "title": "SEMC : -6,57 % sur la séance",
@@ -594,7 +629,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-SIVC-2026-07-08",
+  "id": "prix-SIVC-2026-07-08-6f7b0ee6de",
   "type": "prix",
   "ticker": "SIVC",
   "title": "SIVC : -7,41 % sur la séance",
@@ -605,7 +640,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-SPHC-2026-07-08",
+  "id": "prix-SPHC-2026-07-08-3a6619c920",
   "type": "prix",
   "ticker": "SPHC",
   "title": "SPHC : -5 % sur la séance",
@@ -616,7 +651,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-STAC-2026-07-08",
+  "id": "prix-STAC-2026-07-08-8b9674c40d",
   "type": "prix",
   "ticker": "STAC",
   "title": "STAC : -7,42 % sur la séance",
@@ -627,7 +662,7 @@
   "basis": "réel"
  },
  {
-  "id": "volume-TTLC-2026-07-08",
+  "id": "volume-TTLC-2026-07-08-ec987294c6",
   "type": "volume",
   "ticker": "TTLC",
   "title": "Volume inhabituel sur TTLC",
@@ -638,7 +673,7 @@
   "basis": "réel"
  },
  {
-  "id": "prix-UNXC-2026-07-08",
+  "id": "prix-UNXC-2026-07-08-06dbae1c48",
   "type": "prix",
   "ticker": "UNXC",
   "title": "UNXC : -7,22 % sur la séance",
@@ -649,44 +684,140 @@
   "basis": "réel"
  },
  {
-  "id": "fondamental-CBIBF-2026-07-07",
+  "id": "document-CBIBF-2026-07-07-3fb6812fe8",
+  "type": "document",
+  "ticker": "CBIBF",
+  "title": "CBIBF : nouvelle publication financière",
+  "detail": "CORIS BANK INTERNATIONAL a publié « Etats financiers — exercice 2025 » le 2026-07-07. Source officielle à consulter avant toute décision.",
+  "time": "2026-07-07T09:05:00+00:00",
+  "severity": "critical",
+  "active": true,
+  "basis": "réel",
+  "sourceUrl": "https://www.brvm.org/sites/default/files/20260707_-_etats_financiers_-_exercice_2025_-_coris_bank_international_bf.pdf"
+ },
+ {
+  "id": "fondamental-CBIBF-2026-07-07-b8eb8fc038",
   "type": "fondamental",
   "ticker": "CBIBF",
   "title": "CBIBF : états financiers 2025 publiés",
-  "detail": "CORIS BANK INTERNATIONAL a publié ses états financiers 2025 le 2026-07-07. Résultat net +36,63 % vs 2024.",
+  "detail": "CORIS BANK INTERNATIONAL a publié ses états financiers 2025 le 2026-07-07. Résultat net : 65 495 000 000 FCFA contre 47 937 000 000 FCFA en 2024.",
   "time": "2026-07-07T09:00:00+00:00",
   "severity": "info",
   "active": true,
   "basis": "réel"
  },
  {
-  "id": "fondamental-SIVC-2026-06-26",
+  "id": "document-SAFC-2026-07-03-7d08e684e6",
+  "type": "document",
+  "ticker": "SAFC",
+  "title": "SAFC : nouvelle publication financière",
+  "detail": "SAFCA CI a publié « Rapport dactivites — 4e trimestre 2024 » le 2026-07-03. Source officielle à consulter avant toute décision.",
+  "time": "2026-07-03T09:05:00+00:00",
+  "severity": "warning",
+  "active": true,
+  "basis": "réel",
+  "sourceUrl": "https://www.brvm.org/sites/default/files/20260703_-_rapport_dactivites_-_4e_trimestre_2024_-_safca_ci.pdf"
+ },
+ {
+  "id": "document-SAFC-2026-07-03-70a5489835",
+  "type": "document",
+  "ticker": "SAFC",
+  "title": "SAFC : nouvelle publication financière",
+  "detail": "SAFCA CI a publié « Rapport des commissaires aux comptes sur les etats financiers » le 2026-07-03. Source officielle à consulter avant toute décision.",
+  "time": "2026-07-03T09:05:00+00:00",
+  "severity": "warning",
+  "active": true,
+  "basis": "réel",
+  "sourceUrl": "https://www.brvm.org/sites/default/files/20260703_-_rapport_des_commissaires_aux_comptes_sur_les_etats_financiers_-_exercice_2024-_safca_ci.pdf"
+ },
+ {
+  "id": "document-SIVC-2026-06-26-436619705c",
+  "type": "document",
+  "ticker": "SIVC",
+  "title": "SIVC : nouvelle publication financière",
+  "detail": "ERIUM CI (Ex AIR LIQUIDE CI) a publié « Etats financiers — exercice 2025 » le 2026-06-26. Source officielle à consulter avant toute décision.",
+  "time": "2026-06-26T09:05:00+00:00",
+  "severity": "warning",
+  "active": true,
+  "basis": "réel",
+  "sourceUrl": "https://www.brvm.org/sites/default/files/20260626_-_etats_financiers_-_exercice_2025_-_erium_ci.pdf"
+ },
+ {
+  "id": "fondamental-SIVC-2026-06-26-34a875ff92",
   "type": "fondamental",
   "ticker": "SIVC",
   "title": "SIVC : états financiers 2025 publiés",
-  "detail": "ERIUM CI (Ex AIR LIQUIDE CI) a publié ses états financiers 2025 le 2026-06-26. Résultat net -52,52 % vs 2024.",
+  "detail": "ERIUM CI (Ex AIR LIQUIDE CI) a publié ses états financiers 2025 le 2026-06-26. Résultat net : 179 000 000 FCFA contre 377 000 000 FCFA en 2024.",
   "time": "2026-06-26T09:00:00+00:00",
   "severity": "info",
   "active": true,
   "basis": "réel"
  },
  {
-  "id": "fondamental-STBC-2026-06-25",
+  "id": "document-STBC-2026-06-25-d593b39e79",
+  "type": "document",
+  "ticker": "STBC",
+  "title": "STBC : nouvelle publication financière",
+  "detail": "SITAB CI a publié « Etats financiers — exercice 2025 » le 2026-06-25. Source officielle à consulter avant toute décision.",
+  "time": "2026-06-25T09:05:00+00:00",
+  "severity": "warning",
+  "active": true,
+  "basis": "réel",
+  "sourceUrl": "https://www.brvm.org/sites/default/files/20260625_-_etats_financiers_-_exercice_2025_-_sitab_ci_annule_et_remplace_le_precedent.pdf"
+ },
+ {
+  "id": "fondamental-STBC-2026-06-25-6d7d7294dd",
   "type": "fondamental",
   "ticker": "STBC",
   "title": "STBC : états financiers 2025 publiés",
-  "detail": "SITAB CI a publié ses états financiers 2025 le 2026-06-25. Résultat net -17,45 % vs 2024.",
+  "detail": "SITAB CI a publié ses états financiers 2025 le 2026-06-25. Résultat net : 36 464 000 000 FCFA contre 44 174 000 000 FCFA en 2024.",
   "time": "2026-06-25T09:00:00+00:00",
   "severity": "info",
   "active": true,
   "basis": "réel"
  },
  {
-  "id": "fondamental-BICB-2026-06-19",
+  "id": "document-BOAM-2026-06-23-bc2c790512",
+  "type": "document",
+  "ticker": "BOAM",
+  "title": "BOAM : nouvelle publication financière",
+  "detail": "BANK OF AFRICA ML a publié « Rapport dactivites — 1er trimestre 2026 » le 2026-06-23. Source officielle à consulter avant toute décision.",
+  "time": "2026-06-23T09:05:00+00:00",
+  "severity": "warning",
+  "active": true,
+  "basis": "réel",
+  "sourceUrl": "https://www.brvm.org/sites/default/files/20260623_-_rapport_dactivites_-_1er_trimestre_2026_-_boa_mali.pdf"
+ },
+ {
+  "id": "document-BICB-2026-06-19-76318bbb5b",
+  "type": "document",
+  "ticker": "BICB",
+  "title": "BICB : nouvelle publication financière",
+  "detail": "BIIC BN a publié « Rapport dactivites annuel et etats financiers ifrs — exercice 2025 » le 2026-06-19. Source officielle à consulter avant toute décision.",
+  "time": "2026-06-19T09:05:00+00:00",
+  "severity": "warning",
+  "active": true,
+  "basis": "réel",
+  "sourceUrl": "https://www.brvm.org/sites/default/files/20260619_-_rapport_dactivites_annuel_et_etats_financiers_ifrs_-_exercice_2025_-_biic.pdf"
+ },
+ {
+  "id": "document-BICB-2026-06-19-f1e5025d6d",
+  "type": "document",
+  "ticker": "BICB",
+  "title": "BICB : nouvelle publication financière",
+  "detail": "BIIC BN a publié « Rapport des commissaires aux comptes sur les etats financiers annuels — exercice 2025 » le 2026-06-19. Source officielle à consulter avant toute décision.",
+  "time": "2026-06-19T09:05:00+00:00",
+  "severity": "warning",
+  "active": true,
+  "basis": "réel",
+  "sourceUrl": "https://www.brvm.org/sites/default/files/20260619_-_rapport_des_commissaires_aux_comptes_sur_les_etats_financiers_annuels_-_exercice_2025_-_biic.pdf"
+ },
+ {
+  "id": "fondamental-BICB-2026-06-19-4fe54d85f1",
   "type": "fondamental",
   "ticker": "BICB",
   "title": "BICB : états financiers 2025 publiés",
-  "detail": "BIIC BN a publié ses états financiers 2025 le 2026-06-19. Résultat net +24,71 % vs 2024.",
+  "detail": "BIIC BN a publié ses états financiers 2025 le 2026-06-19. Résultat net : 36 237 000 000 FCFA contre 29 058 000 000 FCFA en 2024.",
   "time": "2026-06-19T09:00:00+00:00",
   "severity": "info",
   "active": true,

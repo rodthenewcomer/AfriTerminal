@@ -1,5 +1,6 @@
 import alertsJson from "@/data/real/alerts.json";
 import type { AlertItem } from "@wariba/core/types";
+import { prioritizeCriticalAlerts } from "@wariba/core/alerts";
 
 /**
  * Alertes réelles générées par scripts/boc/build_alerts.py à partir des
@@ -9,11 +10,9 @@ import type { AlertItem } from "@wariba/core/types";
  */
 export const REAL_ALERTS = alertsJson as AlertItem[];
 
-/** Alertes de la séance la plus récente (pour le dashboard). */
+/** Alertes décisionnelles récentes, puis faits de la dernière séance. */
 export function latestSessionAlerts(limit = 3): AlertItem[] {
-  if (REAL_ALERTS.length === 0) return [];
-  const latestDay = REAL_ALERTS[0].time.slice(0, 10);
-  return REAL_ALERTS.filter((a) => a.time.startsWith(latestDay)).slice(0, limit);
+  return prioritizeCriticalAlerts(REAL_ALERTS).slice(0, limit);
 }
 
 export function alertsForTicker(ticker: string, limit = 5): AlertItem[] {

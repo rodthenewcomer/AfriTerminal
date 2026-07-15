@@ -54,6 +54,7 @@ import {
 } from "@/lib/chart-utils";
 import { dividendHistoryFor } from "@/lib/real-dividends";
 import { operationsForTicker } from "@/lib/real-operations";
+import { realDocsForTicker } from "@/lib/real-documents";
 import { compactVolume, pct } from "@wariba/core/format";
 import { useChartPrefs, useChartPrefsHydrated } from "@/hooks/use-chart-prefs";
 import { rehydrateChartLevels, useChartLevels } from "@/hooks/use-chart-levels";
@@ -72,6 +73,15 @@ function fmtPrice(p: number): string {
 }
 
 const NO_LEVELS: number[] = [];
+
+interface RangeStats {
+  count: number;
+  start: string;
+  end: string;
+  change: number;
+  high: number;
+  low: number;
+}
 
 const OVERLAYS: { id: "sma20" | "sma50" | "sma100" | "sma200"; period: number }[] = [
   { id: "sma20", period: 20 },
@@ -138,6 +148,7 @@ export function MainChart({ ticker }: { ticker: string }) {
   const { resolvedTheme } = useTheme();
 
   const [hasMarkers, setHasMarkers] = useState(false);
+  const [rangeStats, setRangeStats] = useState<RangeStats | null>(null);
   const intraday = tf === "1D" || tf === "1W";
   const comparing = compare.length > 0 && !intraday;
   const indKey = [...indicators].sort().join(",");
@@ -305,6 +316,7 @@ export function MainChart({ ticker }: { ticker: string }) {
 
       if (raw.length === 0) {
         barsRef.current = [];
+        setRangeStats(null);
         if (isReal && intraday) setNoIntraday(true);
         setReady(true);
         return;
@@ -315,11 +327,26 @@ export function MainChart({ ticker }: { ticker: string }) {
         : isReal
           ? adjustForRealDividends(ticker, raw)
           : adjustForDividends(ticker, raw);
-
       const compareData = comparing
         ? await Promise.all(compare.map((code) => compareSeriesData(code, tf)))
         : [];
       if (cancelled || chartRef.current !== chart) return;
+      const firstBar = bars[0];
+      const lastBar = bars[bars.length - 1];
+      let high = firstBar.high;
+      let low = firstBar.low;
+      for (const bar of bars) {
+        high = Math.max(high, bar.high);
+        low = Math.min(low, bar.low);
+      }
+      setRangeStats({
+        count: bars.length,
+        start: String(firstBar.time),
+        end: String(lastBar.time),
+        change: firstBar.close > 0 ? ((lastBar.close - firstBar.close) / firstBar.close) * 100 : 0,
+        high,
+        low,
+      });
 
       const track = <T extends ISeriesApi<SeriesType>>(s: T): T => {
         seriesRef.current.push(s);
@@ -624,6 +651,22 @@ export function MainChart({ ticker }: { ticker: string }) {
             text: "S",
           });
         }
+        for (const document of realDocsForTicker(ticker, 20)) {
+          if (
+            (document.type !== "Résultats" && document.type !== "États financiers") ||
+            document.date < first ||
+            document.date > last
+          ) continue;
+          const t = snap(document.date);
+          if (!t) continue;
+          markers.push({
+            time: t as Time,
+            position: "aboveBar",
+            color: "#38bdf8",
+            shape: "arrowDown",
+            text: "R",
+          });
+        }
         if (markers.length > 0) {
           markers.sort((a, b) => String(a.time).localeCompare(String(b.time)));
           markersRef.current = createSeriesMarkers(mainSeries, markers);
@@ -771,6 +814,22 @@ export function MainChart({ ticker }: { ticker: string }) {
           <span className="text-ink-3">· échelle en %</span>
         </div>
       ) : null}
+      {rangeStats && !comparing ? (
+        <div className="grid grid-cols-2 gap-x-5 gap-y-1 border-y border-line/70 py-2 text-[11px] sm:flex sm:items-center sm:gap-5">
+          <span className="text-ink-3">
+            Période <strong className="font-semibold text-ink">{rangeStats.start} → {rangeStats.end}</strong>
+          </span>
+          <span className="text-ink-3">
+            Variation <strong className={cn("num font-semibold", rangeStats.change >= 0 ? "text-up" : "text-down")}>{pct(rangeStats.change)}</strong>
+          </span>
+          <span className="text-ink-3">
+            Haut / bas <strong className="num font-semibold text-ink">{fmtPrice(rangeStats.high)} / {fmtPrice(rangeStats.low)}</strong>
+          </span>
+          <span className="text-ink-3">
+            Points <strong className="num font-semibold text-ink">{rangeStats.count}</strong>
+          </span>
+        </div>
+      ) : null}
       <div
         className={cn(
           "relative w-full rounded-xl border border-line bg-surface/40 overflow-hidden",
@@ -814,7 +873,8 @@ export function MainChart({ ticker }: { ticker: string }) {
         <p className="text-[10px] text-ink-3">
           <span style={{ color: CHART_COLORS.gold }}>●</span> D = dividende net
           payé · <span style={{ color: CHART_COLORS.violet }}>■</span> S =
-          opération sur capital · double-clic : recadrer · touches F/L/V :
+          opération sur capital · <span className="text-sky-400">▼</span> R =
+          résultats publiés · double-clic : recadrer · touches F/L/V :
           plein écran, échelle log, volume
         </p>
       ) : null}

@@ -144,22 +144,42 @@ export function AdvancedChart({
 
   const paneCount = ["rsi", "macd", "atr", "stoch"].filter((id) => indicators.includes(id as IndicatorId)).length;
   const height = 400 + paneCount * 90;
-  const chartSummary = useMemo(() => {
-    if (!visible.length) return `Graphique ${ticker}, aucune donnée sur la période.`;
-    const first = visible[0].close;
-    const last = visible[visible.length - 1].close;
-    const high = Math.max(...visible.map((bar) => bar.high));
-    const low = Math.min(...visible.map((bar) => bar.low));
-    const change = first > 0 ? ((last - first) / first) * 100 : 0;
-    return `Graphique ${ticker}, ${visible.length} séances. Dernière clôture ${last.toLocaleString("fr-FR")} FCFA, variation ${change.toLocaleString("fr-FR", { maximumFractionDigits: 2 })} %, plus haut ${high.toLocaleString("fr-FR")}, plus bas ${low.toLocaleString("fr-FR")}.`;
-  }, [ticker, visible]);
+  const rangeStats = useMemo(() => {
+    if (!visible.length) return null;
+    const first = visible[0];
+    const last = visible[visible.length - 1];
+    let high = first.high;
+    let low = first.low;
+    for (const bar of visible) {
+      high = Math.max(high, bar.high);
+      low = Math.min(low, bar.low);
+    }
+    return {
+      change: first.close > 0 ? ((last.close - first.close) / first.close) * 100 : 0,
+      high,
+      low,
+      last: last.close,
+      count: visible.length,
+    };
+  }, [visible]);
+  const chartSummary = rangeStats
+    ? `Graphique ${ticker}, ${rangeStats.count} séances. Dernière clôture ${rangeStats.last.toLocaleString("fr-FR")} FCFA, variation ${rangeStats.change.toLocaleString("fr-FR", { maximumFractionDigits: 2 })} %, plus haut ${rangeStats.high.toLocaleString("fr-FR")}, plus bas ${rangeStats.low.toLocaleString("fr-FR")}.`
+    : `Graphique ${ticker}, aucune donnée sur la période.`;
 
   const rangeChips = <SegmentedTabs tabs={RANGES} active={range} onChange={setRange} />;
 
   return (
     <View style={styles.root}>
       {rangeChips}
-      <Text accessibilityRole="summary" style={styles.chartSummary}>{chartSummary}</Text>
+      <Text accessibilityRole="summary" style={styles.srSummary}>{chartSummary}</Text>
+      {rangeStats ? (
+        <View style={styles.summaryStrip}>
+          <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Variation</Text><Text style={[styles.summaryValue, { color: rangeStats.change >= 0 ? colors.up : colors.down }]}>{rangeStats.change >= 0 ? "+" : ""}{rangeStats.change.toLocaleString("fr-FR", { maximumFractionDigits: 2 })} %</Text></View>
+          <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Haut</Text><Text style={styles.summaryValue}>{rangeStats.high.toLocaleString("fr-FR")}</Text></View>
+          <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Bas</Text><Text style={styles.summaryValue}>{rangeStats.low.toLocaleString("fr-FR")}</Text></View>
+          <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Points</Text><Text style={styles.summaryValue}>{rangeStats.count}</Text></View>
+        </View>
+      ) : null}
       <WebChart ref={chartRef} payload={payload} height={height} onLevelTap={(price) => toggleLevel(ticker, price)} />
       {levelMode ? <Text style={styles.levelHint}>Touchez le graphique pour poser ou retirer un niveau de prix.</Text> : null}
       <SegmentedTabs tabs={TYPES} active={chartType} onChange={setType} />
@@ -213,7 +233,14 @@ const styles = StyleSheet.create({
   toolbar: { gap: 7 },
   actions: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
   levelHint: { ...type.caption, color: colors.accent },
-  chartSummary: { ...type.caption, color: colors.ink2 },
+  srSummary: { position: "absolute", width: 1, height: 1, opacity: 0 },
+  summaryStrip: {
+    flexDirection: "row", borderTopColor: colors.line, borderBottomColor: colors.line,
+    borderTopWidth: 1, borderBottomWidth: 1, paddingVertical: 9,
+  },
+  summaryCell: { flex: 1, gap: 3 },
+  summaryLabel: { ...type.label, fontSize: 9 },
+  summaryValue: { color: colors.ink, fontSize: 11.5, fontWeight: "700", fontVariant: ["tabular-nums"] },
   fullscreen: { flex: 1, backgroundColor: colors.background, paddingHorizontal: 12, gap: 10 },
   fullscreenHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   fullscreenTitle: { ...type.title, fontSize: 17 },

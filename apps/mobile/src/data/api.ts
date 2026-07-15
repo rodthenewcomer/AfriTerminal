@@ -1,15 +1,17 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { z } from "zod";
+import { mergeLiveQuoteMap } from "@wariba/core/live-market";
+import type { LiveMarketPayload, RealQuote } from "@wariba/core/types";
 import type { MarketPayload, SeriesPayload } from "./types";
 import {
-  alertsSchema, dividendsSchema, documentsSchema, fundamentalsSchema, indicesSchema,
+  alertsSchema, dividendsSchema, documentsSchema, fundamentalsSchema, indicesSchema, liveMarketSchema,
   newsSchema, operationsSchema, quoteMapSchema, seriesSchema,
 } from "./validation";
 
 const PAGE_ROOT = "https://rodthenewcomer.github.io/WARIBA/data";
 const RAW_ROOT = "https://raw.githubusercontent.com/rodthenewcomer/WARIBA/main/data";
-const CACHE_PREFIX = "@wariba:data:v2:";
-const CACHE_VERSION = 2 as const;
+const CACHE_PREFIX = "@wariba:data:v3:";
+const CACHE_VERSION = 3 as const;
 const TIMEOUT_MS = 12_000;
 
 type CachedValue<T> = { version: typeof CACHE_VERSION; savedAt: string; data: T };
@@ -19,7 +21,13 @@ async function requestJson(url: string): Promise<unknown> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const response = await fetch(url, { signal: controller.signal, headers: { Accept: "application/json" } });
+    const separator = url.includes("?") ? "&" : "?";
+    const cacheBusted = `${url}${separator}v=${Math.floor(Date.now() / 60_000)}`;
+    const response = await fetch(cacheBusted, {
+      signal: controller.signal,
+      cache: "no-store",
+      headers: { Accept: "application/json", "Cache-Control": "no-cache" },
+    });
     if (!response.ok) throw new Error(`${response.status} ${url}`);
     return await response.json();
   } finally {
@@ -75,7 +83,7 @@ export async function fetchMarketPayload(): Promise<{ payload: MarketPayload; of
     }
   };
 
-  const [fundamentals, indices, alerts, dividends, documents, operations, news] = await Promise.all([
+  const [fundamentals, indices, alerts, dividends, documents, operations, news, live] = await Promise.all([
     optional("fondamentaux", "real/fundamentals.json", fundamentalsSchema, {}),
     optional("indices", "real/indices.json", indicesSchema, []),
     optional("alertes", "real/alerts.json", alertsSchema, []),
@@ -83,11 +91,27 @@ export async function fetchMarketPayload(): Promise<{ payload: MarketPayload; of
     optional("documents", "real/documents.json", documentsSchema, []),
     optional("opérations", "real/operations.json", operationsSchema, { avis: [], operations: [] }),
     optional("actualités", "news/news.json", newsSchema, []),
+    optional<LiveMarketPayload>("cours différés", "real/live.json", liveMarketSchema, {
+      asOfDate: "1970-01-01",
+      updatedAt: "1970-01-01T00:00:00+00:00",
+      source: "indisponible",
+      delayMinutes: 15,
+      quotes: {},
+    }),
   ]);
-  const secondary = [fundamentals, indices, alerts, dividends, documents, operations, news];
+  const secondary = [fundamentals, indices, alerts, dividends, documents, operations, news, live];
+  const mergedQuotes = mergeLiveQuoteMap(
+    quotes.data as Record<string, RealQuote>,
+    live.data
+  );
+  const officialDate = Object.values(quotes.data).reduce(
+    (latest, quote) => quote.asOfDate > latest ? quote.asOfDate : latest,
+    ""
+  );
+  const liveApplied = live.data.asOfDate > officialDate;
   return {
     payload: {
-      quotes: quotes.data,
+      quotes: mergedQuotes,
       fundamentals: fundamentals.data,
       indices: indices.data,
       alerts: alerts.data,
@@ -100,10 +124,9 @@ export async function fetchMarketPayload(): Promise<{ payload: MarketPayload; of
     missing: secondary.filter((result) => result.failed).map((result) => result.label),
     // Si les cotations viennent du cache appareil, l'horodatage honnête est
     // celui de leur sauvegarde, pas celui de la tentative de rafraîchissement.
-    dataTimestamp: Object.values(quotes.data).reduce(
-      (latest, quote) => quote.asOfDate > latest ? quote.asOfDate : latest,
-      ""
-    ) || quotes.savedAt || new Date().toISOString(),
+    dataTimestamp: liveApplied
+      ? live.data.updatedAt
+      : officialDate || quotes.savedAt || new Date().toISOString(),
   };
 }
 

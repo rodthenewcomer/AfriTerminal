@@ -39,6 +39,26 @@ const quoteSchema = z.object({
 
 export const quoteMapSchema = z.record(z.string(), quoteSchema);
 
+export const liveMarketSchema = z.object({
+  asOfDate: isoDate,
+  updatedAt: z.string().datetime({ offset: true }),
+  source: z.string().min(1),
+  delayMinutes: z.number().int().nonnegative(),
+  quotes: z.record(z.string(), z.object({
+    open: finiteNumber.nonnegative(),
+    high: finiteNumber.nonnegative(),
+    low: finiteNumber.nonnegative(),
+    close: finiteNumber.nonnegative(),
+    samples: z.number().int().positive(),
+    firstSeen: z.string().datetime({ offset: true }),
+    lastSeen: z.string().datetime({ offset: true }),
+    points: z.array(z.object({
+      time: z.string().datetime({ offset: true }),
+      price: finiteNumber.nonnegative(),
+    })),
+  })),
+});
+
 const fundamentalSchema = z.object({
   ticker: z.string().regex(/^[A-Z0-9]{2,12}$/),
   fiscalYear: z.number().int().min(1998).max(2200),
@@ -87,6 +107,7 @@ export const alertsSchema = z.array(z.object({
   severity: z.enum(["info", "warning", "critical", "positive"]),
   active: z.boolean(),
   basis: z.enum(["réel", "illustratif"]),
+  sourceUrl: z.string().url().optional(),
 }));
 
 export const dividendsSchema = z.record(

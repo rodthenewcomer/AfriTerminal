@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Alert as NativeAlert, Pressable, StyleSheet, Switch, Text, TextInput, View } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { EmptyState, Page, Section, SegmentedTabs } from "../src/components/ui";
@@ -13,6 +13,8 @@ import { colors, radius, tabular, type } from "../src/theme";
 import { useMobileAuth } from "../src/providers/AuthProvider";
 import { uploadMobileData } from "../src/services/cloud-sync";
 import { trackMobileEvent } from "../src/services/analytics";
+import { openTrustedExternalUrl } from "../src/lib/external-links";
+import { prioritizeCriticalAlerts } from "@wariba/core/alerts";
 
 function RuleRow({ rule, onRemove, onRearm }: { rule: PriceAlertRule; onRemove: () => void; onRearm: () => void }) {
   const above = rule.direction === "above";
@@ -57,6 +59,7 @@ function RuleRow({ rule, onRemove, onRearm }: { rule: PriceAlertRule; onRemove: 
 }
 
 export default function AlertsScreen() {
+  const router = useRouter();
   const { session } = useMobileAuth();
   const market = useMarketData();
   const params = useLocalSearchParams<{ ticker?: string }>();
@@ -79,6 +82,10 @@ export default function AlertsScreen() {
         ? "Le seuil doit être un montant positif en FCFA."
         : null;
   const canSubmit = Boolean(quote && parsedTarget !== null);
+  const factualAlerts = useMemo(
+    () => prioritizeCriticalAlerts(market.alerts),
+    [market.alerts]
+  );
 
   const syncNow = async () => {
     if (session?.access_token) await uploadMobileData(session.access_token);
@@ -105,7 +112,7 @@ export default function AlertsScreen() {
 
   return (
     <Page
-      subtitle="Seuils évalués contre le dernier cours officiel, localement et par le serveur pour les comptes synchronisés"
+      subtitle="Seuils évalués contre le dernier cours disponible, localement et par le serveur pour les comptes synchronisés"
       refreshing={market.refreshing}
       onRefresh={() => void market.refresh().then(() => evaluatePriceAlerts(market.quotes))}
     >
@@ -159,9 +166,19 @@ export default function AlertsScreen() {
           : <EmptyState icon="notifications-off-outline" title="Aucun seuil" detail="Créez une alerte de prix locale — elle reste sur cet appareil." />}
       </Section>
 
-      <Section title="Alertes factuelles" detail={`${market.alerts.length} calculées sur la dernière séance`}>
-        {market.alerts.length
-          ? market.alerts.map((alert) => <AlertRow key={alert.id} alert={alert} />)
+      <Section title="Alertes factuelles" detail={`${factualAlerts.length} faits et publications`}>
+        {factualAlerts.length
+          ? factualAlerts.map((alert) => (
+              <AlertRow
+                key={alert.id}
+                alert={alert}
+                onPress={alert.sourceUrl
+                  ? () => void openTrustedExternalUrl(alert.sourceUrl!)
+                  : alert.ticker
+                    ? () => router.push(`/stocks/${alert.ticker}`)
+                    : undefined}
+              />
+            ))
           : <EmptyState icon="pulse-outline" title="Rien à signaler" detail="Aucun fait notable sur la dernière séance." />}
       </Section>
     </Page>

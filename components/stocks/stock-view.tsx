@@ -222,8 +222,12 @@ export function StockView({ ticker }: { ticker: string }) {
                 <div className="flex items-center justify-between">
                   <dt className="text-ink-3">Volume du jour</dt>
                   <dd className={`num font-medium ${(real?.volumeRatio ?? stock.volumeRatio) >= 3 ? "text-warn" : "text-ink"}`}>
-                    {compactVolume(real?.dayVolume ?? stock.dayVolume)}{" "}
-                    <span className="text-ink-3">({(real?.volumeRatio ?? stock.volumeRatio).toFixed(1)}×)</span>
+                    {real?.quoteStatus === "delayed-live" ? (
+                      <span className="text-ink-3">— · volume officiel après clôture</span>
+                    ) : (
+                      <>{compactVolume(real?.dayVolume ?? stock.dayVolume)}{" "}
+                      <span className="text-ink-3">({(real?.volumeRatio ?? stock.volumeRatio).toFixed(1)}×)</span></>
+                    )}
                   </dd>
                 </div>
               </dl>
@@ -687,7 +691,7 @@ export function StockView({ ticker }: { ticker: string }) {
 
       <p className="text-[10px] text-ink-3">
         {real
-          ? `Cours, volumes, PER, dividendes, documents et alertes réels (sources : bulletins officiels et fiches sociétés BRVM, au ${dateFr(real.asOfDate)}).`
+          ? `${real.quoteStatus === "delayed-live" ? "Cours différé de 15 min" : "Clôture"}, volumes officiels, PER, dividendes, documents et alertes réels (sources BRVM, au ${dateFr(real.asOfDate)}).`
           : "Les informations présentées sont fournies à titre éducatif et informatif sur scénario illustratif, sans cotation vérifiée."}{" "}
         Ceci ne constitue pas un conseil en investissement.
       </p>

@@ -98,7 +98,19 @@ export default function StockScreen() {
       .finally(() => { if (!cancelled) setSeriesLoading(false); });
     return () => { cancelled = true; };
   }, [loadSeries, ticker]);
-  const riskSeries = useMemo(() => series.map((bar) => ({ time: String(bar.time), close: bar.close })), [series]);
+  const chartSeries = useMemo(() => {
+    if (!quote || quote.quoteStatus !== "delayed-live") return series;
+    if (String(series.at(-1)?.time ?? "") >= quote.asOfDate) return series;
+    return [...series, {
+      time: quote.asOfDate,
+      open: quote.dayOpen,
+      high: quote.dayHigh,
+      low: quote.dayLow,
+      close: quote.lastClose,
+      volume: 0,
+    }];
+  }, [quote, series]);
+  const riskSeries = useMemo(() => chartSeries.map((bar) => ({ time: String(bar.time), close: bar.close })), [chartSeries]);
   const risk = useMemo(() => ({ volatility: annualizedVolatility(riskSeries), drawdown: maxDrawdown(riskSeries) }), [riskSeries]);
   const documents = useMemo(() => market.documents.filter((document) => document.ticker === ticker).slice(0, 15), [market.documents, ticker]);
   const operations = useMemo(() => documents.filter((item) => /capital|split|fusion/i.test(item.title)), [documents]);
@@ -106,7 +118,10 @@ export default function StockScreen() {
   const events = useMemo<WebChartMarker[]>(() => [
     ...(market.dividends[ticker] ?? []).map((item) => ({ time: item.date, kind: "dividend" as const, label: `D ${num(item.net)}` })),
     ...operations.map((item) => ({ time: item.date, kind: "operation" as const, label: "S" })),
-  ], [market.dividends, operations, ticker]);
+    ...documents
+      .filter((item) => item.type === "Résultats" || item.type === "États financiers")
+      .map((item) => ({ time: item.date, kind: "result" as const, label: "R" })),
+  ], [documents, market.dividends, operations, ticker]);
 
   if (!quote) return market.loading ? <LoadingState /> : <EmptyState title="Valeur introuvable" detail={`Aucune cotation pour ${ticker}.`} />;
   const description = companyProfile(ticker);
@@ -156,7 +171,11 @@ export default function StockScreen() {
             <Text style={styles.price}>{fcfa(quote.lastClose)}</Text>
             <ChangePill value={quote.dayChangePct} label={pct(quote.dayChangePct, { signed: true, digits: 2 })} />
           </View>
-          <Text style={styles.asOf}>Clôture officielle du {dateFr(quote.asOfDate)}</Text>
+          <Text style={styles.asOf}>
+            {quote.quoteStatus === "delayed-live"
+              ? `Cours BRVM différé de 15 min · ${quote.asOfTimestamp ? new Date(quote.asOfTimestamp).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Abidjan" }) : dateFr(quote.asOfDate)}`
+              : `Clôture officielle du ${dateFr(quote.asOfDate)}`}
+          </Text>
           <View style={styles.infoChips}>
             {quote.per !== null ? (
               <View style={styles.infoChip}><Text style={styles.infoChipLabel}>PER</Text><Text style={styles.infoChipValue}>{ratio(quote.per)}</Text></View>
@@ -171,7 +190,7 @@ export default function StockScreen() {
         </View>
         <View style={styles.heroStats}>
           <View style={styles.heroStatRow}><Text style={styles.heroStatLabel}>H/B jour</Text><Text style={styles.heroStatValue}>{num(quote.dayHigh)}·{num(quote.dayLow)}</Text></View>
-          <View style={styles.heroStatRow}><Text style={styles.heroStatLabel}>Vol</Text><Text style={styles.heroStatValue}>{compactVolume(quote.dayVolume)}</Text></View>
+          <View style={styles.heroStatRow}><Text style={styles.heroStatLabel}>Vol</Text><Text style={styles.heroStatValue}>{quote.quoteStatus === "delayed-live" ? "—" : compactVolume(quote.dayVolume)}</Text></View>
           <View style={styles.heroStatRow}><Text style={styles.heroStatLabel}>52 s</Text><Text style={styles.heroStatValue}>{num(quote.week52High)}·{num(quote.week52Low)}</Text></View>
         </View>
       </Animated.View>
@@ -184,8 +203,8 @@ export default function StockScreen() {
             <EmptyState icon="cloud-offline-outline" title="Historique indisponible" detail="La série n'a pas pu être validée ou téléchargée. Les autres données restent accessibles." />
             <ActionButton label="Réessayer" icon="refresh-outline" onPress={() => void retrySeries()} />
           </View>
-        ) : series.length ? (
-          <AdvancedChart ticker={ticker} data={series} previousClose={quote.prevClose} week52High={quote.week52High} week52Low={quote.week52Low} events={events} />
+        ) : chartSeries.length ? (
+          <AdvancedChart ticker={ticker} data={chartSeries} previousClose={quote.prevClose} week52High={quote.week52High} week52Low={quote.week52Low} events={events} />
         ) : <EmptyState icon="analytics-outline" title="Aucun historique" detail={`Aucune séance exploitable n'est disponible pour ${ticker}.`} />}
 
         <Section title="Résumé" detail="Séance et variations">
@@ -194,11 +213,11 @@ export default function StockScreen() {
             <StatCell label="+ Haut" value={fcfa(quote.dayHigh)} />
             <StatCell label="+ Bas" value={fcfa(quote.dayLow)} />
             <StatCell label="Veille" value={fcfa(quote.prevClose)} />
-            <StatCell label="Volume" value={compactVolume(quote.dayVolume)} tone={quote.volumeRatio >= 3 ? "warn" : undefined} />
+            <StatCell label="Volume" value={quote.quoteStatus === "delayed-live" ? "—" : compactVolume(quote.dayVolume)} tone={quote.volumeRatio >= 3 ? "warn" : undefined} />
             <StatCell label="Val. échangée" value={quote.dayValueFcfa ? compactFcfa(quote.dayValueFcfa) : "—"} />
             <StatCell label="52 s haut" value={fcfa(quote.week52High)} />
             <StatCell label="52 s bas" value={fcfa(quote.week52Low)} />
-            <StatCell label="Ratio vol." value={`${quote.volumeRatio.toFixed(1)}×`} tone={quote.volumeRatio >= 3 ? "warn" : undefined} />
+            <StatCell label="Ratio vol." value={quote.quoteStatus === "delayed-live" ? "—" : `${quote.volumeRatio.toFixed(1)}×`} tone={quote.volumeRatio >= 3 ? "warn" : undefined} />
           </View>
           <View style={styles.factCard}>
             <FactRow label="Variation 1 semaine" value={pct(quote.weekChangePct, { signed: true, digits: 2 })} tone={quote.weekChangePct >= 0 ? "up" : "down"} />

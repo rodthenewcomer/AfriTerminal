@@ -503,23 +503,23 @@ REGISTRY: dict[str, dict] = {
         },
     },
     "UNXC": {
-        "pdf": f"{BASE}/20250828_-_etats_financiers_-_exercice_2024_-_uniwax_ci.pdf",
-        "publishedOn": "2025-08-28",
-        "fiscalYear": 2024,
+        "pdf": f"{BASE}/20260713_-_etats_financiers_-_exercice_2025_-_uniwax_ci.pdf",
+        "publishedOn": "2026-07-13",
+        "fiscalYear": 2025,
         "extractor": "manual",
         "unit": 1,
-        # RN identique sur 2 occurrences (compte de résultat + capitaux
-        # propres du bilan), conf. 1.00 les deux fois. Pas de PER BOC
-        # (résultat négatif) pour un second recoupement.
+        # PDF texte officiel publié le 13/07/2026. RN 2025 recoupé entre
+        # le compte de résultat (-624 111 469) et le bilan (-624 111 470),
+        # écart d'arrondi d'1 FCFA. Les colonnes N/N-1 sont explicites.
         "raw": {
-            "revenue": 27_333_349_555,
-            "revenue_prev": 29_686_986_976,
-            "net_income": -2_188_937_902,
-            "net_income_prev": -2_054_070_779,
-            "ordinary_income": -2_159_167_401,
-            "ordinary_income_prev": -1_855_715_900,
-            "equity": 15_591_475_518,
-            "equity_prev": 17_781_488_715,
+            "revenue": 29_031_727_207,
+            "revenue_prev": 27_333_349_555,
+            "net_income": -624_111_470,
+            "net_income_prev": -2_188_937_902,
+            "ordinary_income": -436_347_417,
+            "ordinary_income_prev": -2_159_167_401,
+            "equity": 24_619_180_792,
+            "equity_prev": 15_591_475_518,
         },
     },
     # SDSC/SEMC (2026-07-10) : diagnostiqués à tort « sans pages

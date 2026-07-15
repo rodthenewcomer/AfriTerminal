@@ -1,9 +1,13 @@
-import type { IndexInfo, OHLCV, RealQuote, Timeframe } from "@wariba/core/types";
+import type { IndexInfo, LiveMarketPayload, OHLCV, RealQuote, Timeframe } from "@wariba/core/types";
+import { mergeLiveQuoteMap } from "@wariba/core/live-market";
 import snapshotJson from "@/data/real/snapshot.json";
 import indicesJson from "@/data/real/indices.json";
+import liveJson from "@/data/real/live.json";
 import { aggregate } from "./mock/series";
 
-const SNAPSHOTS = snapshotJson as Record<string, RealQuote>;
+const BASE_SNAPSHOTS = snapshotJson as Record<string, RealQuote>;
+const LIVE_MARKET = liveJson as LiveMarketPayload;
+const SNAPSHOTS = mergeLiveQuoteMap(BASE_SNAPSHOTS, LIVE_MARKET);
 
 interface RealIndexJson {
   code: string;
@@ -31,6 +35,31 @@ export const REAL_INDICES: IndexInfo[] = (indicesJson as RealIndexJson[]).map(
 export const LATEST_TRADING_DATE: string = Object.values(SNAPSHOTS)
   .map((q) => q.asOfDate)
   .reduce((a, b) => (a > b ? a : b), "");
+
+export const HAS_DELAYED_LIVE_QUOTES = Object.values(SNAPSHOTS).some(
+  (quote) => quote.quoteStatus === "delayed-live"
+);
+
+export const LATEST_OFFICIAL_CLOSE_DATE: string = Object.values(BASE_SNAPSHOTS)
+  .map((quote) => quote.asOfDate)
+  .reduce((a, b) => (a > b ? a : b), "");
+
+const LIVE_TIME = new Intl.DateTimeFormat("fr-FR", {
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: "Africa/Abidjan",
+}).format(new Date(LIVE_MARKET.updatedAt));
+
+const OFFICIAL_DATE = new Intl.DateTimeFormat("fr-FR", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC",
+}).format(new Date(`${LATEST_OFFICIAL_CLOSE_DATE}T00:00:00Z`));
+
+export const MARKET_DATA_LABEL = HAS_DELAYED_LIVE_QUOTES
+  ? `Cours différés 15 min · ${LIVE_TIME}`
+  : `Clôture officielle du ${OFFICIAL_DATE}`;
 
 /** Tickers pour lesquels on a un vrai historique (pipeline scripts/boc/). */
 export const REAL_TICKERS: ReadonlySet<string> = new Set(Object.keys(SNAPSHOTS));
@@ -67,16 +96,16 @@ async function loadRealDaily(ticker: string): Promise<OHLCV[]> {
 
 export interface RealTimeframeData {
   data: OHLCV[];
-  /** Aucun historique intraday réel n'est publié par la BRVM. */
-  intradayAvailable: false;
+  intradayAvailable: boolean;
 }
 
-/** Équivalent réel de seriesForTimeframe (lib/mock/series.ts), sans 1D/1W. */
+/** Équivalent réel de seriesForTimeframe (lib/mock/series.ts). */
 function sliceByTimeframe(daily: OHLCV[], tf: Timeframe): OHLCV[] {
   switch (tf) {
     case "1D":
-    case "1W":
       return []; // pas de données intraday réelles
+    case "1W":
+      return daily.slice(-6);
     case "1M":
       return daily.slice(-22);
     case "3M":
@@ -125,8 +154,38 @@ export async function realSeriesForTimeframe(
   ticker: string,
   tf: Timeframe
 ): Promise<RealTimeframeData> {
-  const daily = await loadRealDaily(ticker);
-  return { data: sliceByTimeframe(daily, tf), intradayAvailable: false };
+  const official = await loadRealDaily(ticker);
+  const live = LIVE_MARKET.quotes[ticker];
+  const hasLive = !!live && LIVE_MARKET.asOfDate > String(official.at(-1)?.time ?? "");
+
+  if (tf === "1D") {
+    const points = hasLive
+      ? live.points.map((point) => ({
+          time: Math.floor(Date.parse(point.time) / 1000),
+          open: point.price,
+          high: point.price,
+          low: point.price,
+          close: point.price,
+          volume: 0,
+        }))
+      : [];
+    return { data: points, intradayAvailable: points.length > 0 };
+  }
+
+  const daily = hasLive
+    ? [
+        ...official,
+        {
+          time: LIVE_MARKET.asOfDate,
+          open: live.open,
+          high: live.high,
+          low: live.low,
+          close: live.close,
+          volume: 0,
+        },
+      ]
+    : official;
+  return { data: sliceByTimeframe(daily, tf), intradayAvailable: hasLive };
 }
 
 const indexSeriesCache = new Map<string, Promise<OHLCV[]>>();

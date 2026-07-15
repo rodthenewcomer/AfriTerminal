@@ -104,6 +104,9 @@ class RegistryContractTest(unittest.TestCase):
             all(meta["pdf"].startswith("https://www.brvm.org/") for meta in REGISTRY.values())
         )
         self.assertEqual(SLUGS["SGBC"], "sgci")
+        self.assertEqual(REGISTRY["UNXC"]["fiscalYear"], 2025)
+        self.assertEqual(REGISTRY["UNXC"]["publishedOn"], "2026-07-13")
+        self.assertEqual(REGISTRY["UNXC"]["raw"]["net_income"], -624_111_470)
 
     def test_financial_institutions_have_bank_shape(self) -> None:
         banks = [

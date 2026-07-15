@@ -16,7 +16,8 @@ que pour les jours où le collecteur a effectivement tourné. Voir
 README.md pour la limite correspondante sur les données passées.
 
 Usage (un seul poll) :
-    python3 live_poll.py --out-dir ../../data/live
+    python3 live_poll.py --out-dir ../../data/live \
+        --public-out ../../data/real/live.json
 
 Usage (boucle locale simple, alternative à un vrai cron) :
     while :; do python3 live_poll.py --out-dir ../../data/live; sleep 180; done
@@ -57,6 +58,11 @@ def fetch_quotes() -> dict[str, float]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out-dir", default="data/live")
+    parser.add_argument(
+        "--public-out",
+        default="data/real/live.json",
+        help="Snapshot compact consommé par le web et les apps natives.",
+    )
     args = parser.parse_args()
 
     out_dir = Path(args.out_dir)
@@ -85,6 +91,7 @@ def main() -> None:
                 "samples": 1,
                 "first_seen": now.isoformat(),
                 "last_seen": now.isoformat(),
+                "points": [{"time": now.isoformat(), "price": price}],
             }
         else:
             rec = state[ticker]
@@ -93,9 +100,40 @@ def main() -> None:
             rec["close"] = price
             rec["samples"] += 1
             rec["last_seen"] = now.isoformat()
+            points = rec.setdefault("points", [])
+            points.append({"time": now.isoformat(), "price": price})
+            # Une séance BRVM ne dépasse pas 66 sondages à cinq minutes.
+            # La marge protège contre les relances manuelles sans gonfler le JSON.
+            rec["points"] = points[-96:]
 
     out_path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"{now.isoformat()} — {len(quotes)} cotations -> {out_path}")
+    public_path = Path(args.public_out)
+    public_path.parent.mkdir(parents=True, exist_ok=True)
+    public_payload = {
+        "asOfDate": now.date().isoformat(),
+        "updatedAt": now.isoformat(),
+        "source": "BRVM — cours différés de 15 minutes",
+        "delayMinutes": 15,
+        "quotes": {
+            ticker: {
+                "open": rec["open"],
+                "high": rec["high"],
+                "low": rec["low"],
+                "close": rec["close"],
+                "samples": rec["samples"],
+                "firstSeen": rec["first_seen"],
+                "lastSeen": rec["last_seen"],
+                "points": rec.get("points", []),
+            }
+            for ticker, rec in sorted(state.items())
+        },
+    }
+    public_path.write_text(
+        json.dumps(public_payload, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print(
+        f"{now.isoformat()} — {len(quotes)} cotations -> {out_path} + {public_path}"
+    )
 
 
 if __name__ == "__main__":

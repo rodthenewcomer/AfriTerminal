@@ -7,7 +7,13 @@ import { colors, radius, type } from "../src/theme";
 export default function StatusScreen() {
   const market = useMarketData();
   const quotes = Object.values(market.quotes);
-  const latest = quotes[0]?.asOfDate;
+  const latest = quotes.reduce((date, quote) => quote.asOfDate > date ? quote.asOfDate : date, "");
+  const liveQuote = quotes.find((quote) => quote.quoteStatus === "delayed-live");
+  const marketDetail = liveQuote
+    ? `différé 15 min · ${liveQuote.asOfTimestamp
+      ? new Date(liveQuote.asOfTimestamp).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Abidjan" })
+      : dateFr(liveQuote.asOfDate)}`
+    : latest ? `clôture ${dateFr(latest)}` : undefined;
 
   return (
     <Page
@@ -17,7 +23,7 @@ export default function StatusScreen() {
     >
       <Section title="Résumé" detail={market.updatedAt ? `Vérifié à ${market.updatedAt.slice(11, 16)} UTC` : undefined}>
         <View style={styles.metrics}>
-          <Metric label="Cotations" value={`${quotes.length} / 48`} tone={quotes.length === 48 ? "up" : "down"} detail={latest ? `clôture ${dateFr(latest)}` : undefined} />
+          <Metric label="Cotations" value={`${quotes.length} / 48`} tone={quotes.length === 48 ? "up" : "down"} detail={marketDetail} />
           <Metric label="Fondamentaux" value={`${Object.keys(market.fundamentals).length} / 48`} tone="up" detail="sociétés curées" />
           <Metric label="Documents" value={`${market.documents.length}`} detail="liens brvm.org" />
           <Metric label="Mode" value={market.offline ? "Cache" : "Réseau"} tone={market.offline ? "accent" : "up"} detail={market.offline ? "données locales" : "sources en ligne"} />
@@ -25,9 +31,9 @@ export default function StatusScreen() {
       </Section>
 
       <Section title="Sources">
-        <Row icon="stats-chart-outline" title="Cours et indices" detail={`Bulletins officiels BRVM · clôture ${latest ? dateFr(latest) : "—"}`} />
+        <Row icon="stats-chart-outline" title="Cours et indices" detail={`BRVM · ${marketDetail ?? "indisponible"} · actualisation automatique`} />
         <Row icon="business-outline" title="Fondamentaux" detail="États financiers officiels, extraction curée société par société" />
-        <Row icon="document-text-outline" title="Documents" detail={`${market.documents.length} publications liées à brvm.org`} />
+        <Row icon="document-text-outline" title="Documents" detail={`${market.documents.length} publications · vérification toutes les 15 min`} />
         <Row icon="newspaper-outline" title="Actualités" detail={`${market.news.length} articles, chacun avec sa source`} />
         <Row icon="cash-outline" title="Dividendes" detail={`${Object.keys(market.dividends).length} sociétés avec historique de versements`} />
       </Section>
@@ -35,8 +41,8 @@ export default function StatusScreen() {
       {market.error ? <Text style={styles.error}>{market.error}</Text> : null}
 
       <Text style={styles.note}>
-        Les prix sont différés (dernière clôture officielle) et ne conviennent pas à l'exécution d'ordres.
-        Les alertes locales ne remplacent pas un flux serveur temps réel.
+        Les cours intraday sont différés de 15 minutes et ne conviennent pas à l'exécution d'ordres.
+        Les volumes officiels sont consolidés après clôture.
       </Text>
     </Page>
   );

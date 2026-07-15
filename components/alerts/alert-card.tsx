@@ -6,6 +6,7 @@ import {
   Sparkles,
   TrendingUp,
   Volume2,
+  ExternalLink,
 } from "lucide-react";
 import type { AlertItem } from "@wariba/core/types";
 import { cn } from "@wariba/core/utils";
@@ -86,6 +87,16 @@ export function AlertCard({ alert }: { alert: AlertItem }) {
         <p className="mt-1.5 text-[10px] text-ink-3">
           {timeFr(alert.time)} · Abidjan {alert.active ? "" : "· désactivée"}
         </p>
+        {alert.sourceUrl ? (
+          <a
+            href={alert.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-accent hover:underline"
+          >
+            Publication officielle <ExternalLink className="h-3 w-3" />
+          </a>
+        ) : null}
       </div>
     </article>
   );

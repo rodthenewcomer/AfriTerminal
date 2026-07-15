@@ -13,7 +13,7 @@ import {
   Volume2,
 } from "lucide-react";
 import { getIndices, getSnapshots } from "@/lib/data";
-import { LATEST_TRADING_DATE } from "@/lib/real-data";
+import { MARKET_DATA_LABEL } from "@/lib/real-data";
 import { latestSessionAlerts, REAL_ALERTS } from "@/lib/real-alerts";
 import { MarketMap } from "@/components/markets/market-map";
 import { SectorPerformance } from "@/components/markets/sector-performance";
@@ -71,6 +71,7 @@ export default function DashboardPage() {
     .filter((s) => s.volumeRatio >= 1.5)
     .sort((a, b) => b.volumeRatio - a.volumeRatio)
     .slice(0, 5);
+  const delayedLive = snapshots.some((s) => s.real?.quoteStatus === "delayed-live");
   // Sur données réelles, pas de scores fondamentaux fiables : on classe par
   // amplitude du mouvement (variation absolue + ratio de volume) plutôt que
   // par qualité/momentum/risque (fictifs pour les tickers réels).
@@ -109,7 +110,7 @@ export default function DashboardPage() {
             Votre radar BRVM intelligent
           </h1>
           <p className="mt-1 text-sm text-ink-3">
-            Séance du {dateFr(LATEST_TRADING_DATE)} · Ne regarde pas seulement
+            {MARKET_DATA_LABEL} · Ne regarde pas seulement
             le prix. Comprends le mouvement.
           </p>
         </div>
@@ -253,7 +254,9 @@ export default function DashboardPage() {
           <CardBody className="space-y-0.5">
             {unusualVolume.length === 0 ? (
               <p className="py-4 text-center text-xs text-ink-3">
-                Aucun volume inhabituel aujourd&apos;hui.
+                {delayedLive
+                  ? "Volumes officiels disponibles après clôture."
+                  : "Aucun volume inhabituel aujourd'hui."}
               </p>
             ) : (
               unusualVolume.map((s) => (
@@ -275,7 +278,7 @@ export default function DashboardPage() {
       <section>
         <div className="mb-2.5 flex items-center justify-between">
           <h2 className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink">
-            <Bell className="h-4 w-4 text-accent" /> Alertes de la dernière séance
+            <Bell className="h-4 w-4 text-accent" /> Alertes et publications capitales
           </h2>
           <Link href="/alerts" className="inline-flex items-center gap-1 text-xs text-accent hover:underline">
             Tout voir <ArrowRight className="h-3 w-3" />
@@ -343,7 +346,7 @@ export default function DashboardPage() {
                 <Radar className="h-3.5 w-3.5 text-accent" /> Actions à surveiller cette semaine
               </span>
             }
-            subtitle="Plus forte amplitude (semaine × volume)"
+            subtitle={delayedLive ? "Plus forte amplitude hebdomadaire" : "Plus forte amplitude (semaine × volume)"}
           />
           <CardBody className="space-y-3">
             {toWatch.map((s) => (
@@ -363,7 +366,10 @@ export default function DashboardPage() {
                 </div>
                 {s.real ? (
                   <p className="text-[11px] text-ink-3">
-                    Variation 1 sem. {pct(s.weekChange)} · volume {s.volumeRatio.toFixed(1)}× la moyenne
+                    Variation 1 sem. {pct(s.weekChange)}
+                    {s.real.quoteStatus === "delayed-live"
+                      ? " · volume officiel après clôture"
+                      : ` · volume ${s.volumeRatio.toFixed(1)}× la moyenne`}
                   </p>
                 ) : (
                   <SignalBadges signals={s.signals} max={3} />

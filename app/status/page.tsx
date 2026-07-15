@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { CheckCircle2 } from "lucide-react";
 import { getSnapshots } from "@/lib/data";
-import { LATEST_TRADING_DATE, REAL_INDICES } from "@/lib/real-data";
+import { MARKET_DATA_LABEL, REAL_INDICES } from "@/lib/real-data";
 import { REAL_ALERTS } from "@/lib/real-alerts";
 import { REAL_DOCUMENTS } from "@/lib/real-documents";
 import { latestNews, newsDate } from "@/lib/news";
@@ -34,8 +34,8 @@ export default function StatusPage() {
   const rows: { source: string; freshness: string; detail: string }[] = [
     {
       source: "Cours & volumes",
-      freshness: `Bulletin du ${dateFr(LATEST_TRADING_DATE)}`,
-      detail: `${snapshots.length} sociétés cotées · historique depuis 2019 · mise à jour chaque soir de bourse (17h30 UTC, rattrapage automatique sur 7 jours)`,
+      freshness: MARKET_DATA_LABEL,
+      detail: `${snapshots.length} sociétés cotées · cours différés relevés toutes les 15 min en séance · clôtures et volumes officiels consolidés chaque soir`,
     },
     {
       source: "Indices BRVM",
@@ -50,12 +50,12 @@ export default function StatusPage() {
     {
       source: "Actualités",
       freshness: lastNews ? `Dernier article : ${newsDate(lastNews.publishedAt)}` : "—",
-      detail: "Sika Finance + Financial Afrik, agrégées toutes les 2 h en journée",
+      detail: "Sika Finance + Financial Afrik, agrégées toutes les 15 min en journée",
     },
     {
       source: "Alertes",
-      freshness: lastAlert ? `${REAL_ALERTS.length} alertes · dernière séance ${dateFr(lastAlert.time.slice(0, 10))}` : "—",
-      detail: "Régénérées à chaque bulletin : variations ≥ 5 %, extrêmes 52 semaines, volumes inhabituels, dividendes, publications",
+      freshness: lastAlert ? `${REAL_ALERTS.length} alertes · dernière le ${dateFr(lastAlert.time.slice(0, 10))}` : "—",
+      detail: "Régénérées à chaque bulletin et publication : variations ≥ 5 %, extrêmes 52 semaines, volumes inhabituels, dividendes, résultats",
     },
     {
       source: "États financiers",
@@ -65,7 +65,7 @@ export default function StatusPage() {
     {
       source: "Documents officiels",
       freshness: lastDoc ? `${REAL_DOCUMENTS.length} publications · dernière du ${dateFr(lastDoc.date)}` : "—",
-      detail: "Référencés chaque semaine depuis les fiches sociétés brvm.org (liens vers les PDF originaux)",
+      detail: "Surveillés toutes les 15 min depuis les fiches sociétés brvm.org (liens directs vers les PDF originaux)",
     },
   ];
 

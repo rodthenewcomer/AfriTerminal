@@ -19,6 +19,13 @@ const TYPES: (RealDocument["type"] | "Tous")[] = [
 ];
 
 const PAGE_SIZE = 24;
+const LATEST_DOCUMENT_DATE = REAL_DOCUMENTS[0]?.date ?? "1970-01-01";
+
+function isDecisionDocument(document: RealDocument): boolean {
+  if (document.type !== "Résultats" && document.type !== "États financiers") return false;
+  const age = Date.parse(`${LATEST_DOCUMENT_DATE}T00:00:00Z`) - Date.parse(`${document.date}T00:00:00Z`);
+  return age >= 0 && age <= 7 * 24 * 60 * 60 * 1000;
+}
 
 export default function DocumentsPage() {
   const [type, setType] = useState<(typeof TYPES)[number]>("Tous");
@@ -112,6 +119,7 @@ export default function DocumentsPage() {
                   {d.ticker}
                 </Link>
                 <Badge tone="neutral">{d.type}</Badge>
+                {isDecisionDocument(d) ? <Badge tone="negative">Publication capitale</Badge> : null}
                 <time className="text-[11px] text-ink-3">{dateFr(d.date)}</time>
               </div>
             </div>

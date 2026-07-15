@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { compactFcfa, compactVolume, pct } from "@wariba/core/format";
+import { prioritizeCriticalAlerts } from "@wariba/core/alerts";
 import type { IndexRecord } from "../../src/data/types";
 import { ActionButton, ChangePill, EmptyState, LoadingState, Metric, Page, Row, Section } from "../../src/components/ui";
 import { QuoteRow } from "../../src/components/QuoteRow";
@@ -75,6 +76,9 @@ export default function DashboardScreen() {
     () => watchedTickers.map((ticker) => market.quotes[ticker]).filter(Boolean).slice(0, 4),
     [market.quotes, watchedTickers]
   );
+  const dashboardAlerts = useMemo(() => {
+    return prioritizeCriticalAlerts(market.alerts).slice(0, 4);
+  }, [market.alerts]);
   const stats = useMemo(() => {
     const pers = quotes.map((quote) => quote.per).filter((value): value is number => value !== null && Number.isFinite(value)).sort((a, b) => a - b);
     const medianPer = pers.length ? pers[Math.floor(pers.length / 2)] : null;
@@ -88,11 +92,23 @@ export default function DashboardScreen() {
   const losers = [...quotes].filter((quote) => quote.dayChangePct < 0).sort((a, b) => a.dayChangePct - b.dayChangePct).slice(0, 3);
   const mainIndex = market.indices.find((index) => index.code === "BRVMC") ?? market.indices[0];
   const otherIndices = market.indices.filter((index) => index !== mainIndex);
+  const liveQuote = quotes.find((quote) => quote.quoteStatus === "delayed-live");
+  const officialDate = quotes.reduce(
+    (latest, quote) => (quote.officialCloseDate ?? quote.asOfDate) > latest
+      ? (quote.officialCloseDate ?? quote.asOfDate)
+      : latest,
+    ""
+  );
+  const marketLabel = liveQuote
+    ? `cours différés 15 min · ${liveQuote.asOfTimestamp
+      ? new Date(liveQuote.asOfTimestamp).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Abidjan" })
+      : liveQuote.asOfDate}`
+    : `clôture ${officialDate || "—"}`;
 
   return (
     <Page
       title="WARIBA"
-      subtitle={`${market.offline ? "Cache appareil" : "Sources officielles BRVM"} · clôture ${quotes[0]?.asOfDate ?? "—"}`}
+      subtitle={`${market.offline ? "Cache appareil" : "Sources officielles BRVM"} · ${marketLabel}`}
       refreshing={market.refreshing}
       onRefresh={() => void market.refresh()}
       action={<ActionButton label="Alertes" icon="notifications-outline" onPress={() => router.push("/alerts")} />}
@@ -128,10 +144,14 @@ export default function DashboardScreen() {
         </Section>
       ) : null}
 
-      <Section title="Séance" detail="Dernière clôture officielle">
+      <Section title="Séance" detail={liveQuote ? "Cours différés · volumes après clôture" : "Dernière clôture officielle"}>
         <BreadthBar quotes={quotes} />
         <View style={[styles.metrics, { marginTop: 10 }]}>
-          <Metric label="Valeur échangée" value={compactFcfa(quotes.reduce((sum, quote) => sum + (quote.dayValueFcfa ?? 0), 0))} detail={`${compactVolume(quotes.reduce((sum, quote) => sum + quote.dayVolume, 0))} titres`} />
+          <Metric
+            label="Valeur échangée"
+            value={liveQuote ? "—" : compactFcfa(quotes.reduce((sum, quote) => sum + (quote.dayValueFcfa ?? 0), 0))}
+            detail={liveQuote ? "publiée après clôture" : `${compactVolume(quotes.reduce((sum, quote) => sum + quote.dayVolume, 0))} titres`}
+          />
           <Metric label="PER médian" value={stats.medianPer === null ? "—" : stats.medianPer.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} detail="cote entière" />
           <Metric label="Rendement moyen" value={stats.meanYield === null ? "—" : pct(stats.meanYield, { signed: false, digits: 2 })} tone="accent" detail="dividende net" />
         </View>
@@ -173,10 +193,16 @@ export default function DashboardScreen() {
         </> : <EmptyState icon="newspaper-outline" title="Aucune actualité" detail="Les articles sourcés apparaîtront ici." />}
       </Section>
 
-      <Section title="Dernières alertes" detail="Faits calculés">
-        {market.alerts.length
-          ? market.alerts.slice(0, 4).map((alert) => (
-            <AlertRow key={alert.id} alert={alert} onPress={alert.ticker ? () => router.push(`/stocks/${alert.ticker}`) : undefined} />
+      <Section title="Alertes et publications capitales" detail="Sources officielles">
+        {dashboardAlerts.length
+          ? dashboardAlerts.map((alert) => (
+            <AlertRow
+              key={alert.id}
+              alert={alert}
+              onPress={alert.sourceUrl
+                ? () => void openTrustedExternalUrl(alert.sourceUrl!)
+                : alert.ticker ? () => router.push(`/stocks/${alert.ticker}`) : undefined}
+            />
           ))
           : <EmptyState icon="pulse-outline" title="Aucune alerte" detail="Rien à signaler sur la dernière séance." />}
       </Section>

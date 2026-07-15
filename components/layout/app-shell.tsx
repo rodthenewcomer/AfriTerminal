@@ -22,8 +22,7 @@ import {
   Settings,
 } from "lucide-react";
 import { cn } from "@wariba/core/utils";
-import { LATEST_TRADING_DATE } from "@/lib/real-data";
-import { dateFr } from "@wariba/core/format";
+import { MARKET_DATA_LABEL } from "@/lib/real-data";
 import { GlobalSearch, GlobalSearchDialog, useSearchOpen } from "./global-search";
 import { WelcomeTour } from "./welcome-tour";
 import { MarketStatusBadge } from "./market-status-badge";
@@ -177,7 +176,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             className="hidden whitespace-nowrap text-[11px] text-ink-3 hover:text-ink sm:inline"
             title="Dernière séance intégrée — cliquer pour le statut détaillé de chaque source de données"
           >
-            Bulletin du {dateFr(LATEST_TRADING_DATE)}
+            {MARKET_DATA_LABEL}
           </Link>
           <Link
             href="/alerts"

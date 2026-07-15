@@ -11,6 +11,7 @@ import unittest
 
 from build_alerts import (
     HIGH_LOW_MIN_HISTORY,
+    document_alerts,
     high_low_52w_alert,
     strong_move_alert,
     volume_alert,
@@ -42,6 +43,12 @@ class StrongMoveTest(unittest.TestCase):
         a = strong_move_alert("X", "X SA", rec(day_change_pct=-5.5), 10600)
         self.assertEqual(a["severity"], "warning")
         self.assertIn("-5,5", a["title"])
+
+    def test_ids_restent_uniques_si_deux_alertes_prix_tombent_le_meme_jour(self) -> None:
+        move = strong_move_alert("X", "X SA", rec(day_change_pct=6.38), 9400)
+        closes = [100.0] * 299 + [101.0]
+        high = high_low_52w_alert("X", "X SA", closes, rec(close=101.0), 299)
+        self.assertNotEqual(move["id"], high["id"])
 
 
 class HighLow52wTest(unittest.TestCase):
@@ -90,6 +97,60 @@ class VolumeTest(unittest.TestCase):
         self.assertIsNone(
             volume_alert("X", "X SA", volumes + [1000], rec(volume=1000), 60)
         )
+
+
+class DocumentAlertTest(unittest.TestCase):
+    def test_publications_du_meme_jour_restent_distinctes_et_critiques(self) -> None:
+        documents = [
+            {
+                "ticker": "UNXC",
+                "title": "États financiers exercice 2025",
+                "type": "États financiers",
+                "date": "2026-07-13",
+                "url": "https://www.brvm.org/a.pdf",
+            },
+            {
+                "ticker": "UNXC",
+                "title": "Rapport d'activités 1er semestre 2026",
+                "type": "Résultats",
+                "date": "2026-07-13",
+                "url": "https://www.brvm.org/b.pdf",
+            },
+        ]
+        alerts = document_alerts(documents, "2026-07-15", {"UNXC": "Uniwax CI"})
+        self.assertEqual(len(alerts), 2)
+        self.assertEqual(len({item["id"] for item in alerts}), 2)
+        self.assertTrue(all(item["severity"] == "critical" for item in alerts))
+        self.assertEqual(alerts[0]["sourceUrl"], documents[0]["url"])
+
+    def test_publication_ancienne_est_ignoree(self) -> None:
+        alerts = document_alerts(
+            [{
+                "ticker": "UNXC",
+                "title": "Ancien résultat",
+                "type": "Résultats",
+                "date": "2025-01-01",
+                "url": "https://www.brvm.org/old.pdf",
+            }],
+            "2026-07-15",
+            {},
+        )
+        self.assertEqual(alerts, [])
+
+    def test_resume_verifie_uniwax_est_visible(self) -> None:
+        alerts = document_alerts(
+            [{
+                "ticker": "UNXC",
+                "title": "Rapport d'activités — 1er semestre 2026",
+                "type": "Résultats",
+                "date": "2026-07-13",
+                "url": "https://www.brvm.org/sites/default/files/20260713_-_rapport_dactivites_-_1er_semestre_2026_-_uniwax_ci.pdf",
+            }],
+            "2026-07-15",
+            {"UNXC": "Uniwax CI"},
+        )
+        self.assertIn("résultat opérationnel +771 M", alerts[0]["detail"])
+        self.assertIn("cession d'actif exceptionnelle", alerts[0]["detail"])
 
 
 if __name__ == "__main__":

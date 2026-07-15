@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { BellPlus } from "lucide-react";
 import { REAL_ALERTS } from "@/lib/real-alerts";
 import type { AlertType } from "@wariba/core/types";
+import { prioritizeCriticalAlerts } from "@wariba/core/alerts";
 import { cn } from "@wariba/core/utils";
 import { AlertCard } from "@/components/alerts/alert-card";
 import { MyPriceAlerts } from "@/components/alerts/my-price-alerts";
@@ -16,6 +17,7 @@ const TYPE_FILTERS: { value: AlertType | "all"; label: string }[] = [
   { value: "volume", label: "Volume" },
   { value: "dividende", label: "Dividendes" },
   { value: "fondamental", label: "Fondamentaux" },
+  { value: "document", label: "Publications" },
 ];
 
 export default function AlertsPage() {
@@ -24,8 +26,7 @@ export default function AlertsPage() {
 
   const filtered = useMemo(
     () =>
-      [...REAL_ALERTS]
-        .sort((a, b) => b.time.localeCompare(a.time))
+      prioritizeCriticalAlerts(REAL_ALERTS)
         .filter((a) => type === "all" || a.type === type),
     [type]
   );

@@ -1176,14 +1176,14 @@
   },
   "UNXC": {
     "ticker": "UNXC",
-    "fiscalYear": 2024,
+    "fiscalYear": 2025,
     "revenueLabel": "CA",
-    "revenueM": 27333,
-    "revenuePrevM": 29687,
-    "netIncomeM": -2189,
-    "netIncomePrevM": -2054,
-    "ordinaryIncomeM": -2159,
-    "ordinaryIncomePrevM": -1856,
+    "revenueM": 29032,
+    "revenuePrevM": 27333,
+    "netIncomeM": -624,
+    "netIncomePrevM": -2189,
+    "ordinaryIncomeM": -436,
+    "ordinaryIncomePrevM": -2159,
     "cirPct": null,
     "cirPrevPct": null,
     "depositsM": null,
@@ -1194,9 +1194,9 @@
     "costOfRiskPrevM": null,
     "proposedGrossDividend": null,
     "sharesOutstanding": null,
-    "equityM": 15591,
-    "equityPrevM": 17781,
-    "source": "https://www.brvm.org/sites/default/files/20250828_-_etats_financiers_-_exercice_2024_-_uniwax_ci.pdf",
-    "publishedOn": "2025-08-28"
+    "equityM": 24619,
+    "equityPrevM": 15591,
+    "source": "https://www.brvm.org/sites/default/files/20260713_-_etats_financiers_-_exercice_2025_-_uniwax_ci.pdf",
+    "publishedOn": "2026-07-13"
   }
 }

@@ -21,6 +21,7 @@ interface MarketContextValue extends MarketPayload {
 }
 
 const MarketContext = createContext<MarketContextValue | null>(null);
+const FOREGROUND_REFRESH_MS = 2 * 60 * 1000;
 
 export function MarketDataProvider({ children }: { children: React.ReactNode }) {
   const [payload, setPayload] = useState(EMPTY);
@@ -30,8 +31,11 @@ export function MarketDataProvider({ children }: { children: React.ReactNode }) 
   const [error, setError] = useState<string | null>(null);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const seriesCache = useRef(new Map<string, SeriesPayload>());
+  const refreshingRef = useRef(false);
 
   const refresh = useCallback(async () => {
+    if (refreshingRef.current) return;
+    refreshingRef.current = true;
     setRefreshing(true);
     try {
       const result = await fetchMarketPayload();
@@ -45,6 +49,7 @@ export function MarketDataProvider({ children }: { children: React.ReactNode }) 
     } finally {
       setLoading(false);
       setRefreshing(false);
+      refreshingRef.current = false;
     }
   }, []);
 
@@ -52,11 +57,18 @@ export function MarketDataProvider({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (state) => {
       if (state !== "active" || useSettingsStore.getState().dataSaver) return;
-      const stale = !updatedAt || Date.now() - Date.parse(updatedAt) > 15 * 60 * 1000;
+      const stale = !updatedAt || Date.now() - Date.parse(updatedAt) > FOREGROUND_REFRESH_MS;
       if (stale) void refresh();
     });
     return () => subscription.remove();
   }, [refresh, updatedAt]);
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (AppState.currentState !== "active" || useSettingsStore.getState().dataSaver) return;
+      void refresh();
+    }, FOREGROUND_REFRESH_MS);
+    return () => clearInterval(id);
+  }, [refresh]);
 
   const loadSeries = useCallback(async (ticker: string, options?: { force?: boolean }) => {
     const key = ticker.toUpperCase();

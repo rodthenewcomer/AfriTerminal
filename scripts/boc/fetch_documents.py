@@ -7,8 +7,9 @@ vers le PDF sur brvm.org. On référence, on ne copie pas les fichiers.
 
 Les noms de fichiers BRVM suivent une convention stable :
     YYYYMMDD_-_type_du_document_-_periode_-_societe.pdf
-d'où sont dérivés la date, le type et le titre. Exécution hebdomadaire
-en CI (documents.yml) + à la main.
+d'où sont dérivés la date, le type et le titre. Exécution toutes les
+15 minutes en CI (documents.yml) + à la main : une publication de
+résultats ne doit jamais attendre le prochain lundi.
 
 Usage :
     python3 scripts/boc/fetch_documents.py --out data/real/documents.json
@@ -17,9 +18,9 @@ Usage :
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 import re
-import time
 import urllib.request
 from pathlib import Path
 
@@ -114,21 +115,41 @@ def fetch(url: str) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", default="data/real/documents.json")
+    parser.add_argument("--workers", type=int, default=6)
     args = parser.parse_args()
+
+    out_path = Path(args.out)
+    previous: dict[str, list[dict]] = {}
+    if out_path.exists():
+        for item in json.loads(out_path.read_text(encoding="utf-8")):
+            previous.setdefault(item["ticker"], []).append(item)
+
+    def fetch_company(ticker: str, slug: str) -> tuple[str, list[dict]]:
+        html = fetch(f"{BASE}/fr/rapports-societe-cotes/{slug}")
+        return ticker, parse_page(html, ticker)
 
     all_docs: list[dict] = []
     errors = 0
-    for ticker, slug in sorted(SLUGS.items()):
-        try:
-            html = fetch(f"{BASE}/fr/rapports-societe-cotes/{slug}")
-            all_docs.extend(parse_page(html, ticker))
-        except Exception as e:  # une fiche en panne ne bloque pas les autres
-            errors += 1
-            print(f"{ticker} ({slug}): erreur {type(e).__name__}: {e}")
-        time.sleep(1)  # courtoisie serveur
+    workers = max(1, min(args.workers, 8))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {
+            pool.submit(fetch_company, ticker, slug): (ticker, slug)
+            for ticker, slug in sorted(SLUGS.items())
+        }
+        for future in as_completed(futures):
+            ticker, slug = futures[future]
+            try:
+                _, docs = future.result()
+                all_docs.extend(docs)
+            except Exception as e:  # une fiche en panne ne bloque pas les autres
+                errors += 1
+                # Un incident réseau ne doit jamais supprimer les dernières
+                # publications connues de la société dans le fichier public.
+                all_docs.extend(previous.get(ticker, []))
+                print(f"{ticker} ({slug}): erreur {type(e).__name__}: {e}")
 
     all_docs.sort(key=lambda d: d["date"], reverse=True)
-    Path(args.out).write_text(
+    out_path.write_text(
         json.dumps(all_docs, ensure_ascii=False, indent=1), encoding="utf-8"
     )
     by_type: dict[str, int] = {}

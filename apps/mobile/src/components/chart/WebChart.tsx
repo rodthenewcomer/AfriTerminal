@@ -23,7 +23,7 @@ export interface WebChartPanes {
 
 export interface WebChartMarker {
   time: string;
-  kind: "dividend" | "operation";
+  kind: "dividend" | "operation" | "result";
   label: string;
 }
 
@@ -85,6 +85,7 @@ const BRIDGE = `
 (function () {
   var LWC = window.LightweightCharts;
   var container = document.getElementById("c");
+  var legend = document.getElementById("legend");
   var fmt0 = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
   var fmt2 = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 });
   function fmtPrice(p) { return (Math.abs(p) < 100 ? fmt2 : fmt0).format(p); }
@@ -121,6 +122,22 @@ const BRIDGE = `
   var levelMode = false;
   var lastDataKey = "";
   var rxBuffers = {};
+  var currentBarsByTime = {};
+
+  function showLegend(bar) {
+    if (!legend || !bar) return;
+    var change = bar.open ? ((bar.close - bar.open) / bar.open) * 100 : 0;
+    var stamp = typeof bar.time === "number"
+      ? new Date(bar.time * 1000).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+      : bar.time;
+    legend.textContent = stamp + "  O " + fmtPrice(bar.open) + "  H " + fmtPrice(bar.high) + "  B " + fmtPrice(bar.low) + "  C " + fmtPrice(bar.close) + "  " + (change >= 0 ? "+" : "") + change.toFixed(2) + "%";
+  }
+
+  chart.subscribeCrosshairMove(function (param) {
+    if (!param.time) return;
+    var bar = currentBarsByTime[String(param.time)];
+    if (bar) showLegend(bar);
+  });
 
   // Les gros payloads (1A/3A/5A/Tout) dépassent la limite silencieuse
   // d'evaluateJavaScript sur iOS : ils arrivent en morceaux de ~24 Ko,
@@ -187,6 +204,9 @@ const BRIDGE = `
       if (markersPlugin) { try { markersPlugin.detach(); } catch (e) {} markersPlugin = null; }
 
       var bars = payload.bars;
+      currentBarsByTime = {};
+      bars.forEach(function (bar) { currentBarsByTime[String(bar.time)] = bar; });
+      if (bars.length) showLegend(bars[bars.length - 1]);
       var toLine = function (b) { return { time: b.time, value: b.close }; };
 
       chart.priceScale("right").applyOptions({
@@ -306,7 +326,9 @@ const BRIDGE = `
           if (!t) return;
           markers.push(event.kind === "dividend"
             ? { time: t, position: "belowBar", color: "#d2a13c", shape: "circle", text: event.label }
-            : { time: t, position: "aboveBar", color: "#8b5cf6", shape: "square", text: event.label });
+            : event.kind === "result"
+              ? { time: t, position: "aboveBar", color: "#38bdf8", shape: "arrowDown", text: event.label }
+              : { time: t, position: "aboveBar", color: "#8b5cf6", shape: "square", text: event.label });
         });
         if (markers.length) {
           markers.sort(function (a, b) { return String(a.time).localeCompare(String(b.time)); });
@@ -341,8 +363,8 @@ function buildHtml(): string {
     "<!doctype html><html><head>",
     '<meta charset="utf-8"/>',
     '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>',
-    "<style>html,body{margin:0;padding:0;background:#111113;overscroll-behavior:none}#c{position:absolute;inset:0}</style>",
-    "</head><body><div id=\"c\"></div>",
+    "<style>html,body{margin:0;padding:0;background:#111113;overscroll-behavior:none}#c{position:absolute;inset:0}#legend{position:absolute;z-index:2;left:10px;right:10px;top:8px;overflow:hidden;text-overflow:ellipsis;color:#d4d4d8;font:600 10px ui-monospace,SFMono-Regular,Menlo,monospace;pointer-events:none;white-space:nowrap}</style>",
+    "</head><body><div id=\"legend\"></div><div id=\"c\"></div>",
     "<script>", LWC_RUNTIME, "</script>",
     "<script>", BRIDGE, "</script>",
     "</body></html>",

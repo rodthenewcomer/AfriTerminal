@@ -227,13 +227,15 @@ Sept workflows GitHub Actions (`.github/workflows/`) :
   `data/real/` (y c. alertes et opérations), committe et redéploie ;
 - **live-poll.yml** — toutes les 15 min pendant la séance : collecte
   les cours différés de brvm.org dans `data/live/` pour reconstruire
-  le plus haut/plus bas intraday que le bulletin ne publie pas ;
-- **news.yml** — toutes les 2 h en journée : agrège les actualités
+  le plus haut/plus bas intraday que le bulletin ne publie pas, met à
+  jour `data/real/live.json` et le republie immédiatement au mobile ;
+- **news.yml** — toutes les 15 min en journée : agrège les actualités
   Sika Finance + Financial Afrik (`scripts/news/fetch_news.py`,
   rattachement aux tickers, liens vers les articles originaux) et
   redéploie ;
-- **documents.yml** — hebdomadaire : publications officielles par
-  société depuis les fiches brvm.org ;
+- **documents.yml** — toutes les 15 min : publications officielles par
+  société depuis les fiches brvm.org, alerte décisionnelle immédiate et
+  redéploiement des données web/mobile ;
 - **freshness.yml** — watchdog quotidien (07h00 UTC) : un bulletin en
   ligne mais absent de nos données met le workflow en rouge (e-mail) —
   la staleness silencieuse est interdite ;

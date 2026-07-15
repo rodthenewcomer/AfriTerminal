@@ -212,6 +212,8 @@ export interface AlertItem {
   severity: "info" | "warning" | "critical" | "positive";
   active: boolean;
   basis: ContentBasis;
+  /** Lien primaire BRVM pour les alertes de publication. */
+  sourceUrl?: string;
 }
 
 export interface IPOItem {
@@ -254,6 +256,12 @@ export interface RealQuote {
   name: string;
   sectorCode: string | null;
   asOfDate: string;
+  /** Nature de la dernière valeur : clôture officielle BOC ou cours BRVM différé. */
+  quoteStatus?: "official-close" | "delayed-live";
+  /** Horodatage ISO du dernier point différé, quand quoteStatus=delayed-live. */
+  asOfTimestamp?: string;
+  /** Date de la clôture officielle servant de référence au cours différé. */
+  officialCloseDate?: string;
   lastClose: number;
   prevClose: number;
   dayChangePct: number;
@@ -286,6 +294,30 @@ export interface RealQuote {
   allTimeHighDate: string;
   /** Derniers ~30 cours de clôture, pour les sparklines — évite un import dynamique juste pour un mini-graphe. */
   sparkline: number[];
+}
+
+export interface LiveQuotePoint {
+  time: string;
+  price: number;
+}
+
+export interface LiveQuoteRecord {
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  samples: number;
+  firstSeen: string;
+  lastSeen: string;
+  points: LiveQuotePoint[];
+}
+
+export interface LiveMarketPayload {
+  asOfDate: string;
+  updatedAt: string;
+  source: string;
+  delayMinutes: number;
+  quotes: Record<string, LiveQuoteRecord>;
 }
 
 export interface IndexInfo {
