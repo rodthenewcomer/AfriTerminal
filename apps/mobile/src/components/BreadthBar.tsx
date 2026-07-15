@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import type { RealQuote } from "@afriterminal/core/types";
+import type { RealQuote } from "@wariba/core/types";
 import { colors, radius, tabular, type } from "../theme";
 
 /**

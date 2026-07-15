@@ -1,5 +1,5 @@
 import { AlertTriangle, Eye, Sparkles, ThumbsUp } from "lucide-react";
-import type { AIInsight } from "@afriterminal/core/types";
+import type { AIInsight } from "@wariba/core/types";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 
 export function AIInsightCard({ insight }: { insight: AIInsight }) {

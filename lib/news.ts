@@ -3,7 +3,7 @@ import newsJson from "@/data/news/news.json";
 /**
  * Actualités réelles agrégées depuis Sika Finance et Financial Afrik
  * (pipeline scripts/news/fetch_news.py, rafraîchi par GitHub Actions).
- * Chaque item pointe vers l'article original — AfriTerminal agrège et
+ * Chaque item pointe vers l'article original — WARIBA agrège et
  * rattache aux tickers, il ne republie pas le contenu.
  */
 export interface NewsItem {

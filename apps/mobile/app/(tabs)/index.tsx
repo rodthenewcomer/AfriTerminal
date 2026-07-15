@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
-import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { compactFcfa, compactVolume, pct } from "@afriterminal/core/format";
+import { compactFcfa, compactVolume, pct } from "@wariba/core/format";
 import type { IndexRecord } from "../../src/data/types";
 import { ActionButton, ChangePill, EmptyState, LoadingState, Metric, Page, Row, Section } from "../../src/components/ui";
 import { QuoteRow } from "../../src/components/QuoteRow";
@@ -12,6 +12,8 @@ import { Sparkline } from "../../src/components/Sparkline";
 import { useMarketData } from "../../src/providers/MarketDataProvider";
 import { useWatchlistStore } from "../../src/stores";
 import { colors, radius, tabular, type } from "../../src/theme";
+import { openTrustedExternalUrl } from "../../src/lib/external-links";
+import { useMobileAuth } from "../../src/providers/AuthProvider";
 
 /** Carte héro : l'indice principal avec sa courbe 30 séances en grand. */
 function HeroIndex({ index, onPress }: { index: IndexRecord; onPress: () => void }) {
@@ -20,6 +22,8 @@ function HeroIndex({ index, onPress }: { index: IndexRecord; onPress: () => void
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${index.name}, ${index.level.toLocaleString("fr-FR", { maximumFractionDigits: 2 })}, variation ${pct(index.dayChangePct, { signed: true, digits: 2 })}, clôture ${index.asOfDate}`}
       style={({ pressed }) => [styles.hero, pressed && { opacity: 0.75 }]}
       onLayout={(event) => setWidth(event.nativeEvent.layout.width)}
     >
@@ -46,7 +50,7 @@ function HeroIndex({ index, onPress }: { index: IndexRecord; onPress: () => void
 function IndexCard({ index, onPress }: { index: IndexRecord; onPress: () => void }) {
   const up = index.dayChangePct >= 0;
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.indexCard, pressed && { opacity: 0.75 }]}>
+    <Pressable accessibilityRole="button" accessibilityLabel={`${index.name}, ${index.level.toLocaleString("fr-FR", { maximumFractionDigits: 2 })}, variation ${pct(index.dayChangePct, { signed: true, digits: 2 })}`} onPress={onPress} style={({ pressed }) => [styles.indexCard, pressed && { opacity: 0.75 }]}>
       <Text numberOfLines={1} style={styles.indexName}>{index.name}</Text>
       <Text style={styles.indexLevel}>{index.level.toLocaleString("fr-FR", { maximumFractionDigits: 2 })}</Text>
       <View style={styles.indexFooter}>
@@ -64,6 +68,7 @@ function IndexCard({ index, onPress }: { index: IndexRecord; onPress: () => void
 export default function DashboardScreen() {
   const router = useRouter();
   const market = useMarketData();
+  const { loading: authLoading, user } = useMobileAuth();
   const watchedTickers = useWatchlistStore((state) => state.tickers);
   const quotes = useMemo(() => Object.values(market.quotes), [market.quotes]);
   const watched = useMemo(
@@ -86,13 +91,25 @@ export default function DashboardScreen() {
 
   return (
     <Page
-      title="AfriTerminal"
+      title="WARIBA"
       subtitle={`${market.offline ? "Cache appareil" : "Sources officielles BRVM"} · clôture ${quotes[0]?.asOfDate ?? "—"}`}
       refreshing={market.refreshing}
       onRefresh={() => void market.refresh()}
       action={<ActionButton label="Alertes" icon="notifications-outline" onPress={() => router.push("/alerts")} />}
     >
       {market.error ? <Text style={styles.error}>{market.error}</Text> : null}
+      {!authLoading && !user ? (
+        <View style={styles.accountStrip}>
+          <View style={styles.accountCopy}>
+            <Text style={styles.accountTitle}>Votre espace WARIBA</Text>
+            <Text style={styles.accountDetail}>Synchronisez vos listes et votre portefeuille.</Text>
+          </View>
+          <View style={styles.accountActions}>
+            <Pressable accessibilityRole="button" onPress={() => router.push("/(auth)/sign-in")}><Text style={styles.accountLink}>Connexion</Text></Pressable>
+            <Pressable accessibilityRole="button" onPress={() => router.push("/(auth)/sign-up")} style={styles.accountPrimary}><Text style={styles.accountPrimaryText}>Créer un compte</Text></Pressable>
+          </View>
+        </View>
+      ) : null}
 
       {mainIndex ? <HeroIndex index={mainIndex} onPress={() => router.push(`/indices/${mainIndex.code}`)} /> : null}
 
@@ -147,7 +164,7 @@ export default function DashboardScreen() {
               icon="newspaper-outline"
               title={item.title}
               detail={`${item.source} · ${item.publishedAt.slice(0, 10)}`}
-              onPress={() => void Linking.openURL(item.link)}
+              onPress={() => void openTrustedExternalUrl(item.link)}
             />
           ))}
           <View style={styles.moreRow}>
@@ -168,6 +185,14 @@ export default function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
+  accountStrip: { gap: 12, padding: 15, borderRadius: radius.xl, borderWidth: 1, borderColor: "rgba(52,217,143,0.28)", backgroundColor: colors.accentSoft },
+  accountCopy: { gap: 3 },
+  accountTitle: { color: colors.ink, fontSize: 14, fontWeight: "900" },
+  accountDetail: { color: colors.ink2, fontSize: 11.5, lineHeight: 16 },
+  accountActions: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
+  accountLink: { minHeight: 38, color: colors.ink, fontSize: 12, fontWeight: "800", textAlignVertical: "center" },
+  accountPrimary: { minHeight: 38, alignItems: "center", justifyContent: "center", paddingHorizontal: 14, borderRadius: radius.md, backgroundColor: colors.accent },
+  accountPrimaryText: { color: colors.background, fontSize: 11.5, fontWeight: "900" },
   hero: {
     padding: 16, gap: 10,
     backgroundColor: colors.surface, borderColor: colors.line, borderWidth: 1, borderRadius: radius.xl,

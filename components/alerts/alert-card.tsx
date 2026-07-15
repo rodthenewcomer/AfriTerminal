@@ -7,8 +7,8 @@ import {
   TrendingUp,
   Volume2,
 } from "lucide-react";
-import type { AlertItem } from "@afriterminal/core/types";
-import { cn } from "@afriterminal/core/utils";
+import type { AlertItem } from "@wariba/core/types";
+import { cn } from "@wariba/core/utils";
 import { Badge } from "@/components/ui/badge";
 import { DataBasisBadge } from "@/components/ui/data-basis-badge";
 

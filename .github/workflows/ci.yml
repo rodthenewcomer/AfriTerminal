@@ -1,6 +1,4 @@
-# Intégration continue : tests unitaires (indicateurs TS + fusion des
-# données Python) et build Next.js (qui porte aussi le lint et le
-# type-check) sur chaque push et pull request.
+# Gates web, API et applications natives sur chaque push et pull request.
 name: ci
 
 on:
@@ -23,6 +21,16 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: TypeScript web, API et packages partagés
+        run: npx tsc --noEmit
+      - name: TypeScript Expo iOS et Android
+        run: npx tsc --noEmit -p apps/mobile/tsconfig.json
+      - name: ESLint web, API et mobile
+        run: npm run lint
+      - name: Compatibilité Expo SDK 54
+        run: npx expo-doctor apps/mobile
+      - name: Versions natives compatibles Expo
+        run: npm exec --workspace @wariba/mobile -- expo install --check
       - name: Audit sécurité npm (production, high+)
         run: npm run audit:prod
       - name: Tests unitaires TypeScript (vitest)
@@ -35,5 +43,9 @@ jobs:
       - name: Tests Python (pipeline actualités)
         working-directory: scripts/news
         run: python3 -m unittest discover -p "test_*.py" -v
-      - name: Build Next.js (lint + type-check inclus)
+      - name: Build Next.js serveur
         run: npm run build
+      - name: Export Metro iOS
+        run: npm exec --workspace @wariba/mobile -- expo export --platform ios --output-dir dist/ios
+      - name: Export Metro Android
+        run: npm exec --workspace @wariba/mobile -- expo export --platform android --output-dir dist/android

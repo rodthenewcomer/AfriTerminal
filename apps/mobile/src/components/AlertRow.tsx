@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import type { AlertItem } from "@afriterminal/core/types";
+import type { AlertItem } from "@wariba/core/types";
 import { colors, radius, type } from "../theme";
 
 /** Couleur et icône par sévérité — lecture « Stock Monitor » de Webull. */

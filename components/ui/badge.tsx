@@ -1,6 +1,6 @@
 import type { HTMLAttributes } from "react";
-import { cn } from "@afriterminal/core/utils";
-import type { SignalTone } from "@afriterminal/core/types";
+import { cn } from "@wariba/core/utils";
+import type { SignalTone } from "@wariba/core/types";
 
 const tones: Record<SignalTone | "accent" | "gold", string> = {
   positive: "bg-up/12 text-up border-up/25",

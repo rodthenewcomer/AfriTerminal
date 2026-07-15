@@ -26,7 +26,7 @@ import {
   type SeriesType,
   type Time,
 } from "lightweight-charts";
-import type { ChartType, IndicatorId, OHLCV, Timeframe } from "@afriterminal/core/types";
+import type { ChartType, IndicatorId, OHLCV, Timeframe } from "@wariba/core/types";
 import { seriesForTimeframe } from "@/lib/mock/series";
 import {
   getRealQuote,
@@ -45,7 +45,7 @@ import {
   calculateSMA,
   calculateStochastic,
   calculateVWAP,
-} from "@afriterminal/core/indicators";
+} from "@wariba/core/indicators";
 import {
   adjustForDividends,
   adjustForRealDividends,
@@ -54,10 +54,10 @@ import {
 } from "@/lib/chart-utils";
 import { dividendHistoryFor } from "@/lib/real-dividends";
 import { operationsForTicker } from "@/lib/real-operations";
-import { compactVolume, pct } from "@afriterminal/core/format";
+import { compactVolume, pct } from "@wariba/core/format";
 import { useChartPrefs, useChartPrefsHydrated } from "@/hooks/use-chart-prefs";
 import { rehydrateChartLevels, useChartLevels } from "@/hooks/use-chart-levels";
-import { cn } from "@afriterminal/core/utils";
+import { cn } from "@wariba/core/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChartToolbar } from "./chart-toolbar";
 
@@ -118,7 +118,6 @@ export function MainChart({ ticker }: { ticker: string }) {
   // ferait boucler useSyncExternalStore (React #185) — le défaut est
   // une constante module.
   const levels = useChartLevels((s) => s.levels[ticker]) ?? NO_LEVELS;
-  const addLevel = useChartLevels((s) => s.add);
   const removeLevel = useChartLevels((s) => s.remove);
   const clearLevels = useChartLevels((s) => s.clear);
   const { maColors, setMaColor, resetMaColors } = useChartPrefs();
@@ -711,7 +710,7 @@ export function MainChart({ ticker }: { ticker: string }) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${ticker}-${tf}-afriterminal.png`;
+    a.download = `${ticker}-${tf}-wariba.png`;
       a.click();
       URL.revokeObjectURL(url);
     });

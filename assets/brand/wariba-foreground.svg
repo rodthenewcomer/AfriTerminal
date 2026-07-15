@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="signal" x1="194" y1="286" x2="830" y2="730" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#92F6C8"/>
+      <stop offset=".52" stop-color="#2DD58B"/>
+      <stop offset="1" stop-color="#08A562"/>
+    </linearGradient>
+  </defs>
+  <path d="M206 302L354 724L512 450L670 724L818 302" fill="none" stroke="url(#signal)" stroke-width="82" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="818" cy="302" r="42" fill="#F4C96B"/>
+  <circle cx="818" cy="302" r="18" fill="#FFF4C8"/>
+</svg>

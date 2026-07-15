@@ -1,4 +1,4 @@
-import { cn } from "@afriterminal/core/utils";
+import { cn } from "@wariba/core/utils";
 
 export function Skeleton({ className }: { className?: string }) {
   return (

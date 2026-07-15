@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@afriterminal/core/utils";
+import { cn } from "@wariba/core/utils";
 
 export function PillTabs<T extends string>({
   options,

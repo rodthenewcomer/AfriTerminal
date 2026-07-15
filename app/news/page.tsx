@@ -61,7 +61,7 @@ export default function NewsPage() {
       </div>
 
       <p className="text-[11px] text-ink-3">
-        AfriTerminal agrège les titres et renvoie vers les articles
+        WARIBA agrège les titres et renvoie vers les articles
         originaux — le contenu appartient à ses éditeurs.
       </p>
     </div>

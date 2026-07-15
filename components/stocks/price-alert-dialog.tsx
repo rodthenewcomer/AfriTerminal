@@ -7,18 +7,16 @@ import {
   usePriceAlerts,
   usePriceAlertsHydrated,
 } from "@/hooks/use-price-alerts";
-import { fcfa } from "@afriterminal/core/format";
-import { cn } from "@afriterminal/core/utils";
+import { fcfa } from "@wariba/core/format";
+import { cn } from "@wariba/core/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/components/auth/auth-provider";
+import { uploadWebData } from "@/lib/web-cloud-sync";
+import { trackProductEvent } from "@/lib/analytics";
 
-/**
- * Alertes de prix locales — le maximum honnête sans backend : le seuil
- * vit dans ce navigateur et est vérifié à chaque ouverture contre le
- * dernier cours officiel. Pas d'e-mail ni de push, et on le dit.
- */
 export function PriceAlertDialog({
   open,
   onClose,
@@ -34,17 +32,36 @@ export function PriceAlertDialog({
   const alerts = usePriceAlerts((s) => s.alerts).filter((a) => a.ticker === ticker);
   const add = usePriceAlerts((s) => s.add);
   const remove = usePriceAlerts((s) => s.remove);
+  const { session } = useAuth();
 
   const [direction, setDirection] = useState<"above" | "below">("above");
   const [threshold, setThreshold] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState(false);
+  const [push, setPush] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const submit = () => {
+  const submit = async () => {
     const v = parseFloat(threshold.replace(/\s/g, "").replace(",", "."));
     if (!Number.isFinite(v) || v <= 0) return setError("Seuil invalide.");
-    add({ ticker, direction, threshold: v });
+    const channels: ("in_app" | "push" | "email")[] = ["in_app"];
+    if (push) channels.push("push");
+    if (email) channels.push("email");
+    setSaving(true);
+    add({ ticker, direction, threshold: v, channels });
+    if (session?.access_token) {
+      try {
+        await uploadWebData(session.access_token);
+      } catch {
+        setError("Alerte créée localement, mais sa synchronisation a échoué. Relancez-la depuis Compte.");
+        setSaving(false);
+        return;
+      }
+    }
+    trackProductEvent("alert_create", { ticker, email, push }, `/stocks/${ticker}`);
     setThreshold("");
     setError(null);
+    setSaving(false);
   };
 
   return (
@@ -56,9 +73,8 @@ export function PriceAlertDialog({
           </h2>
           <p className="mt-0.5 text-xs text-ink-3">
             Cours actuel : <span className="num font-medium text-ink-2">{fcfa(lastPrice)}</span>.
-            Vérifiée à chaque ouverture de l&apos;application contre le dernier
-            cours officiel — pas d&apos;e-mail ni de notification push (site
-            sans compte), tout reste dans ce navigateur.
+            Sans compte, elle reste dans ce navigateur. Avec un compte, elle est
+            synchronisée et peut être envoyée par e-mail ou push selon vos préférences.
           </p>
         </header>
 
@@ -86,6 +102,20 @@ export function PriceAlertDialog({
           ))}
         </div>
 
+        <fieldset className="space-y-2 rounded-lg border border-line bg-surface-2/40 p-3">
+          <legend className="px-1 text-[11px] font-medium text-ink-3">Canaux</legend>
+          <label className="flex items-center gap-2 text-xs text-ink-2">
+            <input type="checkbox" checked disabled className="accent-accent" /> Dans WARIBA
+          </label>
+          <label className="flex items-center gap-2 text-xs text-ink-2">
+            <input type="checkbox" checked={email} disabled={!session} onChange={(event) => setEmail(event.target.checked)} className="accent-accent" /> E-mail
+          </label>
+          <label className="flex items-center gap-2 text-xs text-ink-2">
+            <input type="checkbox" checked={push} disabled={!session} onChange={(event) => setPush(event.target.checked)} className="accent-accent" /> Push mobile
+          </label>
+          {!session ? <p className="text-[10px] text-ink-3">Connectez-vous pour activer e-mail ou push.</p> : null}
+        </fieldset>
+
         <div className="flex items-end gap-2">
           <label className="min-w-0 flex-1 space-y-1">
             <span className="text-[11px] font-medium text-ink-3">Seuil (FCFA)</span>
@@ -96,7 +126,7 @@ export function PriceAlertDialog({
               onChange={(e) => setThreshold(e.target.value)}
             />
           </label>
-          <Button variant="accent" size="sm" onClick={submit} disabled={!hydrated}>
+          <Button variant="accent" size="sm" onClick={() => void submit()} disabled={!hydrated || saving}>
             Créer l&apos;alerte
           </Button>
         </div>

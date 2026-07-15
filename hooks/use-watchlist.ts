@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { WatchlistDef } from "@afriterminal/core/types";
+import type { WatchlistDef } from "@wariba/core/types";
 
 const SEED_LISTS: WatchlistDef[] = [
   { id: "default", name: "Ma watchlist", tickers: ["SNTS", "NSBC", "PALC"] },

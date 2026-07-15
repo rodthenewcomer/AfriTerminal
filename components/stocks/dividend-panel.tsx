@@ -1,5 +1,5 @@
-import type { DividendInfo, StockSnapshot } from "@afriterminal/core/types";
-import { dateFr, fcfa, pct } from "@afriterminal/core/format";
+import type { DividendInfo, StockSnapshot } from "@wariba/core/types";
+import { dateFr, fcfa, pct } from "@wariba/core/format";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 
 const BOND_YIELD = 6.15;

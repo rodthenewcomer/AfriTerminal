@@ -1,4 +1,4 @@
-import type { IndexInfo, OHLCV, RealQuote, Timeframe } from "@afriterminal/core/types";
+import type { IndexInfo, OHLCV, RealQuote, Timeframe } from "@wariba/core/types";
 import snapshotJson from "@/data/real/snapshot.json";
 import indicesJson from "@/data/real/indices.json";
 import { aggregate } from "./mock/series";

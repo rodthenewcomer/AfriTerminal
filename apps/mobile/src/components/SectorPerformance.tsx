@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import type { RealQuote } from "@afriterminal/core/types";
-import { pct } from "@afriterminal/core/format";
+import type { RealQuote } from "@wariba/core/types";
+import { pct } from "@wariba/core/format";
 import { sectorLabel } from "../lib/sectors";
 import { colors, tabular, type } from "../theme";
 

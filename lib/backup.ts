@@ -1,5 +1,5 @@
-import type { PortfolioTransaction } from "@afriterminal/core/portfolio";
-import type { WatchlistDef } from "@afriterminal/core/types";
+import type { PortfolioTransaction } from "@wariba/core/portfolio";
+import type { WatchlistDef } from "@wariba/core/types";
 import type { SavedFilter } from "@/hooks/use-saved-filters";
 
 /**
@@ -13,7 +13,7 @@ import type { SavedFilter } from "@/hooks/use-saved-filters";
 export const BACKUP_VERSION = 1;
 
 export interface BackupFile {
-  app: "AfriTerminal";
+  app: "WARIBA";
   version: number;
   exportedAt: string;
   portfolio: PortfolioTransaction[];
@@ -27,7 +27,7 @@ export function buildBackup(data: {
   savedFilters: SavedFilter[];
 }): BackupFile {
   return {
-    app: "AfriTerminal",
+    app: "WARIBA",
     version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
     ...data,
@@ -98,10 +98,10 @@ export function parseBackup(raw: string): BackupParseResult {
     return { ok: false, error: "Structure de fichier inattendue." };
   }
   const b = json as Record<string, unknown>;
-  if (b.app !== "AfriTerminal") {
+  if (b.app !== "WARIBA" && b.app !== "AfriTerminal") {
     return {
       ok: false,
-      error: "Ce fichier ne provient pas d'AfriTerminal (champ « app » absent).",
+      error: "Ce fichier ne provient pas de WARIBA (champ « app » absent).",
     };
   }
   if (typeof b.version !== "number" || b.version > BACKUP_VERSION) {
@@ -130,7 +130,7 @@ export function parseBackup(raw: string): BackupParseResult {
     return {
       ok: true,
       backup: {
-        app: "AfriTerminal",
+        app: "WARIBA",
         version: BACKUP_VERSION,
         exportedAt: typeof b.exportedAt === "string" ? b.exportedAt : new Date().toISOString(),
         portfolio,
@@ -155,5 +155,5 @@ export function parseBackup(raw: string): BackupParseResult {
   if (!Array.isArray(b.savedFilters) || !b.savedFilters.every(isSavedFilter)) {
     return { ok: false, error: "Filtres enregistrés invalides." };
   }
-  return { ok: true, backup: b as unknown as BackupFile };
+  return { ok: true, backup: { ...b, app: "WARIBA" } as unknown as BackupFile };
 }

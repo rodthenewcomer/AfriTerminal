@@ -3,7 +3,7 @@ import Link from "next/link";
 import { CalendarClock } from "lucide-react";
 import { getSnapshots } from "@/lib/data";
 import { allDividendEvents, dividendsByMonth, isRecurring } from "@/lib/dividend-calendar";
-import { fcfa, dateFr } from "@afriterminal/core/format";
+import { fcfa, dateFr } from "@wariba/core/format";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Term } from "@/components/ui/term";

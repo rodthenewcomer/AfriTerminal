@@ -34,7 +34,7 @@ from urllib.request import Request, urlopen
 from parse_boc import parse_bulletin, to_payload
 
 BOC_URL = "https://www.brvm.org/sites/default/files/boc_{date}{suffix}.pdf"
-USER_AGENT = "AfriTerminal-backfill/1.0 (usage interne, projet non commercial)"
+USER_AGENT = "WARIBA-backfill/1.0 (usage interne, projet non commercial)"
 
 
 def fetch_pdf(d: date, dest: Path) -> bool:

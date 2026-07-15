@@ -1,10 +1,10 @@
-# AfriTerminal — plan Comptes, Onboarding & Écrans d'accueil (app + web)
+# WARIBA — plan Comptes, Onboarding & Écrans d'accueil (app + web)
 
-Statut : **Phase A livrée le 2026-07-13** — signature d'ouverture animée
-(mobile), onboarding première ouverture avec mode débutant (mobile),
-bannière de bienvenue + visite guidée 4 étapes (web). Phases B→F (comptes,
-synchro) non commencées : elles shippent ensemble, jamais partiellement.
-Rédigé le 2026-07-13, à la suite de la revue 22 rôles.
+Statut : **Phases A→F implémentées et identité WARIBA 2026 livrée le
+2026-07-15** — onboarding, auth web/mobile, RLS, API de synchronisation,
+suppression de compte, confidentialité, icônes et splash. Supabase et le
+runtime Node sont actifs sur `wariba.app` ; OAuth, paiement store, builds
+signés et QA physique restent des gates externes.
 
 Ce document couvre quatre chantiers demandés ensemble parce qu'ils forment
 un seul parcours utilisateur : **écran de démarrage animé → première
@@ -25,9 +25,8 @@ application**. Il s'applique à l'app mobile (Expo) et au site web (Next.js).
    portefeuille et alertes sont chiffrés en transit et stockés dans votre
    espace privé ». Réglages, page Statut et README doivent être mis à jour
    le jour du lancement — c'est un gate de release (rôle 10, Sécurité).
-3. **Pas de contrôle qui ment** (rôle 2, PM) : tant que le backend n'est
-   pas en production, aucun écran de login ne ship. Ce plan s'exécute en
-   entier ou pas du tout par phase.
+3. **Pas de contrôle qui ment** (rôle 2, PM) : les actions compte restent
+   désactivées si les variables publiques Supabase du build sont absentes.
 4. **Les cours restent publics.** L'authentification ne protège que les
    données *de l'utilisateur*, jamais les données de marché.
 
@@ -35,15 +34,15 @@ application**. Il s'applique à l'app mobile (Expo) et au site web (Next.js).
 
 **Backend : Supabase** (Auth + Postgres + Row Level Security).
 
-Pourquoi : le site est un export statique GitHub Pages (pas de serveur à
-nous), l'app est Expo — `supabase-js` fonctionne dans les deux sans
-backend intermédiaire ; RLS donne l'isolation par utilisateur sans écrire
-d'API ; le tier gratuit couvre largement un MVP ; c'est la stack déjà
-maîtrisée (cf. règles LoopGuard du poste de travail).
+Le site utilise maintenant un runtime Next.js Node : les clients Supabase
+gèrent la session, tandis que les routes `/api/v1/*` centralisent validation,
+limites de forfait, suppression et synchronisation. RLS reste la barrière
+de propriété finale. GitHub Pages ne publie plus que les JSON publics pour
+l'app mobile.
 
-- **Web** : `@supabase/supabase-js` + `@supabase/ssr` n'est pas nécessaire
-  (site statique) — session en `localStorage`, clé `anon` publique (c'est
-  son rôle), RLS comme seule barrière. Aucune clé service côté client.
+- **Web** : `@supabase/supabase-js` + `@supabase/ssr`, clé publishable côté
+  client, cookies rafraîchis par middleware et validation du Bearer token
+  dans chaque route API. Aucune clé service côté client.
 - **Mobile** : `supabase-js` avec adaptateur de stockage
   **expo-secure-store** (réintroduit ici — il avait été retiré car
   inutilisé) pour le refresh token ; AsyncStorage interdit pour les tokens.
@@ -59,13 +58,9 @@ maîtrisée (cf. règles LoopGuard du poste de travail).
 ### Modèle de données (Postgres, RLS `user_id = auth.uid()` partout)
 
 ```
-profiles        id (= auth.users.id), display_name, experience_level
-                ('debutant'|'intermediaire'|'avance'), created_at
-sync_watchlist  user_id, ticker, added_at            — PK (user_id, ticker)
-sync_txns       user_id, id (client), ticker, side, date, quantity,
-                price, fees, updated_at              — PK (user_id, id)
-sync_alerts     user_id, id (client), ticker, direction, target,
-                enabled, triggered_at, updated_at    — PK (user_id, id)
+profiles, watchlists, watchlist_items, portfolio_transactions,
+price_alerts, saved_filters, user_preferences, device_push_tokens,
+subscriptions, entitlements, billing_webhook_events
 ```
 
 - **Stratégie de synchro : last-write-wins par enregistrement**
@@ -98,14 +93,12 @@ Objectif : 1,8 s de signature visuelle, jamais une attente ajoutée.
 
 **Séquence** (Reanimated 4, thread UI, après le splash natif statique) :
 
-1. **0 → 400 ms** — le monogramme « A » ambre (déjà l'identité des
-   Réglages) se dessine au centre sur fond `#09090b` (stroke animé Skia,
-   déjà dans les deps).
-2. **400 → 900 ms** — trois chandelles miniatures (verte, rouge, verte)
-   poussent sous le monogramme, en écho au produit ; léger overshoot
-   `withSpring`.
-3. **900 → 1300 ms** — le wordmark « Afri**Terminal** » (Terminal en
-   ambre) glisse en fondu ; tagline « La BRVM, lisible. ».
+1. **0 → 450 ms** — le W-signal jade se trace au centre sur fond
+   obsidienne `#06110d` avec Skia.
+2. **420 → 780 ms** — le point-origine or apparaît au sommet du signal,
+   avec un overshoot très court.
+3. **700 → 1200 ms** — le wordmark espacé « WARIBA » glisse en fondu ;
+   tagline « LA BRVM, CLAIREMENT. ».
 4. **1300 → 1800 ms** — fondu vers l'écran d'accueil ; pendant toute la
    séquence, `fetchMarketPayload()` tourne déjà en tâche de fond — si les
    données arrivent avant la fin, on n'attend pas une frame de plus.
@@ -116,23 +109,23 @@ animée est prête (pas de flash blanc) ; si `AccessibilityInfo
 rejoue qu'au lancement à froid, jamais au retour au premier plan.
 
 **Web** : version discrète — pas de splash bloquant. Le hero de la page
-d'accueil gagne la même signature (monogramme + chandelles en SVG animé
+d'accueil gagne la même signature (W-signal + point-origine en SVG animé
 CSS ≤ 1 s, `prefers-reduced-motion` respecté), et sert aussi de hero aux
 pages `/connexion` et `/inscription`.
 
 ## 4. Première ouverture — onboarding débutant
 
-Détection : clé persistée `afriterminal-onboarding` (version du flux
+Détection : version persistée dans les réglages locaux (version du flux
 incluse, pour pouvoir re-présenter un onboarding enrichi plus tard).
 
 **Flux mobile (3 écrans + 1 question, tous passables via « Passer ») :**
 
 | # | Écran | Contenu |
 |---|---|---|
-| 1 | « La BRVM, lisible » | Chandelles animées + une vraie donnée du jour (ex. indice composite) — on montre le produit, pas une illustration générique. |
-| 2 | « Suivez ce qui compte » | Watchlist + alertes de prix, mention honnête : « alertes évaluées sur le cours officiel de clôture ». |
-| 3 | « Vos données, votre appareil » | La promesse de confidentialité, l'export/restauration, et l'annonce du compte optionnel. |
-| 4 | « Votre niveau ? » | Débutant / Intermédiaire / Avancé (un tap, modifiable dans Réglages). |
+| 1 | « La BRVM devient une décision » | Vraie donnée du BRVM Composite et signal de marché. |
+| 2 | « Suivez moins. Comprenez mieux. » | Watchlist, portefeuille et alertes sur clôture officielle. |
+| 3 | « Votre espace reste le vôtre » | Mode invité local et synchronisation chiffrée opt-in. |
+| 4 | « Commencez à votre rythme » | Niveau Guidé/Investisseur/Expert, puis boutons Créer un compte, Se connecter et Explorer sans compte. |
 
 **Le choix « Débutant » active le mode débutant** (persisté dans
 `useSettingsStore.experienceLevel`) :
@@ -154,9 +147,10 @@ visite : bannière discrète « Nouveau sur la BRVM ? Visite guidée de
 
 ## 5. Création de compte & connexion — spécification visuelle
 
-Même langage des deux côtés : fond `#09090b`, surfaces `#111113`, accent
-ambre `#e2a63d`, vert/rouge marché, `tabular-nums` partout où un chiffre
-apparaît. L'écran d'auth doit ressembler à AfriTerminal, pas à un template.
+Même langage des deux côtés : fond obsidienne `#06110d`, surfaces végétales
+`#0a1812` / `#10241a`, signal jade `#34d98f`, point or `#f4c96b`,
+vert/rouge marché et `tabular-nums` partout où un chiffre
+apparaît. L'écran d'auth doit ressembler à WARIBA, pas à un template.
 
 **Structure (mobile `app/(auth)/…`, web `/inscription` & `/connexion`) :**
 
@@ -185,20 +179,20 @@ visibles au clavier (web), labels toujours visibles (pas de placeholder
 seul), `textContentType`/`autocomplete` corrects pour les gestionnaires de
 mots de passe, VoiceOver/TalkBack : chaque champ et erreur annoncés.
 
-**Points d'entrée du compte** (jamais de mur) : Réglages > « Compte »,
-et une invite contextuelle unique après la première action qui gagnerait
-à être synchronisée (ex. 5ᵉ valeur en watchlist) — refusable et non répétée.
+**Points d'entrée du compte** (jamais de mur) : boutons Connexion/Inscription
+permanents dans le header web ; onboarding mobile ; bandeau de l'accueil
+mobile ; écran Plus ; Réglages > Compte. L'invite reste refusable.
 
 ## 6. Découpage en phases
 
 | Phase | Contenu | Estimation |
 |---|---|---|
 | A | ✅ Livrée (2026-07-13) — splash animé mobile (Skia + Reanimated, reduced-motion), onboarding 3 écrans + niveau, mode débutant (lexique, graphique épuré, pédagogie PRU), signature SVG + visite guidée web | 1 semaine |
-| B | Projet Supabase : schéma, RLS, validation partagée `packages/core/validation.ts`, tests d'intégration | 3-4 jours |
-| C | Écrans auth mobile (`app/(auth)`) : inscription, OTP, connexion, mot de passe oublié, suppression de compte | 1 semaine |
-| D | Pages auth web + visite guidée web | 4-5 jours |
-| E | Synchro watchlist/portefeuille/alertes (module pur + tests, migration opt-in, résolution LWW) | 1,5 semaine |
-| F | Mise à jour de toute la copy confidentialité + docs + politique de confidentialité hébergée ; gates ship-readiness | 2 jours |
+| B | ✅ Migration Supabase, contraintes, RLS, entitlements et validation partagée | Implémentée ; application staging en attente |
+| C | ✅ Auth mobile : email/mot de passe, OTP, Apple, Google, compte/suppression | Implémentée ; credentials/build signé en attente |
+| D | ✅ Auth web : connexion, inscription, callback et espace compte | Runtime production actif sur wariba.app ; callback OAuth à prouver |
+| E | ✅ Synchro opt-in watchlists/portefeuille/alertes/filtres/préférences + LWW | Implémentée ; test multi-appareils en attente |
+| F | ✅ Confidentialité, conditions, support, pricing et gates | Implémentée ; URLs hébergées en attente |
 
 **Ordre imposé** : A peut shipper seule (elle améliore l'app sans compte).
 B→C→D→E shippent *ensemble* (principe 3). F est un gate bloquant de E.

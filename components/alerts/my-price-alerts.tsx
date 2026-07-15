@@ -8,8 +8,8 @@ import {
   usePriceAlertsHydrated,
 } from "@/hooks/use-price-alerts";
 import { getSnapshot } from "@/lib/data";
-import { fcfa } from "@afriterminal/core/format";
-import { cn } from "@afriterminal/core/utils";
+import { fcfa } from "@wariba/core/format";
+import { cn } from "@wariba/core/utils";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 
@@ -38,7 +38,7 @@ export function MyPriceAlerts() {
             {hits > 0 ? <Badge tone="positive">{hits} franchie{hits > 1 ? "s" : ""}</Badge> : null}
           </span>
         }
-        subtitle="Seuils personnels, vérifiés à chaque ouverture contre le dernier cours officiel — stockés dans ce navigateur, sans e-mail ni push"
+        subtitle="Seuils personnels vérifiés localement et, après synchronisation du compte, par le serveur de notifications."
       />
       <CardBody className="space-y-1.5">
         {evaluated.map((a) => (
@@ -60,6 +60,8 @@ export function MyPriceAlerts() {
             <span className="num text-ink-2">seuil {fcfa(a.threshold)}</span>
             <span className="num text-ink-3">cours {fcfa(a.last)}</span>
             {a.hit ? <Badge tone="positive">Franchi</Badge> : null}
+            {a.channels?.includes("email") ? <Badge tone="neutral">E-mail</Badge> : null}
+            {a.channels?.includes("push") ? <Badge tone="neutral">Push</Badge> : null}
             <button
               onClick={() => remove(a.id)}
               aria-label="Supprimer cette alerte"

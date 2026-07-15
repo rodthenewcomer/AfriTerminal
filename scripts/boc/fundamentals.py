@@ -48,7 +48,7 @@ import pdfplumber
 from parse_fundamentals_bank import extract as extract_bank, extract_columns
 from parse_fundamentals_syscohada import extract as extract_syscohada
 
-USER_AGENT = "AfriTerminal-fundamentals/1.0 (usage interne, projet non commercial)"
+USER_AGENT = "WARIBA-fundamentals/1.0 (usage interne, projet non commercial)"
 BASE = "https://www.brvm.org/sites/default/files"
 
 # unit = valeur d'1 unité du document en FCFA ; les sorties de

@@ -11,8 +11,8 @@ import {
   createChart,
   type Time,
 } from "lightweight-charts";
-import type { PortfolioTransaction } from "@afriterminal/core/portfolio";
-import { portfolioValueSeries } from "@afriterminal/core/portfolio";
+import type { PortfolioTransaction } from "@wariba/core/portfolio";
+import { portfolioValueSeries } from "@wariba/core/portfolio";
 import {
   realDailyClosesSince,
   realIndexDailyClosesSince,

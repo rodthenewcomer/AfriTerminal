@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Canvas, Path, Skia } from "@shopify/react-native-skia";
-import { pct } from "@afriterminal/core/format";
+import { pct } from "@wariba/core/format";
 import { colors, tabular, type } from "../theme";
 
 export interface DonutSlice {

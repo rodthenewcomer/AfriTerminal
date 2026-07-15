@@ -119,7 +119,7 @@ describe("parseBackupPayload", () => {
 
   it("accepte une sauvegarde du site web (portfolio + watchlists.lists)", () => {
     const web = JSON.stringify({
-      app: "AfriTerminal",
+      app: "WARIBA",
       version: 1,
       portfolio: [{ id: "t1", ticker: "SNTS", side: "achat", date: "2026-01-05", quantity: 10, price: 25000 }],
       watchlists: { lists: [{ id: "default", name: "Ma watchlist", tickers: ["SNTS", "PALC"] }], activeId: "default" },

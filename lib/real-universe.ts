@@ -1,5 +1,5 @@
-import type { Country, RealQuote, Sector, StockSnapshot } from "@afriterminal/core/types";
-import { companyProfile } from "@afriterminal/core/company-profiles";
+import type { Country, RealQuote, Sector, StockSnapshot } from "@wariba/core/types";
+import { companyProfile } from "@wariba/core/company-profiles";
 
 /**
  * Nomenclature secteur du bulletin officiel (BOC) → libellés de l'app.

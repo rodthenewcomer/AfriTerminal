@@ -6,7 +6,6 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withDelay,
-  withSpring,
   withTiming,
   type SharedValue,
 } from "react-native-reanimated";
@@ -21,50 +20,15 @@ import { colors, tabular } from "../theme";
  * Avec « réduire les animations », la séquence saute au fondu final.
  */
 
-const MONOGRAM_SIZE = 108;
-const A_OUTLINE = "M 22 88 L 50 14 L 78 88";
-const A_BAR = "M 34 63 L 66 63";
-
-const CANDLES = [
-  { body: 22, wick: 34, up: true, delay: 420 },
-  { body: 30, wick: 46, up: false, delay: 540 },
-  { body: 38, wick: 56, up: true, delay: 660 },
-] as const;
-
-function Candle({ body, wick, up, delay, reduceMotion }: {
-  body: number;
-  wick: number;
-  up: boolean;
-  delay: number;
-  reduceMotion: boolean;
-}) {
-  const progress = useSharedValue(reduceMotion ? 1 : 0);
-  useEffect(() => {
-    if (!reduceMotion) progress.value = withDelay(delay, withSpring(1, { damping: 13, stiffness: 150 }));
-  }, [delay, progress, reduceMotion]);
-  // Croissance depuis la base : scaleY compensé pour ancrer le bas.
-  const style = useAnimatedStyle(() => ({
-    opacity: Math.min(1, progress.value * 2),
-    transform: [
-      { translateY: ((1 - progress.value) * wick) / 2 },
-      { scaleY: progress.value },
-    ],
-  }));
-  const color = up ? colors.up : colors.down;
-  return (
-    <Animated.View style={[styles.candle, { height: wick }, style]}>
-      <View style={[styles.wick, { backgroundColor: color, height: wick }]} />
-      <View style={[styles.body, { backgroundColor: color, height: body }]} />
-    </Animated.View>
-  );
-}
+const MONOGRAM_SIZE = 180;
+const W_SIGNAL = "M 18 28 L 54 108 L 90 62 L 126 108 L 162 28";
 
 export function StartAnimation({ reduceMotion, onDone }: {
   reduceMotion: boolean;
   onDone: () => void;
 }) {
   const draw = useSharedValue(reduceMotion ? 1 : 0);
-  const bar = useSharedValue(reduceMotion ? 1 : 0);
+  const dot = useSharedValue(reduceMotion ? 1 : 0);
   const text = useSharedValue(reduceMotion ? 1 : 0);
   const veil = useSharedValue(1);
 
@@ -72,55 +36,46 @@ export function StartAnimation({ reduceMotion, onDone }: {
     const holdBeforeFade = reduceMotion ? 420 : 1450;
     if (!reduceMotion) {
       draw.value = withTiming(1, { duration: 450, easing: Easing.out(Easing.cubic) });
-      bar.value = withDelay(280, withTiming(1, { duration: 300, easing: Easing.out(Easing.cubic) }));
-      text.value = withDelay(880, withTiming(1, { duration: 350, easing: Easing.out(Easing.quad) }));
+      dot.value = withDelay(420, withTiming(1, { duration: 360, easing: Easing.out(Easing.back(1.7)) }));
+      text.value = withDelay(700, withTiming(1, { duration: 380, easing: Easing.out(Easing.quad) }));
     }
     veil.value = withDelay(holdBeforeFade, withTiming(0, { duration: 350 }, (finished) => {
       if (finished) runOnJS(onDone)();
     }));
-  }, [bar, draw, onDone, reduceMotion, text, veil]);
+  }, [dot, draw, onDone, reduceMotion, text, veil]);
 
   const veilStyle = useAnimatedStyle(() => ({ opacity: veil.value }));
   const textStyle = useAnimatedStyle(() => ({
     opacity: text.value,
     transform: [{ translateY: (1 - text.value) * 8 }],
   }));
+  const dotStyle = useAnimatedStyle(() => ({
+    opacity: dot.value,
+    transform: [{ scale: 0.4 + dot.value * 0.6 }],
+  }));
 
   return (
-    <Animated.View style={[styles.screen, veilStyle]} accessibilityLabel="AfriTerminal — la BRVM, lisible">
+    <Animated.View style={[styles.screen, veilStyle]} accessibilityLabel="WARIBA — la BRVM, clairement">
+      <View style={styles.ambientOne} />
+      <View style={styles.ambientTwo} />
       <View style={styles.stage}>
         <Canvas style={styles.monogram}>
           <Path
-            path={A_OUTLINE}
+            path={W_SIGNAL}
             style="stroke"
-            strokeWidth={9}
+            strokeWidth={11}
             strokeCap="round"
             strokeJoin="round"
             color={colors.accent}
             start={0}
             end={draw as SharedValue<number>}
           />
-          <Path
-            path={A_BAR}
-            style="stroke"
-            strokeWidth={9}
-            strokeCap="round"
-            color={colors.accent}
-            start={0}
-            end={bar as SharedValue<number>}
-          />
         </Canvas>
-        <View style={styles.candles}>
-          {CANDLES.map((candle) => (
-            <Candle key={candle.delay} {...candle} reduceMotion={reduceMotion} />
-          ))}
-        </View>
+        <Animated.View style={[styles.signalDot, dotStyle]}><View style={styles.signalCore} /></Animated.View>
       </View>
       <Animated.View style={[styles.copy, textStyle]}>
-        <Text style={styles.wordmark}>
-          Afri<Text style={styles.wordmarkAccent}>Terminal</Text>
-        </Text>
-        <Text style={styles.tagline}>La BRVM, lisible.</Text>
+        <Text style={styles.wordmark}>WARIBA</Text>
+        <Text style={styles.tagline}>LA BRVM, CLAIREMENT.</Text>
       </Animated.View>
     </Animated.View>
   );
@@ -131,17 +86,16 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     alignItems: "center",
     justifyContent: "center",
-    gap: 26,
+    gap: 18,
     backgroundColor: colors.background,
   },
-  stage: { flexDirection: "row", alignItems: "flex-end", gap: 18 },
+  ambientOne: { position: "absolute", width: 340, height: 340, borderRadius: 170, borderWidth: 1, borderColor: "rgba(52,217,143,0.08)" },
+  ambientTwo: { position: "absolute", width: 240, height: 240, borderRadius: 120, borderWidth: 1, borderColor: "rgba(244,201,107,0.06)" },
+  stage: { width: MONOGRAM_SIZE, height: MONOGRAM_SIZE, alignItems: "center", justifyContent: "center" },
   monogram: { width: MONOGRAM_SIZE, height: MONOGRAM_SIZE },
-  candles: { flexDirection: "row", alignItems: "flex-end", gap: 9, paddingBottom: 13 },
-  candle: { width: 11, alignItems: "center", justifyContent: "flex-end" },
-  wick: { position: "absolute", bottom: 0, width: 2, borderRadius: 1, opacity: 0.55 },
-  body: { width: 11, borderRadius: 3 },
+  signalDot: { position: "absolute", right: 6, top: 21, width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center", backgroundColor: colors.gold },
+  signalCore: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#FFF4C8" },
   copy: { alignItems: "center", gap: 7 },
-  wordmark: { color: colors.ink, fontSize: 27, fontWeight: "800", letterSpacing: -0.6 },
-  wordmarkAccent: { color: colors.accent },
-  tagline: { color: colors.ink3, fontSize: 13, fontWeight: "500", letterSpacing: 0.2, fontVariant: tabular },
+  wordmark: { color: colors.ink, fontSize: 29, fontWeight: "900", letterSpacing: 5.5 },
+  tagline: { color: colors.ink3, fontSize: 10.5, fontWeight: "700", letterSpacing: 2.2, fontVariant: tabular },
 });

@@ -6,13 +6,13 @@ import { REAL_ALERTS } from "@/lib/real-alerts";
 import { REAL_DOCUMENTS } from "@/lib/real-documents";
 import { latestNews, newsDate } from "@/lib/news";
 import fundamentalsJson from "@/data/real/fundamentals.json";
-import { dateFr } from "@afriterminal/core/format";
+import { dateFr } from "@wariba/core/format";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 
 export const metadata: Metadata = {
   title: "Statut des données",
   description:
-    "Fraîcheur et provenance de chaque source de données d'AfriTerminal : bulletins officiels BRVM, indices, actualités, fondamentaux, documents.",
+    "Fraîcheur et provenance de chaque source de données d'WARIBA : bulletins officiels BRVM, indices, actualités, fondamentaux, documents.",
 };
 
 /** Figé au build : le site étant statique, cette date EST celle du dernier déploiement. */
@@ -106,7 +106,7 @@ export default function StatusPage() {
             Si un cours, un dividende ou un chiffre vous semble faux,
             signalez-le :{" "}
             <a
-              href="https://github.com/rodthenewcomer/AfriTerminal/issues/new"
+              href="https://github.com/rodthenewcomer/WARIBA/issues/new"
               target="_blank"
               rel="noopener noreferrer"
               className="text-accent underline hover:no-underline"

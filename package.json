@@ -1,5 +1,5 @@
 {
-  "name": "afriterminal",
+  "name": "wariba",
   "version": "0.1.0",
   "private": true,
   "workspaces": [
@@ -10,20 +10,28 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p apps/mobile/tsconfig.json",
     "test": "vitest run",
     "audit:prod": "npm audit --omit=dev --audit-level=high"
   },
   "dependencies": {
+    "@wariba/core": "*",
+    "@supabase/ssr": "0.10.0",
+    "@supabase/supabase-js": "2.100.1",
     "clsx": "^2.1.1",
+    "expo-server-sdk": "6.1.0",
     "lightweight-charts": "^5.0.8",
     "lucide-react": "^0.525.0",
     "next": "^15.4.5",
     "next-themes": "^0.4.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "resend": "6.17.2",
+    "stripe": "^22.3.1",
     "tailwind-merge": "^3.3.1",
-    "zustand": "^5.0.6",
-    "@afriterminal/core": "*"
+    "zod": "^4.4.3",
+    "zustand": "^5.0.6"
   },
   "overrides": {
     "postcss": "8.5.16",
@@ -34,6 +42,9 @@
     "@types/node": "^24",
     "@types/react": "~19.1.10",
     "@types/react-dom": "~19.1.7",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^15.5.20",
+    "expo": "54.0.36",
     "puppeteer-core": "^24.43.1",
     "tailwindcss": "^4.1.11",
     "typescript": "^5",

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { dateFr, fcfa } from "@afriterminal/core/format";
+import { dateFr, fcfa } from "@wariba/core/format";
 import { ActionButton, EmptyState, Page, Row, Section } from "../src/components/ui";
 import { useMarketData } from "../src/providers/MarketDataProvider";
 import { allDividendEvents, dividendsByMonth, isRecurring } from "../src/lib/dividend-calendar";

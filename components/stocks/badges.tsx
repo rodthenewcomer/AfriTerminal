@@ -1,6 +1,6 @@
-import { cn } from "@afriterminal/core/utils";
-import { pct } from "@afriterminal/core/format";
-import type { Signal } from "@afriterminal/core/types";
+import { cn } from "@wariba/core/utils";
+import { pct } from "@wariba/core/format";
+import type { Signal } from "@wariba/core/types";
 import { Badge } from "@/components/ui/badge";
 
 export function PriceChange({

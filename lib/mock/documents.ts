@@ -1,4 +1,4 @@
-import type { DocItem } from "@afriterminal/core/types";
+import type { DocItem } from "@wariba/core/types";
 
 // basis: "réel" = chiffres cohérents avec data/real/snapshot.json (vérifié
 // 2026-07-08). basis: "illustratif" = scénario construit sur des

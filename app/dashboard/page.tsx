@@ -19,7 +19,7 @@ import { MarketMap } from "@/components/markets/market-map";
 import { SectorPerformance } from "@/components/markets/sector-performance";
 import { latestNews, newsDate } from "@/lib/news";
 import { latestNotices } from "@/lib/real-operations";
-import { dateFr, fcfa, num, pct } from "@afriterminal/core/format";
+import { dateFr, fcfa, num, pct } from "@wariba/core/format";
 import { Sparkline } from "@/components/charts/sparkline";
 import { PriceChange, SignalBadges } from "@/components/stocks/badges";
 import { AlertCard } from "@/components/alerts/alert-card";

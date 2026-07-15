@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { cn } from "@afriterminal/core/utils";
+import { cn } from "@wariba/core/utils";
 import { Term } from "@/components/ui/term";
 
 export function MetricCard({

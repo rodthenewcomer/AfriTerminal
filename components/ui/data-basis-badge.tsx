@@ -1,4 +1,4 @@
-import type { ContentBasis } from "@afriterminal/core/types";
+import type { ContentBasis } from "@wariba/core/types";
 import { Badge } from "@/components/ui/badge";
 import { InfoHint } from "@/components/ui/info-hint";
 

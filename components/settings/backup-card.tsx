@@ -44,7 +44,7 @@ export function BackupCard() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `afriterminal-sauvegarde-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `wariba-sauvegarde-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
     setMessage({ tone: "ok", text: "Sauvegarde téléchargée." });

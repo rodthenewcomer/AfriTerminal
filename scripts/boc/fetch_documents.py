@@ -23,7 +23,7 @@ import time
 import urllib.request
 from pathlib import Path
 
-USER_AGENT = "AfriTerminal-documents/1.0 (agrégateur non commercial, liens vers la source)"
+USER_AGENT = "WARIBA-documents/1.0 (agrégateur non commercial, liens vers la source)"
 BASE = "https://www.brvm.org"
 MAX_PER_COMPANY = 8
 

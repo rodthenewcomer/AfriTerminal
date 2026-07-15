@@ -34,7 +34,7 @@ import urllib.request
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
-USER_AGENT = "AfriTerminal-freshness/1.0 (usage interne, projet non commercial)"
+USER_AGENT = "WARIBA-freshness/1.0 (usage interne, projet non commercial)"
 BULLETIN_URLS = [
     "https://www.brvm.org/sites/default/files/boc_{ymd}_2.pdf",
     "https://www.brvm.org/sites/default/files/boc_{ymd}.pdf",

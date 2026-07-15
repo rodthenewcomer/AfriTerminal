@@ -1,4 +1,6 @@
-# Déploiement GitHub Pages du site statique Next.js.
+# Publication GitHub Pages des JSON publics consommés par l'app mobile.
+# L'application Next.js contient désormais Auth/API/Stripe et doit être
+# déployée sur un runtime Node (voir docs/server-deployment.md).
 #
 # Déclencheurs :
 # - push sur main (changements de code ou de données poussés à la main) ;
@@ -10,7 +12,7 @@
 # Le checkout se fait toujours sur la pointe de main (pas github.sha) :
 # quand ce workflow est appelé juste après un commit de données, ce
 # commit est plus récent que le SHA qui a déclenché le run planifié.
-name: deploy
+name: publish-mobile-data
 
 on:
   push:
@@ -26,52 +28,31 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: mobile-data-pages
   cancel-in-progress: false
 
 jobs:
-  build:
+  publish-data:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
       - name: Configurer GitHub Pages (activation auto au premier run)
         uses: actions/configure-pages@v5
         with:
           enablement: true
-      - run: npm ci
-      - name: Build statique (basePath /AfriTerminal pour Pages)
-        run: npm run build
-        env:
-          NEXT_PUBLIC_BASE_PATH: /AfriTerminal
       - name: Publier les artefacts JSON pour l'app mobile
-        # Copie de déploiement uniquement : data/ reste l'unique source de
-        # vérité et le site web ne change pas de comportement.
         run: |
           mkdir -p out/data
           cp -R data/real out/data/real
           cp -R data/news out/data/news
-      - name: Extension .png sur les images OG
-        # GitHub Pages sert les fichiers sans extension en
-        # application/octet-stream — les crawlers WhatsApp/X/Facebook
-        # exigent un content-type image/*. On renomme les fichiers
-        # générés par la convention opengraph-image et on réécrit
-        # leurs URLs dans le HTML et les payloads RSC (.txt).
-        run: |
-          find out -type f -name 'opengraph-image' -exec mv {} {}.png \;
-          find out -type f \( -name '*.html' -o -name '*.txt' \) \
-            -exec sed -i 's|/opengraph-image?|/opengraph-image.png?|g' {} +
       - uses: actions/upload-pages-artifact@v3
         with:
           path: out
 
   deploy:
-    needs: build
+    needs: publish-data
     runs-on: ubuntu-latest
     environment:
       name: github-pages

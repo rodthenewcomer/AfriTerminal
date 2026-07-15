@@ -21,13 +21,14 @@ import {
   Rocket,
   Settings,
 } from "lucide-react";
-import { cn } from "@afriterminal/core/utils";
+import { cn } from "@wariba/core/utils";
 import { LATEST_TRADING_DATE } from "@/lib/real-data";
-import { dateFr } from "@afriterminal/core/format";
+import { dateFr } from "@wariba/core/format";
 import { GlobalSearch, GlobalSearchDialog, useSearchOpen } from "./global-search";
 import { WelcomeTour } from "./welcome-tour";
 import { MarketStatusBadge } from "./market-status-badge";
 import { ThemeToggle } from "./theme-toggle";
+import { AccountControl } from "@/components/auth/account-control";
 
 const NAV = [
   { href: "/dashboard", label: "Accueil", icon: LayoutDashboard },
@@ -78,12 +79,15 @@ const TOUR_BY_HREF: Record<string, string> = {
 
 function Logo() {
   return (
-    <Link href="/dashboard" className="flex items-center gap-2.5 px-1">
-      <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-gold text-sm font-black text-white shadow-lg shadow-accent/20">
-        A
+    <Link href="/dashboard" aria-label="WARIBA — Accueil" className="group flex items-center gap-2.5 px-1">
+      <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-[10px] bg-[#071612] shadow-lg shadow-accent/15 ring-1 ring-white/10">
+        <svg viewBox="0 0 32 32" aria-hidden="true" className="h-7 w-7">
+          <path d="M5.4 8.4 10 23l6-9.4L22 23l4.6-14.6" fill="none" stroke="#31d690" strokeWidth="2.9" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="26.6" cy="8.4" r="1.7" fill="#f4c96b" />
+        </svg>
       </span>
-      <span className="text-[15px] font-bold tracking-tight text-ink">
-        Afri<span className="text-accent">Terminal</span>
+      <span className="text-[15px] font-extrabold tracking-[0.08em] text-ink transition-colors group-hover:text-accent">
+        WARIBA
       </span>
     </Link>
   );
@@ -92,6 +96,27 @@ function Logo() {
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
+  const isPublicFlow = ["/connexion", "/inscription", "/pricing", "/privacy", "/terms", "/support"].some(
+    (route) => pathname.startsWith(route)
+  );
+
+  if (isPublicFlow) {
+    return (
+      <div className="min-h-dvh bg-background">
+        <header className="border-b border-line bg-surface/70 backdrop-blur-xl">
+          <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
+            <Logo />
+            <nav className="flex items-center gap-1.5 text-xs font-semibold sm:gap-2">
+              <Link href="/pricing" className="hidden rounded-lg px-3 py-2 text-ink-2 hover:bg-surface-2 hover:text-ink sm:inline-flex">Tarifs</Link>
+              <Link href="/connexion" className="rounded-lg border border-line px-3 py-2 text-ink hover:border-accent/45">Connexion</Link>
+              <Link href="/inscription" className="rounded-lg bg-accent px-3 py-2 text-background shadow-lg shadow-accent/15 hover:brightness-110">Créer un compte</Link>
+            </nav>
+          </div>
+        </header>
+        {children}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-dvh">
@@ -143,10 +168,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             <GlobalSearch trigger="bar" />
           </div>
           <div className="flex-1 md:hidden" />
-          <div className="md:hidden" data-tour="search">
+          <div className="hidden sm:block md:hidden" data-tour="search">
             <GlobalSearch trigger="icon" />
           </div>
-          <MarketStatusBadge />
+          <div className="hidden sm:block"><MarketStatusBadge /></div>
           <Link
             href="/status"
             className="hidden whitespace-nowrap text-[11px] text-ink-3 hover:text-ink sm:inline"
@@ -157,12 +182,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link
             href="/alerts"
             aria-label="Alertes"
-            className="relative flex h-9 w-9 items-center justify-center rounded-lg text-ink-2 hover:bg-surface-2 hover:text-ink"
+            className="relative hidden h-9 w-9 items-center justify-center rounded-lg text-ink-2 hover:bg-surface-2 hover:text-ink sm:flex"
           >
             <Bell className="h-4 w-4" />
             <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-down" />
           </Link>
-          <ThemeToggle />
+          <div className="hidden md:block"><ThemeToggle /></div>
+          <AccountControl />
         </div>
       </header>
       <GlobalSearchDialog />

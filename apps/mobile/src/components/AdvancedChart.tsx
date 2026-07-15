@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { AccessibilityInfo, findNodeHandle, Modal, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import type { ChartType, IndicatorId, OHLCV } from "@afriterminal/core/types";
-import type { TimeValue } from "@afriterminal/core/indicators";
+import type { ChartType, IndicatorId, OHLCV } from "@wariba/core/types";
+import type { TimeValue } from "@wariba/core/indicators";
 import {
   calculateATR, calculateBollingerBands, calculateEMA, calculateHeikinAshi,
   calculateMACD, calculateRSI, calculateSMA, calculateStochastic, calculateVWAP,
-} from "@afriterminal/core/indicators";
+} from "@wariba/core/indicators";
 import { WebChart, type WebChartHandle, type WebChartMarker, type WebChartOverlay, type WebChartPanes, type WebChartPayload } from "./chart/WebChart";
 import { ActionButton, SegmentedTabs } from "./ui";
 import { useChartLevelStore, useChartStore } from "../stores";
@@ -73,6 +73,7 @@ export function AdvancedChart({
   events?: WebChartMarker[];
 }) {
   const chartRef = useRef<WebChartHandle>(null);
+  const closeRef = useRef<View>(null);
   const [showIndicators, setShowIndicators] = useState(false);
   const [levelMode, setLevelMode] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
@@ -143,12 +144,22 @@ export function AdvancedChart({
 
   const paneCount = ["rsi", "macd", "atr", "stoch"].filter((id) => indicators.includes(id as IndicatorId)).length;
   const height = 400 + paneCount * 90;
+  const chartSummary = useMemo(() => {
+    if (!visible.length) return `Graphique ${ticker}, aucune donnée sur la période.`;
+    const first = visible[0].close;
+    const last = visible[visible.length - 1].close;
+    const high = Math.max(...visible.map((bar) => bar.high));
+    const low = Math.min(...visible.map((bar) => bar.low));
+    const change = first > 0 ? ((last - first) / first) * 100 : 0;
+    return `Graphique ${ticker}, ${visible.length} séances. Dernière clôture ${last.toLocaleString("fr-FR")} FCFA, variation ${change.toLocaleString("fr-FR", { maximumFractionDigits: 2 })} %, plus haut ${high.toLocaleString("fr-FR")}, plus bas ${low.toLocaleString("fr-FR")}.`;
+  }, [ticker, visible]);
 
   const rangeChips = <SegmentedTabs tabs={RANGES} active={range} onChange={setRange} />;
 
   return (
     <View style={styles.root}>
       {rangeChips}
+      <Text accessibilityRole="summary" style={styles.chartSummary}>{chartSummary}</Text>
       <WebChart ref={chartRef} payload={payload} height={height} onLevelTap={(price) => toggleLevel(ticker, price)} />
       {levelMode ? <Text style={styles.levelHint}>Touchez le graphique pour poser ou retirer un niveau de prix.</Text> : null}
       <SegmentedTabs tabs={TYPES} active={chartType} onChange={setType} />
@@ -166,11 +177,19 @@ export function AdvancedChart({
         </ScrollView>
       ) : null}
 
-      <Modal visible={fullscreen} animationType="fade" onRequestClose={() => setFullscreen(false)}>
-        <View style={[styles.fullscreen, { paddingTop: insets.top + 6, paddingBottom: insets.bottom + 10 }]}>
+      <Modal
+        visible={fullscreen}
+        animationType="fade"
+        onShow={() => {
+          const node = findNodeHandle(closeRef.current);
+          if (node) AccessibilityInfo.setAccessibilityFocus(node);
+        }}
+        onRequestClose={() => setFullscreen(false)}
+      >
+        <View accessibilityViewIsModal style={[styles.fullscreen, { paddingTop: insets.top + 6, paddingBottom: insets.bottom + 10 }]}>
           <View style={styles.fullscreenHeader}>
             <Text style={styles.fullscreenTitle}>{ticker}</Text>
-            <Pressable onPress={() => setFullscreen(false)} hitSlop={10} style={styles.closeButton}>
+            <Pressable ref={closeRef} accessibilityRole="button" accessibilityLabel="Fermer le graphique plein écran" onPress={() => setFullscreen(false)} style={styles.closeButton}>
               <Ionicons name="close" size={20} color={colors.ink} />
             </Pressable>
           </View>
@@ -194,11 +213,12 @@ const styles = StyleSheet.create({
   toolbar: { gap: 7 },
   actions: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
   levelHint: { ...type.caption, color: colors.accent },
+  chartSummary: { ...type.caption, color: colors.ink2 },
   fullscreen: { flex: 1, backgroundColor: colors.background, paddingHorizontal: 12, gap: 10 },
   fullscreenHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   fullscreenTitle: { ...type.title, fontSize: 17 },
   closeButton: {
-    width: 34, height: 34, alignItems: "center", justifyContent: "center",
-    borderRadius: 17, backgroundColor: colors.surface2,
+    width: 48, height: 48, alignItems: "center", justifyContent: "center",
+    borderRadius: 24, backgroundColor: colors.surface2,
   },
 });

@@ -11,11 +11,10 @@ export interface PriceAlert {
   /** Seuil en FCFA */
   threshold: number;
   createdAt: string;
+  channels?: ("in_app" | "push" | "email")[];
 }
 
-/** Une alerte est déclenchée quand le dernier cours officiel franchit le
- * seuil. Évaluée à l'ouverture de l'app (site statique : pas de push —
- * dit explicitement dans l'UI). */
+/** Une alerte est déclenchée quand le dernier cours officiel franchit le seuil. */
 export function isTriggered(alert: PriceAlert, lastClose: number): boolean {
   return alert.direction === "above"
     ? lastClose >= alert.threshold

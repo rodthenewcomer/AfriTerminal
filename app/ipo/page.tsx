@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { IPOS } from "@/lib/mock/ipos";
 import { CAPITAL_OPERATIONS, MARKET_NOTICES } from "@/lib/real-operations";
-import { dateFr } from "@afriterminal/core/format";
+import { dateFr } from "@wariba/core/format";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody } from "@/components/ui/card";
 import { IPOCard } from "@/components/ipo/ipo-card";

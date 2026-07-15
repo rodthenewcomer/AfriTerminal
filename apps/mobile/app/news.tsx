@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { ActionButton, EmptyState, Page, Section } from "../src/components/ui";
 import { useMarketData } from "../src/providers/MarketDataProvider";
 import { colors, radius, type } from "../src/theme";
+import { openTrustedExternalUrl } from "../src/lib/external-links";
 
 export default function NewsScreen() {
   const market = useMarketData();
@@ -15,7 +16,7 @@ export default function NewsScreen() {
       <Section title="Actualités" detail={`${Math.min(limit, market.news.length)} sur ${market.news.length}`}>
         {market.news.length ? <>
           {market.news.slice(0, limit).map((item) => (
-            <Pressable key={item.link} onPress={() => void Linking.openURL(item.link)} style={({ pressed }) => [styles.article, pressed && { opacity: 0.6 }]}>
+            <Pressable key={item.link} onPress={() => void openTrustedExternalUrl(item.link)} style={({ pressed }) => [styles.article, pressed && { opacity: 0.6 }]}>
               <View style={styles.articleHeader}>
                 <Text style={styles.source}>{item.source}</Text>
                 <Text style={styles.date}>{item.publishedAt.slice(0, 10)}</Text>

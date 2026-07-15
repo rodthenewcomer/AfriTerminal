@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { Database, Eraser, Keyboard, Monitor, Moon, Sun, User } from "lucide-react";
-import { cn } from "@afriterminal/core/utils";
+import { cn } from "@wariba/core/utils";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Select } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,8 @@ import { useSavedFilters, useSavedFiltersHydrated } from "@/hooks/use-saved-filt
 import { usePriceAlerts, usePriceAlertsHydrated } from "@/hooks/use-price-alerts";
 import { useChartLevels, useChartLevelsHydrated } from "@/hooks/use-chart-levels";
 import { useChartPrefs, useChartPrefsHydrated } from "@/hooks/use-chart-prefs";
+import { useAuth } from "@/components/auth/auth-provider";
+import { useAnalytics } from "@/components/analytics/analytics-provider";
 
 function Toggle({
   checked,
@@ -88,14 +90,45 @@ function ResetRow({
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
+  const { session, user } = useAuth();
+  const { consent, saving: analyticsSaving, setConsent } = useAnalytics();
   const [mounted, setMounted] = useState(false);
   const [currency, setCurrency] = useState("FCFA");
   const [language, setLanguage] = useState("fr");
-  const [notifDocs, setNotifDocs] = useState(false);
-  const [notifPrice, setNotifPrice] = useState(false);
-  const [notifDividends, setNotifDividends] = useState(false);
+  const [emailNotifications, setEmailNotifications] = useState(false);
+  const [pushNotifications, setPushNotifications] = useState(false);
+  const [preferencesLoading, setPreferencesLoading] = useState(false);
+  const [preferencesError, setPreferencesError] = useState<string | null>(null);
   const [advanced, setAdvanced] = useState(false);
   useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    const token = session?.access_token;
+    if (!token) {
+      setEmailNotifications(false);
+      setPushNotifications(false);
+      return;
+    }
+    const controller = new AbortController();
+    setPreferencesLoading(true);
+    void fetch("/api/v1/me", {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: controller.signal,
+    }).then(async (response) => {
+      if (!response.ok) throw new Error("Préférences indisponibles");
+      const body = await response.json() as { profile?: { email_notifications?: boolean; push_notifications?: boolean } };
+      setEmailNotifications(body.profile?.email_notifications === true);
+      setPushNotifications(body.profile?.push_notifications === true);
+      setPreferencesError(null);
+    }).catch((error: unknown) => {
+      if (!(error instanceof DOMException && error.name === "AbortError")) {
+        setPreferencesError("Impossible de charger vos préférences de notification.");
+      }
+    }).finally(() => {
+      if (!controller.signal.aborted) setPreferencesLoading(false);
+    });
+    return () => controller.abort();
+  }, [session?.access_token]);
 
   const portfolioHydrated = usePortfolioHydrated();
   const clearPortfolio = usePortfolio((s) => s.replaceAll);
@@ -114,13 +147,32 @@ export default function SettingsPage() {
     if (window.confirm(question)) run();
   };
 
+  const updateEmailNotifications = async (enabled: boolean) => {
+    const token = session?.access_token;
+    if (!token) return;
+    setPreferencesLoading(true);
+    setPreferencesError(null);
+    try {
+      const response = await fetch("/api/v1/preferences", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ emailNotifications: enabled }),
+      });
+      if (!response.ok) throw new Error("Preference update failed");
+      setEmailNotifications(enabled);
+    } catch {
+      setPreferencesError("La préférence n'a pas pu être enregistrée. Réessayez.");
+    } finally {
+      setPreferencesLoading(false);
+    }
+  };
+
   return (
     <div className="stagger space-y-4">
       <div>
         <h1 className="text-xl font-bold tracking-tight text-ink">Réglages</h1>
         <p className="mt-1 text-sm text-ink-3">
-          Préférences d&apos;affichage et transparence sur les données —
-          aucune n&apos;exige de compte.
+          Affichage, notifications, confidentialité et données synchronisées.
         </p>
       </div>
 
@@ -133,12 +185,14 @@ export default function SettingsPage() {
             <User className="h-5 w-5" />
           </span>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-ink">Session locale</p>
+            <p className="text-sm font-semibold text-ink">{user?.email ?? "Session locale"}</p>
             <p className="text-xs text-ink-3">
-              Watchlists et filtres restent dans ce navigateur.
+              {user ? "Compte connecté : synchronisation et préférences privées disponibles." : "Connectez-vous pour synchroniser vos données et activer les notifications."}
             </p>
           </div>
-          <Badge tone="neutral">Public</Badge>
+          {user ? <Badge tone="positive">Connecté</Badge> : (
+            <Link href="/connexion" className="text-xs font-medium text-accent hover:underline">Se connecter</Link>
+          )}
         </CardBody>
       </Card>
 
@@ -237,30 +291,31 @@ export default function SettingsPage() {
       <Card>
         <CardHeader
           title="Notifications"
-          subtitle="À venir avec comptes utilisateur : aucun email ni push n'est envoyé aujourd'hui."
+          subtitle="Uniquement pour les alertes synchronisées dont le canal correspondant a été choisi."
         />
         <CardBody className="divide-y divide-line/60">
           <Toggle
-            checked={notifDocs}
-            onChange={setNotifDocs}
-            label="Nouveaux documents — à venir"
-            hint="Résultats, dividendes, AGO des valeurs suivies."
+            checked={emailNotifications}
+            onChange={(value) => void updateEmailNotifications(value)}
+            label="Alertes de prix par e-mail"
+            hint={user ? "Envoi après franchissement d'un seuil synchronisé avec le canal e-mail." : "Connexion requise."}
+            disabled={!user || preferencesLoading}
+          />
+          <Toggle
+            checked={pushNotifications}
+            onChange={() => undefined}
+            label="Notifications push mobiles"
+            hint={pushNotifications ? "Activées depuis un appareil iOS ou Android." : "À activer dans l'application mobile sur l'appareil concerné."}
             disabled
           />
           <Toggle
-            checked={notifPrice}
-            onChange={setNotifPrice}
-            label="Alertes de prix et de volume — à venir"
-            hint="Franchissements de seuils et volumes anormaux."
-            disabled
+            checked={consent === "granted"}
+            onChange={(value) => void setConsent(value).catch(() => setPreferencesError("Le consentement n'a pas pu être enregistré."))}
+            label="Mesure d'audience interne"
+            hint="Événements fonctionnels pseudonymisés, sans publicité ni IP stockée, supprimés après 90 jours."
+            disabled={analyticsSaving}
           />
-          <Toggle
-            checked={notifDividends}
-            onChange={setNotifDividends}
-            label="Rappel avant versement — à venir"
-            hint="La saisonnalité historique est déjà visible dans Calendrier des dividendes."
-            disabled
-          />
+          {preferencesError ? <p role="alert" className="py-2 text-xs font-medium text-down">{preferencesError}</p> : null}
         </CardBody>
       </Card>
 
@@ -358,7 +413,7 @@ export default function SettingsPage() {
       </div>
 
       <p className="text-[10px] text-ink-3">
-        AfriTerminal — version publique. Les informations présentées sont fournies à titre
+        WARIBA — version publique. Les informations présentées sont fournies à titre
         éducatif et informatif. Elles ne constituent pas un conseil en
         investissement.
       </p>

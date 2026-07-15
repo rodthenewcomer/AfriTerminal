@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { MarketMap } from "@/components/markets/market-map";
 import { LATEST_TRADING_DATE } from "@/lib/real-data";
-import { dateFr } from "@afriterminal/core/format";
+import { dateFr } from "@wariba/core/format";
 
 export const metadata: Metadata = {
   title: "Carte du marché",

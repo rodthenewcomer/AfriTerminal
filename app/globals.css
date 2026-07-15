@@ -3,33 +3,31 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* Neutres zinc + accent or/ambre — identité 2026 : un seul accent
-     de marque, surfaces pleines, zéro teinte bleue parasite. */
-  --background: #f4f4f5;
+  /* WARIBA 2026 : porcelaine, encre végétale, signal jade. */
+  --background: #f3f7f5;
   --surface: #ffffff;
-  --surface-2: #fafafa;
-  --line: rgba(24, 24, 27, 0.08);
-  --ink: #18181b;
-  --ink-2: #52525b;
-  /* zinc-500 : les petits libellés tertiaires passaient sous 3:1 sur blanc */
-  --ink-3: #71717a;
-  --accent: #a16207;
-  --gold: #8f6a1a;
+  --surface-2: #eaf2ee;
+  --line: rgba(6, 54, 37, 0.11);
+  --ink: #071a12;
+  --ink-2: #3c5c4f;
+  --ink-3: #627d71;
+  --accent: #08734c;
+  --gold: #9b6b09;
   --warn: #c2410c;
   --up: #15803d;
   --down: #dc2626;
 }
 
 .dark {
-  --background: #09090b;
-  --surface: #111113;
-  --surface-2: #18181b;
-  --line: rgba(255, 255, 255, 0.08);
-  --ink: #fafafa;
-  --ink-2: #a1a1aa;
-  --ink-3: #63636b;
-  --accent: #e2a63d;
-  --gold: #d2a13c;
+  --background: #06110d;
+  --surface: #0a1812;
+  --surface-2: #10241a;
+  --line: rgba(190, 255, 219, 0.09);
+  --ink: #f3faf6;
+  --ink-2: #a5baaf;
+  --ink-3: #718b7e;
+  --accent: #34d98f;
+  --gold: #f4c96b;
   --warn: #fb923c;
   --up: #22c55e;
   --down: #ef4444;

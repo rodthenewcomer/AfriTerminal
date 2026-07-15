@@ -28,7 +28,7 @@ from email.utils import parsedate_to_datetime
 from pathlib import Path
 from urllib.request import Request, urlopen
 
-USER_AGENT = "AfriTerminal-news/1.0 (agrégateur non commercial, liens vers la source)"
+USER_AGENT = "WARIBA-news/1.0 (agrégateur non commercial, liens vers la source)"
 MAX_ITEMS = 120
 SUMMARY_LEN = 260
 

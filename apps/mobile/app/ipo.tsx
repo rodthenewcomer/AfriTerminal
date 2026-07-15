@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
-import { Linking, StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { dateFr } from "@afriterminal/core/format";
+import { dateFr } from "@wariba/core/format";
 import { EmptyState, Page, Row, Section, SegmentedTabs } from "../src/components/ui";
 import { useMarketData } from "../src/providers/MarketDataProvider";
 import { colors, radius, type } from "../src/theme";
+import { openTrustedExternalUrl } from "../src/lib/external-links";
 
 type Tab = "avis" | "operations";
 
@@ -29,10 +30,9 @@ const CONCEPTS: { icon: keyof typeof Ionicons.glyphMap; title: string; text: str
 export default function IpoScreen() {
   const market = useMarketData();
   const [tab, setTab] = useState<Tab>("avis");
-  const notices = useMemo(
-    () => (tab === "avis" ? market.operations.avis ?? [] : market.operations.operations ?? []),
-    [market.operations, tab]
-  );
+  const notices = market.operations.avis ?? [];
+  const operations = market.operations.operations ?? [];
+  const count = tab === "avis" ? notices.length : operations.length;
 
   return (
     <Page subtitle="Avis officiels BRVM — la pédagogie est clairement séparée et ne décrit aucune opération à venir">
@@ -41,18 +41,28 @@ export default function IpoScreen() {
         active={tab}
         onChange={setTab}
       />
-      <Section title={tab === "avis" ? "Avis publiés" : "Opérations sur capital"} detail={`${notices.length} publication${notices.length > 1 ? "s" : ""}`}>
-        {notices.length
+      <Section title={tab === "avis" ? "Avis publiés" : "Opérations sur capital"} detail={`${count} publication${count > 1 ? "s" : ""}`}>
+        {tab === "avis" && notices.length
           ? notices.map((item, index) => (
             <Row
               key={`${item.pdf}-${index}`}
               icon="document-attach-outline"
               title={item.title}
               detail={item.date ? dateFr(item.date) : "Date non précisée"}
-              onPress={() => void Linking.openURL(item.pdf)}
+              onPress={() => void openTrustedExternalUrl(item.pdf)}
             />
           ))
-          : <EmptyState icon="document-attach-outline" title="Aucune publication" detail="Les avis officiels apparaîtront ici dès leur publication." />}
+          : tab === "operations" && operations.length
+            ? operations.map((item, index) => (
+              <Row
+                key={`${item.issuer}-${item.kind}-${index}`}
+                icon="git-branch-outline"
+                title={`${item.ticker ? `${item.ticker} · ` : ""}${item.kind}`}
+                detail={[item.issuer, item.date ? dateFr(item.date) : null, item.parity].filter(Boolean).join(" · ")}
+                onPress={item.avisPdf ? () => void openTrustedExternalUrl(item.avisPdf as string) : undefined}
+              />
+            ))
+            : <EmptyState icon="document-attach-outline" title="Aucune publication" detail="Les avis officiels apparaîtront ici dès leur publication." />}
       </Section>
 
       <Section title="Comprendre les opérations" detail="Mécanismes, pas des recommandations">

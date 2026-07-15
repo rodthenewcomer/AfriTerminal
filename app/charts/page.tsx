@@ -13,13 +13,13 @@ import {
 } from "lucide-react";
 import { getSnapshots } from "@/lib/data";
 import { usePortfolio, usePortfolioHydrated } from "@/hooks/use-portfolio";
-import { computePositions } from "@afriterminal/core/portfolio";
+import { computePositions } from "@wariba/core/portfolio";
 import {
   useChartLayouts,
   useChartLayoutsHydrated,
   type LayoutKind,
 } from "@/hooks/use-chart-layouts";
-import { cn } from "@afriterminal/core/utils";
+import { cn } from "@wariba/core/utils";
 import { Select } from "@/components/ui/input";
 import { MainChart } from "@/components/charts/main-chart";
 

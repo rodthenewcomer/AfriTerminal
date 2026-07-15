@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { computePositions, dividendIncome, valuePortfolio } from "@afriterminal/core/portfolio";
-import { fcfa, pct } from "@afriterminal/core/format";
+import { computePositions, dividendIncome, valuePortfolio } from "@wariba/core/portfolio";
+import { fcfa, pct } from "@wariba/core/format";
 import { ActionButton, ChangePill, EmptyState, Metric, Page, Row, Section } from "../../src/components/ui";
 import { useMarketData } from "../../src/providers/MarketDataProvider";
 import { usePortfolioStore, useSettingsStore } from "../../src/stores";
@@ -24,6 +24,7 @@ export default function PortfolioScreen() {
   const [date, setDate] = useState(todayIso());
   const [side, setSide] = useState<"achat" | "vente">("achat");
   const [formError, setFormError] = useState<string | null>(null);
+  const tickerInputRef = useRef<TextInput>(null);
   const summary = useMemo(
     () => valuePortfolio(computePositions(transactions), (symbol) => market.quotes[symbol]?.lastClose),
     [transactions, market.quotes]
@@ -32,7 +33,7 @@ export default function PortfolioScreen() {
     () => dividendIncome(transactions, (symbol) => market.dividends[symbol] ?? []),
     [transactions, market.dividends]
   );
-  const pnlUp = summary.totalUnrealizedPnl >= 0;
+  const formComplete = Boolean(ticker.trim() && quantity.trim() && price.trim() && date.trim());
 
   const submit = () => {
     const symbol = ticker.trim().toUpperCase();
@@ -178,9 +179,9 @@ export default function PortfolioScreen() {
         </Section>
       ) : null}
 
-      <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
+      <Modal visible={open} transparent animationType="slide" onShow={() => tickerInputRef.current?.focus()} onRequestClose={() => setOpen(false)}>
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.modalBackdrop}>
-          <View style={styles.sheet}>
+          <View accessibilityViewIsModal style={styles.sheet}>
             <View style={styles.sheetHandle} />
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>Nouvelle transaction</Text>
@@ -190,21 +191,36 @@ export default function PortfolioScreen() {
               <ActionButton label="Achat" active={side === "achat"} onPress={() => setSide("achat")} />
               <ActionButton label="Vente" active={side === "vente"} onPress={() => setSide("vente")} />
             </View>
-            <TextInput value={ticker} onChangeText={setTicker} autoCapitalize="characters" placeholder="Ticker (ex. SNTS)" placeholderTextColor={colors.ink3} style={styles.input} />
-            <TextInput value={quantity} onChangeText={setQuantity} keyboardType="decimal-pad" placeholder="Quantité" placeholderTextColor={colors.ink3} style={styles.input} />
-            <TextInput value={price} onChangeText={setPrice} keyboardType="decimal-pad" placeholder="Prix par action (FCFA)" placeholderTextColor={colors.ink3} style={styles.input} />
-            <TextInput value={fees} onChangeText={setFees} keyboardType="decimal-pad" placeholder="Frais (FCFA)" placeholderTextColor={colors.ink3} style={styles.input} />
+            <View style={styles.field}>
+              <Text style={styles.inputLabel}>Ticker</Text>
+              <TextInput ref={tickerInputRef} accessibilityLabel="Ticker de la transaction" value={ticker} onChangeText={(value) => { setTicker(value); setFormError(null); }} autoCapitalize="characters" placeholder="Ex. SNTS" placeholderTextColor={colors.ink3} style={styles.input} />
+            </View>
+            <View style={styles.field}>
+              <Text style={styles.inputLabel}>Quantité</Text>
+              <TextInput accessibilityLabel="Quantité de titres" value={quantity} onChangeText={(value) => { setQuantity(value); setFormError(null); }} keyboardType="decimal-pad" placeholder="Ex. 10" placeholderTextColor={colors.ink3} style={styles.input} />
+            </View>
+            <View style={styles.field}>
+              <Text style={styles.inputLabel}>Prix par action (FCFA)</Text>
+              <TextInput accessibilityLabel="Prix par action en FCFA" value={price} onChangeText={(value) => { setPrice(value); setFormError(null); }} keyboardType="decimal-pad" placeholder="Ex. 31 000" placeholderTextColor={colors.ink3} style={styles.input} />
+            </View>
+            <View style={styles.field}>
+              <Text style={styles.inputLabel}>Frais (FCFA)</Text>
+              <TextInput accessibilityLabel="Frais de transaction en FCFA" value={fees} onChangeText={(value) => { setFees(value); setFormError(null); }} keyboardType="decimal-pad" placeholder="0" placeholderTextColor={colors.ink3} style={styles.input} />
+            </View>
+            <View style={styles.field}>
+              <Text style={styles.inputLabel}>Date d'exécution</Text>
             <TextInput
               value={date}
-              onChangeText={setDate}
+              onChangeText={(value) => { setDate(value); setFormError(null); }}
               keyboardType="numbers-and-punctuation"
               placeholder="Date d'exécution (JJ/MM/AAAA)"
               placeholderTextColor={colors.ink3}
               accessibilityLabel="Date d'exécution de la transaction"
               style={styles.input}
             />
-            {formError ? <Text style={styles.formError}>{formError}</Text> : null}
-            <Pressable accessibilityRole="button" accessibilityLabel="Enregistrer la transaction" onPress={submit} style={({ pressed }) => [styles.submit, pressed && { opacity: 0.75 }]}>
+            </View>
+            {formError ? <Text accessibilityRole="alert" accessibilityLiveRegion="assertive" style={styles.formError}>{formError}</Text> : null}
+            <Pressable disabled={!formComplete} accessibilityRole="button" accessibilityLabel="Enregistrer la transaction" accessibilityState={{ disabled: !formComplete }} onPress={submit} style={({ pressed }) => [styles.submit, !formComplete && styles.submitDisabled, pressed && { opacity: 0.75 }]}>
               <Text style={styles.submitText}>Enregistrer</Text>
             </Pressable>
           </View>
@@ -254,11 +270,14 @@ const styles = StyleSheet.create({
   sheetTitle: { ...type.title, fontSize: 17 },
   close: { ...type.caption, color: colors.ink2 },
   sideRow: { flexDirection: "row", gap: 8 },
+  field: { gap: 6 },
+  inputLabel: { ...type.label, color: colors.ink2 },
   input: {
     height: 46, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.line,
     backgroundColor: colors.surface2, color: colors.ink, paddingHorizontal: 14, fontSize: 13.5, fontVariant: tabular,
   },
   formError: { color: colors.down, fontSize: 12, lineHeight: 16 },
   submit: { height: 48, alignItems: "center", justifyContent: "center", borderRadius: radius.lg, backgroundColor: colors.accent },
+  submitDisabled: { opacity: 0.45 },
   submitText: { color: colors.background, fontSize: 14, fontWeight: "800" },
 });

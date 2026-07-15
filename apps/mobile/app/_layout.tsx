@@ -1,5 +1,5 @@
 import "react-native-gesture-handler";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Stack, useRouter, type ErrorBoundaryProps } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -10,15 +10,18 @@ import { MarketDataProvider } from "../src/providers/MarketDataProvider";
 import { rehydrateStores } from "../src/stores";
 import { colors } from "../src/theme";
 import "../src/services/alerts";
+import { MobileAuthProvider } from "../src/providers/AuthProvider";
+import { AppRuntime } from "../src/providers/AppRuntime";
+import { trackMobileEvent } from "../src/services/analytics";
 
 void SplashScreen.preventAutoHideAsync();
 
 /** Filet de sécurité : sans lui, une erreur de rendu laisse un écran noir muet. */
-export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
   return (
     <View style={errorStyles.screen}>
       <Text style={errorStyles.title}>L'écran a rencontré un problème</Text>
-      <Text style={errorStyles.detail}>{error.message}</Text>
+      <Text style={errorStyles.detail}>Une erreur inattendue empêche cet écran de s'afficher.</Text>
       <Pressable accessibilityRole="button" accessibilityLabel="Réessayer" onPress={() => void retry()} style={({ pressed }) => [errorStyles.button, pressed && { opacity: 0.75 }]}>
         <Text style={errorStyles.buttonText}>Réessayer</Text>
       </Pressable>
@@ -38,6 +41,7 @@ const errorStyles = StyleSheet.create({
 
 export default function RootLayout() {
   const router = useRouter();
+  const lastNotificationId = useRef<string | null>(null);
   const [ready, setReady] = useState(false);
   useEffect(() => {
     void rehydrateStores().finally(() => {
@@ -46,9 +50,20 @@ export default function RootLayout() {
     });
   }, []);
   useEffect(() => {
-    const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+    const openNotification = (response: Notifications.NotificationResponse | null) => {
+      if (!response || lastNotificationId.current === response.notification.request.identifier) return;
       const ticker = response.notification.request.content.data?.ticker;
-      if (typeof ticker === "string") router.push(`/stocks/${ticker.toUpperCase()}`);
+      if (typeof ticker !== "string" || !/^[A-Z0-9]{2,12}$/i.test(ticker)) return;
+      lastNotificationId.current = response.notification.request.identifier;
+      void trackMobileEvent("notification_tap", { ticker: ticker.toUpperCase() }, `/stocks/${ticker.toUpperCase()}`);
+      router.push(`/stocks/${ticker.toUpperCase()}`);
+    };
+    void Notifications.getLastNotificationResponseAsync().then((response) => {
+      openNotification(response);
+      if (response) void Notifications.clearLastNotificationResponseAsync();
+    });
+    const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+      openNotification(response);
     });
     return () => subscription.remove();
   }, [router]);
@@ -56,9 +71,11 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
-      <MarketDataProvider>
-        <StatusBar style="light" />
-        <Stack screenOptions={{
+      <MobileAuthProvider>
+        <AppRuntime />
+        <MarketDataProvider>
+          <StatusBar style="light" />
+          <Stack screenOptions={{
           headerStyle: { backgroundColor: colors.background },
           headerTintColor: colors.ink,
           headerTitleStyle: { fontSize: 15, fontWeight: "700" },
@@ -70,6 +87,8 @@ export default function RootLayout() {
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="onboarding" options={{ headerShown: false, animation: "fade" }} />
+          <Stack.Screen name="(auth)" options={{ headerShown: false, presentation: "modal" }} />
+          <Stack.Screen name="account" options={{ title: "Compte" }} />
           <Stack.Screen name="stocks/[ticker]" options={{ title: "Fiche action" }} />
           <Stack.Screen name="indices/[code]" options={{ title: "Indice" }} />
           <Stack.Screen name="alerts" options={{ title: "Alertes" }} />
@@ -81,8 +100,9 @@ export default function RootLayout() {
           <Stack.Screen name="map" options={{ title: "Carte du marché" }} />
           <Stack.Screen name="settings" options={{ title: "Réglages" }} />
           <Stack.Screen name="status" options={{ title: "État des données" }} />
-        </Stack>
-      </MarketDataProvider>
+          </Stack>
+        </MarketDataProvider>
+      </MobileAuthProvider>
     </GestureHandlerRootView>
   );
 }

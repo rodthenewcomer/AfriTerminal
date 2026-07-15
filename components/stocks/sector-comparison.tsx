@@ -1,6 +1,6 @@
-import type { SectorStats, StockSnapshot } from "@afriterminal/core/types";
-import { pct, ratio } from "@afriterminal/core/format";
-import { cn } from "@afriterminal/core/utils";
+import type { SectorStats, StockSnapshot } from "@wariba/core/types";
+import { pct, ratio } from "@wariba/core/format";
+import { cn } from "@wariba/core/utils";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 
 function Row({

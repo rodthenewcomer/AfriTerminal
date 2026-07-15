@@ -1,53 +1,57 @@
 {
   "expo": {
-    "name": "AfriTerminal",
-    "slug": "afriterminal",
-    "scheme": "afriterminal",
+    "name": "WARIBA",
+    "slug": "wariba",
+    "scheme": "wariba",
     "version": "1.0.0",
     "newArchEnabled": true,
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "ios": {
-      "supportsTablet": true,
-      "backgroundColor": "#09090b",
-      "bundleIdentifier": "com.afriterminal.app",
+      "supportsTablet": false,
+      "usesAppleSignIn": true,
+      "backgroundColor": "#06110D",
+      "bundleIdentifier": "app.wariba.mobile",
       "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#09090b",
-        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundColor": "#06110D",
         "backgroundImage": "./assets/android-icon-background.png",
+        "foregroundImage": "./assets/android-icon-foreground.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "package": "com.afriterminal.app",
+      "package": "app.wariba.mobile",
       "versionCode": 1,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "backgroundColor": "#09090b",
+    "backgroundColor": "#06110D",
     "plugins": [
       "expo-router",
+      "expo-apple-authentication",
       "expo-background-task",
       [
         "expo-notifications",
         {
           "icon": "./assets/android-icon-monochrome.png",
-          "color": "#e2a63d"
+          "color": "#34D98F"
         }
       ],
       [
         "expo-splash-screen",
         {
           "image": "./assets/splash-icon.png",
-          "backgroundColor": "#09090b",
-          "imageWidth": 180,
+          "backgroundColor": "#06110D",
+          "imageWidth": 260,
           "resizeMode": "contain"
         }
-      ]
+      ],
+      "expo-secure-store",
+      "expo-web-browser"
     ]
   }
 }

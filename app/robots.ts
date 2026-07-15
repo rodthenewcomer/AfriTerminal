@@ -4,7 +4,7 @@ import { SITE_URL } from "@/lib/site";
 export const dynamic = "force-static";
 
 /**
- * Nota : servi sous /AfriTerminal/robots.txt tant que le site vit sur
+ * Nota : servi sous /WARIBA/robots.txt tant que le site vit sur
  * GitHub Pages (pas à la racine du domaine github.io), donc ignoré par
  * les crawlers en l'état — le sitemap doit être déclaré manuellement
  * dans Search Console. Devient pleinement effectif avec un domaine

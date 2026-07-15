@@ -1,7 +1,7 @@
 import { useEffect, type ReactNode } from "react";
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated, { FadeInDown, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
+import Animated, { cancelAnimation, FadeInDown, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { colors, radius, tabular, type } from "../theme";
@@ -50,8 +50,9 @@ export function Page({
 }
 
 export function Section({ title, detail, children }: { title: string; detail?: string; children: ReactNode }) {
+  const reduceMotion = useReducedMotion();
   return (
-    <Animated.View entering={FadeInDown.duration(280)} style={styles.section}>
+    <Animated.View entering={reduceMotion ? undefined : FadeInDown.duration(280)} style={styles.section}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>{title}</Text>
         {detail ? <Text style={styles.sectionDetail}>{detail}</Text> : null}
@@ -67,9 +68,9 @@ export function Metric({ label, value, tone = "default", detail }: { label: stri
     <View style={styles.metric}>
       <Text numberOfLines={1} style={styles.metricLabel}>{label}</Text>
       <Text
-        numberOfLines={1}
+        numberOfLines={2}
         adjustsFontSizeToFit
-        minimumFontScale={0.62}
+        minimumFontScale={0.8}
         style={[styles.metricValue, tone === "up" && styles.up, tone === "down" && styles.down, tone === "accent" && styles.accent]}
       >
         {value}
@@ -167,8 +168,12 @@ export function SegmentedTabs<T extends string>({ tabs, active, onChange }: {
 }
 
 export function LoadingState({ label = "Chargement des données BRVM…" }: { label?: string }) {
+  const reduceMotion = useReducedMotion();
   const pulse = useSharedValue(0.4);
-  useEffect(() => { pulse.value = withRepeat(withTiming(1, { duration: 700 }), -1, true); }, [pulse]);
+  useEffect(() => {
+    pulse.value = reduceMotion ? 1 : withRepeat(withTiming(1, { duration: 700 }), -1, true);
+    return () => cancelAnimation(pulse);
+  }, [pulse, reduceMotion]);
   const pulseStyle = useAnimatedStyle(() => ({ opacity: pulse.value }));
   return (
     <View style={styles.loading}>
@@ -228,12 +233,12 @@ const styles = StyleSheet.create({
     flexDirection: "row", gap: 2, padding: 3,
     backgroundColor: colors.surface2, borderColor: colors.line, borderWidth: 1, borderRadius: radius.md,
   },
-  segment: { height: 32, alignItems: "center", justifyContent: "center", paddingHorizontal: 13, borderRadius: radius.sm },
+  segment: { minHeight: 48, alignItems: "center", justifyContent: "center", paddingHorizontal: 13, borderRadius: radius.sm },
   segmentActive: { backgroundColor: colors.surface, borderColor: colors.lineStrong, borderWidth: 1 },
   segmentText: { color: colors.ink3, fontSize: 12.5, fontWeight: "600" },
   segmentTextActive: { color: colors.ink },
   action: {
-    minHeight: 38, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6,
+    minHeight: 48, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6,
     paddingHorizontal: 13, borderRadius: radius.full, borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: colors.surface,
   },
   actionActive: { backgroundColor: colors.accent, borderColor: colors.accent },

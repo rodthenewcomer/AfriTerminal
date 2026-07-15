@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import { dateFr } from "@afriterminal/core/format";
+import { dateFr } from "@wariba/core/format";
 import { Metric, Page, Row, Section } from "../src/components/ui";
 import { useMarketData } from "../src/providers/MarketDataProvider";
 import { colors, radius, type } from "../src/theme";

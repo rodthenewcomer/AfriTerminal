@@ -1,56 +1,54 @@
-# AfriTerminal ship readiness
+# WARIBA ship readiness
 
-Last reviewed: 2026-07-13
+Last reviewed: 2026-07-15
 
-This file turns the 22-role review into release gates. It keeps the product honest while the app is still a static public MVP.
+This is the release matrix for the Next.js web/API surface and the Expo iOS/Android app. WARIBA remains local-first and usable without an account; cloud sync and billing are optional capabilities.
 
 ## Product truth
 
-- Real today: BRVM prices and indices, full dividend history per ticker, official documents, market notices and capital operations (ESV), news, factual alerts, hand-verified financial statements for 48/48 companies (47 with published equity; 12 with double-sourced share counts enabling market cap/EPS and, where equity is available, P/B/ROE), computed risk stats (volatility, beta, max drawdown), and a local portfolio tracker (transactions, average cost, realized/unrealized P&L, dividend income, projections) — plus watchlists and saved filters, all in local browser storage with JSON backup/restore.
-- Simulated today: only the educational scenarios in the IPO "Apprendre" tab and legacy illustrative data under `lib/mock/` when explicitly labeled.
-- Not live today: accounts, delivered personalized notifications, billing, broker integrations, portfolio sync, and advanced AI summaries.
-- Never claim: investment advice, real-time execution-grade prices, paid Pro features, or official BRVM affiliation.
+- Public and real: sourced BRVM prices, indices, dividends, official documents, operations, news, factual alerts, verified fundamentals, risk statistics and local research tools.
+- Private and implemented in code: Supabase email/password, OTP, Apple/Google OAuth, account deletion, RLS-isolated watchlists, portfolios, alerts, saved filters and preferences, plus explicit upload/download sync.
+- Monetization implemented in code: multi-provider Free/Pro entitlements, Stripe Checkout/customer portal on web, RevenueCat App Store/Play offerings, purchase, restore and subscription management on mobile, server-side subscriber verification, and authenticated/idempotent webhooks.
+- Notifications implemented in code: consented profile preferences, Expo device registration, atomic server evaluation of synced price alerts, idempotent push/email outbox, Expo receipt handling, Resend signed webhooks, bounded retries and two protected Vercel cron routes.
+- Analytics implemented in code: explicit web/mobile consent, first-party pseudonymous events, HMAC identifiers, no raw IP storage, 90-day cleanup and protected aggregate operations metrics.
+- Active infrastructure: the production Supabase schema/RLS and the Vercel Next.js runtime on `wariba.app`.
+- Not active until external configuration exists: verified Supabase Auth redirects, Stripe product/webhook, RevenueCat project/webhook, Apple/Google OAuth credentials, App Store/Play products and signed EAS builds.
+- Not delivered: broker/order routing, execution-grade real-time prices, SMS alerts, AI investment advice or official BRVM affiliation.
 
-## Release gates by role
+## Release gates
 
-1. Founder / CEO: every release must sharpen the wedge: "make BRVM readable" for investors and analysts.
-2. Product Manager: public UI must not expose controls that imply unavailable accounts, paid plans, or notification delivery.
-3. Technical PM: static export remains acceptable until auth, billing, or user alerts are in scope; then move to a server-backed architecture.
-4. Full-Stack Engineer: no "Pro" CTA ships without auth, persistence, pricing, and support path.
-5. Senior Backend Engineer: generated JSON must be reproducible from scripts and protected by tests before deploy.
-6. Senior Frontend Engineer: dashboard, stock page, screener, alerts, documents, and settings must pass desktop and mobile smoke checks.
-7. Applied AI / LLM Engineer: AI copy must be grounded in real extracted data or explicitly marked unavailable/educational simulation.
-8. Data Engineer: no impossible dates, duplicate records, or future dividends in `data/real/snapshot.json`.
-9. DevOps / Cloud Engineer: CI must pass TypeScript tests, Python pipeline tests, build, and high+ production audit.
-10. Security & Compliance Advisor: financial disclaimers and data-source labels stay visible; secrets never enter repo/workflows.
-11. Product Designer / UX/UI Designer: disabled or future features must look intentionally unavailable, not broken or clickable.
-12. QA Automation Engineer: add regression tests when fixing any data/parser/UI truth issue.
-13. Data / Growth Analyst: new growth experiments should define events before launch: search, ticker view, filter save, watchlist add, document click.
-14. Growth / GTM Marketer: acquisition copy should sell clarity and monitoring, not trading advice.
-15. Content / Social Media Manager: daily content should use factual outputs: movers, dividends, documents, market breadth, news links.
-16. Paid Ads Specialist: do not scale paid ads before one measurable conversion target exists.
-17. BD / Sales Manager: prioritize SGI, finance media, analyst desks, education partners, and investor communities.
-18. Revenue / Pricing Strategist: paid packaging starts with custom alerts, saved research workflow, document summaries, and team dashboards.
-19. Customer Success / Support Lead: support copy must explain data freshness, delayed prices, and why fundamentals can be missing.
-20. Operations / Project Manager: live site, local build, generated data, and README must tell the same story before release.
-21. Legal Advisor: verify BRVM data redistribution and AMF-UMOA advisory boundaries before monetization.
-22. Partnerships / Integrations Manager: no broker/order-routing integration before legal, security, and support ownership are clear.
+1. `npm ci`, `npm run lint`, `npm run typecheck`, Vitest, Python suites, Next build, Expo Doctor, Expo dependency check, iOS export, Android export and high+ production audit pass.
+2. Production migrations are applied and a rollback-only two-user SQL role test proved profile/entitlement bootstrap, row isolation and cross-user write rejection. After active API keys are installed, repeat the proof through the public API and validate account deletion/cascade behavior before enabling accounts publicly.
+3. Test email verification, OTP, password, Google and Apple flows on the production callback URLs. Apple login must be exercised in a signed native build.
+4. Prove upload/download on web, iPhone and Android with the same account, including conflict timestamps, limits and malformed/oversized payload rejection.
+5. Test Stripe Checkout, portal, renewal, cancellation, duplicate webhook and out-of-order webhook delivery in test mode.
+6. Keep Stripe purchase CTAs out of native apps. Test App Store/Google Play purchase, cancellation, restore, cross-platform login, server refresh and RevenueCat webhook replay against the same entitlement records.
+7. Publish working privacy, terms and support URLs; complete Apple privacy, Google Data safety and Financial features declarations.
+8. Confirm BRVM/news/document redistribution and AMF-UMOA advisory boundaries before charging or paid acquisition.
+9. Validate VoiceOver/TalkBack, Reduce Motion, Dynamic Type/font scale, notification taps and chart gestures on physical iPhone and Android devices.
+10. Run signed EAS preview builds before store submission; retain artifacts and review notes.
+11. Configure Expo enhanced push security, Resend sending domain/webhook and Vercel cron secrets; prove push tickets/receipts, email delivery/bounce suppression and cron replay in staging.
+12. Validate analytics accept/refuse/revoke on anonymous and authenticated web/iOS/Android sessions, then verify 90-day cleanup and aggregate-only operations access.
 
-## Mobile app gates (apps/mobile, reviewed 2026-07-13)
+## Surface decision
 
-The 22-role review was applied to the Expo app. All engineering findings were fixed the same day: input validation is centralized and tested (`src/lib/forms.ts`), transactions accept a backdated execution date, backup restore exists next to export, a root ErrorBoundary replaces silent blank screens, cache freshness is reported honestly, triggered alerts can be re-armed, shared controls carry accessibility roles/labels/states, the chart WebView blocks http(s) navigation, and the unused secure-store dependency was removed.
+| Surface | Code status | Production status |
+| --- | --- | --- |
+| Public web terminal | Implemented | Live on `wariba.app` / `www.wariba.app` |
+| Web accounts and sync | Implemented; production schema/RLS and both API keys installed | Create/sign-in/me/delete/cascade passed in production; OTP, verification e-mail and OAuth callback proof remain |
+| Stripe web billing | Implemented | Blocked by Stripe product, keys and webhook |
+| iOS app | Implemented, first release iPhone-only | Blocked by signed build, device QA and store metadata |
+| Android app | Implemented with predictive back/adaptive orientation | Blocked by signed build, device QA and Play declarations |
+| Native subscriptions | RevenueCat purchase/restore/manage + server verification implemented | Blocked by RevenueCat/App Store/Play configuration and sandbox validation |
+| Server notifications | Expo/Resend outbox, receipts, webhook, cron and native registration implemented; local fallback retained | Blocked by provider keys, sending domain, EAS project and staging delivery proof |
+| Product analytics | Consent-gated first-party web/mobile collection and protected metrics implemented | Supabase server key and Vercel hashing secrets configured; legal review and retention proof remain |
 
-Remaining mobile no-go before store submission:
+## Known external no-go items
 
-- Signed EAS builds and store submissions need the Apple/Google developer accounts.
-- Final gesture/performance validation on physical iPhone and any Android device.
-- A hosted privacy policy URL (content is simple: all data stays on device).
-- No account/auth surface ships until `docs/auth-onboarding-plan.md` is executed.
-
-## Current no-go before monetization
-
-- Account system and billing do not exist.
-- Personalized alerts do not deliver email, push, SMS, or webhook notifications.
-- Some fundamentals remain curated company by company, not universal.
-- Real-time data rights and redistribution terms need legal/partnership review.
-- Public copy must avoid loose synthetic-feature wording: use "scénario pédagogique simulé" for learning cases and "non disponible" for unbuilt product features.
+- Supabase migrations `20260714113215` and `20260715115433` are applied remotely; all 15 application tables report RLS enabled and 32 ownership policies are present.
+- Valid anon and `service_role` JWTs are active in production. Readiness, authenticated account read, guarded account deletion and database cascade cleanup passed against `wariba.app`; Auth site/redirect configuration still requires Dashboard verification for e-mail, OTP and OAuth callbacks.
+- Vercel/runtime is active. Stripe, RevenueCat, EAS, Apple Developer, App Store Connect and Play Console credentials are not present.
+- Le système d'icônes WARIBA (web, iOS 1024, Android adaptatif/monochrome),
+  le splash natif et l'ouverture animée sont livrés. Physical iOS/Android
+  home-screen testing and an optional iOS 26 Icon Composer variant remain.
+- Expo/Resend delivery and consented analytics require production secrets, provider configuration and legal validation before paid acquisition.

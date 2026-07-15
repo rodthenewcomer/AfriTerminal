@@ -1,4 +1,4 @@
-import type { AlertItem, OHLCV, RealQuote } from "@afriterminal/core/types";
+import type { AlertItem, OHLCV, RealQuote } from "@wariba/core/types";
 
 export type QuoteMap = Record<string, RealQuote>;
 
@@ -61,9 +61,19 @@ export interface OperationNotice {
   pdf: string;
 }
 
+export interface CapitalOperation {
+  kind: string;
+  issuer: string;
+  ticker: string | null;
+  date: string | null;
+  parity: string | null;
+  avisPdf: string | null;
+  communiquePdf: string | null;
+}
+
 export interface OperationsPayload {
   avis: OperationNotice[];
-  operations: OperationNotice[];
+  operations: CapitalOperation[];
 }
 
 export type DividendMap = Record<string, { date: string; net: number }[]>;
@@ -80,4 +90,3 @@ export interface MarketPayload {
 }
 
 export type SeriesPayload = OHLCV[];
-

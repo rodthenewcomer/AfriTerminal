@@ -8,6 +8,7 @@ npm-debug.log*
 .env*
 !.env.example
 .vercel
+.playwright-cli/
 *.tsbuildinfo
 next-env.d.ts
 

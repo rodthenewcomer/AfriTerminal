@@ -3,7 +3,7 @@ import { ImageResponse } from "next/og";
 // Export statique : l'image est générée au build, pas à la requête.
 export const dynamic = "force-static";
 import { getAllRealQuotes, getRealQuote } from "@/lib/real-data";
-import { dateFr } from "@afriterminal/core/format";
+import { dateFr } from "@wariba/core/format";
 
 export const alt = "Cours BRVM";
 export const size = { width: 1200, height: 630 };
@@ -108,7 +108,7 @@ export default async function OgImage({
               A
             </div>
             <div style={{ display: "flex", fontSize: 26, fontWeight: 700, color: "#a1a1aa" }}>
-              AfriTerminal
+              WARIBA
             </div>
           </div>
         </div>

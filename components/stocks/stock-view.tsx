@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import Link from "next/link";
-import { cn } from "@afriterminal/core/utils";
+import { cn } from "@wariba/core/utils";
 import { Bell, Sparkles } from "lucide-react";
 import { getSectorStats, getSnapshot, getSnapshots } from "@/lib/data";
 import { getRealQuote, LATEST_TRADING_DATE } from "@/lib/real-data";
@@ -18,7 +18,7 @@ import {
   millions,
   pct,
   ratio,
-} from "@afriterminal/core/format";
+} from "@wariba/core/format";
 import { MainChart } from "@/components/charts/main-chart";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

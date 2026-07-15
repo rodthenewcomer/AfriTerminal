@@ -1,4 +1,4 @@
-import type { OHLCV } from "@afriterminal/core/types";
+import type { OHLCV } from "@wariba/core/types";
 import { DIVIDEND_MAP } from "./mock/dividends";
 import { dividendHistoryFor } from "./real-dividends";
 

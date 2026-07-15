@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ChevronDown, GitCompareArrows, Maximize2, Minimize2, Ruler, SlidersHorizontal, Trash2 } from "lucide-react";
-import type { ChartType, IndicatorId, Timeframe } from "@afriterminal/core/types";
+import type { ChartType, IndicatorId, Timeframe } from "@wariba/core/types";
 import type { MaId } from "@/hooks/use-chart-prefs";
-import { cn } from "@afriterminal/core/utils";
+import { cn } from "@wariba/core/utils";
 import { PillTabs } from "@/components/ui/tabs";
 
 const TIMEFRAMES: Timeframe[] = ["1D", "1W", "1M", "3M", "6M", "YTD", "1Y", "3Y", "5Y"];

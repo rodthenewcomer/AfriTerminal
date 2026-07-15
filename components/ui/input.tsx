@@ -1,5 +1,5 @@
 import { forwardRef, type InputHTMLAttributes, type SelectHTMLAttributes } from "react";
-import { cn } from "@afriterminal/core/utils";
+import { cn } from "@wariba/core/utils";
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
   ({ className, ...props }, ref) => (

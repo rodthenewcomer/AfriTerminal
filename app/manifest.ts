@@ -4,25 +4,31 @@ export const dynamic = "force-static";
 
 /**
  * PWA installable : l'app s'ajoute à l'écran d'accueil Android/iOS.
- * Chemins absolus avec le basePath GitHub Pages (/AfriTerminal).
+ * Manifest commun au domaine web et à l'installation PWA.
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "AfriTerminal — La BRVM devient lisible",
-    short_name: "AfriTerminal",
+    name: "WARIBA — La BRVM, clairement",
+    short_name: "WARIBA",
     description:
       "Terminal BRVM : cours officiels, carte du marché, alertes et actualités des 48 sociétés cotées.",
-    start_url: "/AfriTerminal/",
-    scope: "/AfriTerminal/",
+    start_url: "/",
+    scope: "/",
     display: "standalone",
-    background_color: "#09090b",
-    theme_color: "#09090b",
+    background_color: "#06110d",
+    theme_color: "#06110d",
     icons: [
       {
-        src: "/AfriTerminal/icon.svg",
+        src: "/icon.svg",
         sizes: "any",
         type: "image/svg+xml",
         purpose: "any",
+      },
+      {
+        src: "/icon.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
       },
     ],
   };

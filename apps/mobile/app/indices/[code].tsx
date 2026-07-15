@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
-import type { OHLCV } from "@afriterminal/core/types";
-import { pct } from "@afriterminal/core/format";
+import type { OHLCV } from "@wariba/core/types";
+import { pct } from "@wariba/core/format";
 import { fetchDataFile } from "../../src/data/api";
+import { indexSeriesSchema } from "../../src/data/validation";
 import { WebChart, type WebChartPayload } from "../../src/components/chart/WebChart";
 import { ChangePill, EmptyState, LoadingState, Metric, Page, SegmentedTabs } from "../../src/components/ui";
 import { useMarketData } from "../../src/providers/MarketDataProvider";
@@ -40,7 +41,7 @@ export default function IndexScreen() {
 
   useEffect(() => {
     let cancelled = false;
-    fetchDataFile<IndexPoint[]>(`real/index-series/${code}.json`)
+    fetchDataFile(`real/index-series/${code}.json`, indexSeriesSchema)
       .then((result) => { if (!cancelled) setPoints(result.data); })
       .catch(() => { if (!cancelled) setFailed(true); });
     return () => { cancelled = true; };

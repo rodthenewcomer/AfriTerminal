@@ -15,7 +15,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 export const metadata: Metadata = {
   title: "Méthodologie & sources",
   description:
-    "Comment AfriTerminal collecte, vérifie et affiche les données BRVM : sources primaires, règles de double vérification, calculs, et limites assumées.",
+    "Comment WARIBA collecte, vérifie et affiche les données BRVM : sources primaires, règles de double vérification, calculs, et limites assumées.",
 };
 
 function Section({
@@ -179,12 +179,12 @@ export default function MethodologiePage() {
         <p>
           Pipeline, règles de vérification et interface sont auditables :{" "}
           <a
-            href="https://github.com/rodthenewcomer/AfriTerminal"
+            href="https://github.com/rodthenewcomer/WARIBA"
             target="_blank"
             rel="noopener noreferrer"
             className="text-accent underline hover:no-underline"
           >
-            github.com/rodthenewcomer/AfriTerminal
+            github.com/rodthenewcomer/WARIBA
           </a>
           . Chaque valeur saisie manuellement porte en commentaire sa méthode
           de vérification.
@@ -192,7 +192,7 @@ export default function MethodologiePage() {
       </Section>
 
       <p className="text-[10px] text-ink-3">
-        Ceci n&apos;est pas un conseil en investissement. AfriTerminal
+        Ceci n&apos;est pas un conseil en investissement. WARIBA
         n&apos;est pas affilié à la BRVM.
       </p>
     </div>

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { millions, pct } from "@afriterminal/core/format";
+import { millions, pct } from "@wariba/core/format";
 import type { FundamentalRecord } from "../data/types";
 import { ChangePill, SegmentedTabs } from "./ui";
 import { colors, radius, tabular, type } from "../theme";

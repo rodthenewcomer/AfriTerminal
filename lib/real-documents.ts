@@ -4,7 +4,7 @@ import documentsJson from "@/data/real/documents.json";
  * Publications officielles réelles, référencées depuis les fiches
  * sociétés de brvm.org (pipeline scripts/boc/fetch_documents.py,
  * rafraîchi chaque semaine par CI). Chaque entrée pointe vers le PDF
- * original — AfriTerminal référence, il ne republie pas.
+ * original — WARIBA référence, il ne republie pas.
  */
 export interface RealDocument {
   ticker: string;

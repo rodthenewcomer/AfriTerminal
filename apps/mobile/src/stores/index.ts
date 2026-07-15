@@ -1,8 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import type { ChartType, IndicatorId } from "@afriterminal/core/types";
-import type { PortfolioTransaction } from "@afriterminal/core/portfolio";
+import type { ChartType, IndicatorId } from "@wariba/core/types";
+import type { PortfolioTransaction } from "@wariba/core/portfolio";
 
 const storage = createJSONStorage(() => AsyncStorage);
 
@@ -55,6 +55,7 @@ export interface PriceAlertRule {
   target: number;
   enabled: boolean;
   triggeredAt?: string;
+  channels?: ("in_app" | "push" | "email")[];
 }
 interface AlertState {
   rules: PriceAlertRule[];
@@ -70,7 +71,7 @@ export const usePriceAlertStore = create<AlertState>()(persist(
     add: (rule) => set({ rules: [...get().rules, rule] }),
     remove: (id) => set({ rules: get().rules.filter((item) => item.id !== id) }),
     markTriggered: (id, triggeredAt) => set({ rules: get().rules.map((item) => item.id === id ? { ...item, triggeredAt } : item) }),
-    rearm: (id) => set({ rules: get().rules.map((item) => item.id === id ? { ...item, triggeredAt: undefined } : item) }),
+    rearm: (id) => set({ rules: get().rules.map((item) => item.id === id ? { ...item, enabled: true, triggeredAt: undefined } : item) }),
     replaceAll: (rules) => set({ rules: [...rules] }),
   }),
   { name: "afriterminal-price-alerts", storage, skipHydration: true }
@@ -159,7 +160,7 @@ export const useScreenerStore = create<ScreenerState>()(persist(
     apply: ({ query, sector, sort }) => set({ query, sector, sort }),
     remove: (id) => set({ saved: get().saved.filter((filter) => filter.id !== id) }),
   }),
-  { name: "@afriterminal:screener", storage, skipHydration: true }
+  { name: "@wariba:screener", storage, skipHydration: true }
 ));
 
 export type ExperienceLevel = "debutant" | "intermediaire" | "avance";
@@ -168,10 +169,16 @@ export const ONBOARDING_VERSION = 1;
 
 interface SettingsState {
   notifications: boolean;
+  serverPushRegistered: boolean;
+  emailNotifications: boolean;
+  analyticsConsent: "unknown" | "granted" | "denied";
   dataSaver: boolean;
   experienceLevel: ExperienceLevel | null;
   onboardingVersion: number;
   setNotifications: (value: boolean) => void;
+  setServerPushRegistered: (value: boolean) => void;
+  setEmailNotifications: (value: boolean) => void;
+  setAnalyticsConsent: (value: "unknown" | "granted" | "denied") => void;
   setDataSaver: (value: boolean) => void;
   setExperienceLevel: (level: ExperienceLevel | null) => void;
   completeOnboarding: (level: ExperienceLevel | null) => void;
@@ -179,10 +186,16 @@ interface SettingsState {
 export const useSettingsStore = create<SettingsState>()(persist(
   (set) => ({
     notifications: false,
+    serverPushRegistered: false,
+    emailNotifications: false,
+    analyticsConsent: "unknown",
     dataSaver: false,
     experienceLevel: null,
     onboardingVersion: 0,
     setNotifications: (notifications) => set({ notifications }),
+    setServerPushRegistered: (serverPushRegistered) => set({ serverPushRegistered }),
+    setEmailNotifications: (emailNotifications) => set({ emailNotifications }),
+    setAnalyticsConsent: (analyticsConsent) => set({ analyticsConsent }),
     setDataSaver: (dataSaver) => set({ dataSaver }),
     setExperienceLevel: (experienceLevel) => set({ experienceLevel }),
     completeOnboarding: (experienceLevel) => set({ experienceLevel, onboardingVersion: ONBOARDING_VERSION }),

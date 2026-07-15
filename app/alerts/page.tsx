@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { BellPlus } from "lucide-react";
 import { REAL_ALERTS } from "@/lib/real-alerts";
-import type { AlertType } from "@afriterminal/core/types";
-import { cn } from "@afriterminal/core/utils";
+import type { AlertType } from "@wariba/core/types";
+import { cn } from "@wariba/core/utils";
 import { AlertCard } from "@/components/alerts/alert-card";
 import { MyPriceAlerts } from "@/components/alerts/my-price-alerts";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ const TYPE_FILTERS: { value: AlertType | "all"; label: string }[] = [
 ];
 
 export default function AlertsPage() {
+  const router = useRouter();
   const [type, setType] = useState<AlertType | "all">("all");
 
   const filtered = useMemo(
@@ -44,10 +46,10 @@ export default function AlertsPage() {
         <Button
           variant="outline"
           size="sm"
-          disabled
-          title="Les alertes personnalisées nécessitent un compte utilisateur et arrivent avec AfriTerminal Pro."
+          title="Ouvrez une fiche action puis utilisez l'icône d'alerte."
+          onClick={() => router.push("/screener")}
         >
-          <BellPlus className="h-3.5 w-3.5" /> Alertes perso à venir
+          <BellPlus className="h-3.5 w-3.5" /> Choisir une action
         </Button>
       </div>
 

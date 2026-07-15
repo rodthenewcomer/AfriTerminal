@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { RealQuote } from "@afriterminal/core/types";
+import type { RealQuote } from "@wariba/core/types";
 import {
   countryFromTicker,
   realOnlySnapshot,

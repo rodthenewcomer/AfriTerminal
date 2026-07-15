@@ -32,7 +32,7 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 
 HOME_URL = "https://www.brvm.org"
-USER_AGENT = "AfriTerminal-live-poll/1.0 (usage interne, projet non commercial)"
+USER_AGENT = "WARIBA-live-poll/1.0 (usage interne, projet non commercial)"
 
 ITEM_RE = re.compile(
     r'<span>([A-Z0-9]{3,6})</span>&nbsp;<span>([\d\s]+)</span>&nbsp;'

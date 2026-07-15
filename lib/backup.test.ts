@@ -31,11 +31,17 @@ describe("parseBackup", () => {
   it("rejette un fichier d'une autre application", () => {
     const res = parseBackup(JSON.stringify({ ...VALID, app: "AutreApp" }));
     expect(res.ok).toBe(false);
-    if (!res.ok) expect(res.error).toContain("AfriTerminal");
+    if (!res.ok) expect(res.error).toContain("WARIBA");
   });
 
   it("rejette une version future", () => {
     expect(parseBackup(JSON.stringify({ ...VALID, version: 999 })).ok).toBe(false);
+  });
+
+  it("importe une sauvegarde historique sans perdre les données", () => {
+    const res = parseBackup(JSON.stringify({ ...VALID, app: "AfriTerminal" }));
+    expect(res.ok).toBe(true);
+    if (res.ok) expect(res.backup.app).toBe("WARIBA");
   });
 
   it("tout ou rien : une transaction corrompue rejette le fichier", () => {
@@ -57,7 +63,7 @@ describe("parseBackup", () => {
 
 describe("parseBackup — sauvegarde de l'app mobile", () => {
   const MOBILE = {
-    app: "AfriTerminal",
+    app: "WARIBA",
     version: 1,
     exportedAt: "2026-07-13T08:00:00.000Z",
     watchlist: ["SNTS", "ORAC"],

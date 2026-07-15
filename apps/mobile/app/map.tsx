@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import type { RealQuote } from "@afriterminal/core/types";
-import { squarify } from "@afriterminal/core/treemap";
-import { pct } from "@afriterminal/core/format";
+import type { RealQuote } from "@wariba/core/types";
+import { squarify } from "@wariba/core/treemap";
+import { pct } from "@wariba/core/format";
 import { EmptyState, Page, SegmentedTabs } from "../src/components/ui";
 import { useMarketData } from "../src/providers/MarketDataProvider";
 import { SECTOR_ORDER, sectorLabel } from "../src/lib/sectors";
-import { colors, radius, type } from "../src/theme";
+import { type } from "../src/theme";
 
 /**
  * Horizons de performance (façon Finviz) — mêmes définitions que la

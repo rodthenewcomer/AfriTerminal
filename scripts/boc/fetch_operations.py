@@ -27,7 +27,7 @@ import time
 import urllib.request
 from pathlib import Path
 
-USER_AGENT = "AfriTerminal-operations/1.0 (agrégateur non commercial, liens vers la source)"
+USER_AGENT = "WARIBA-operations/1.0 (agrégateur non commercial, liens vers la source)"
 BASE = "https://www.brvm.org"
 AVIS_PAGES = 3  # ~10 avis/page, 3 pages ≈ 2-3 mois d'historique
 ESV_TYPES = {

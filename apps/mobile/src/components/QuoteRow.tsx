@@ -5,8 +5,8 @@ import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withSeque
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import type { RealQuote } from "@afriterminal/core/types";
-import { fcfa, pct } from "@afriterminal/core/format";
+import type { RealQuote } from "@wariba/core/types";
+import { fcfa, pct } from "@wariba/core/format";
 import { colors, radius, tabular, type } from "../theme";
 import { Sparkline } from "./Sparkline";
 import { useWatchlistStore } from "../stores";

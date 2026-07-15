@@ -2,7 +2,7 @@
 
 import { Star } from "lucide-react";
 import { useWatchlist, useWatchlistHydrated } from "@/hooks/use-watchlist";
-import { cn } from "@afriterminal/core/utils";
+import { cn } from "@wariba/core/utils";
 import { Button } from "@/components/ui/button";
 
 export function WatchlistButton({ ticker }: { ticker: string }) {

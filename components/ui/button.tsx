@@ -1,5 +1,5 @@
 import { forwardRef, type ButtonHTMLAttributes } from "react";
-import { cn } from "@afriterminal/core/utils";
+import { cn } from "@wariba/core/utils";
 
 type Variant = "default" | "ghost" | "outline" | "accent" | "danger";
 type Size = "sm" | "md" | "icon";

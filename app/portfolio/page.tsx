@@ -18,14 +18,14 @@ import {
   monthlyIncomeForecast,
   projectedIncome,
   valuePortfolio,
-} from "@afriterminal/core/portfolio";
+} from "@wariba/core/portfolio";
 import { Donut } from "@/components/ui/donut";
 import { IncomePanel } from "@/components/portfolio/income-panel";
 import { dividendHistoryFor } from "@/lib/real-dividends";
 import { Coins } from "lucide-react";
 import { getSnapshot } from "@/lib/data";
-import { dateFr, fcfa, pct } from "@afriterminal/core/format";
-import { cn } from "@afriterminal/core/utils";
+import { dateFr, fcfa, pct } from "@wariba/core/format";
+import { cn } from "@wariba/core/utils";
 import { Badge } from "@/components/ui/badge";
 import { InfoHint } from "@/components/ui/info-hint";
 import { Button } from "@/components/ui/button";
@@ -186,7 +186,7 @@ export default function PortfolioPage() {
               <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-ink-3">
                 Vous avez acheté des actions via votre SGI mais aucun moyen
                 simple de savoir où vous en êtes ? Enregistrez vos opérations
-                (quand, combien de titres, à quel prix) et AfriTerminal calcule
+                (quand, combien de titres, à quel prix) et WARIBA calcule
                 le reste.
               </p>
             </div>

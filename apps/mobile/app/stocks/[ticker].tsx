@@ -1,21 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
-import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, { FadeIn, FadeInDown, useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { annualizedVolatility, maxDrawdown } from "@afriterminal/core/risk";
-import { compactFcfa, compactVolume, dateFr, fcfa, millions, num, pct, ratio } from "@afriterminal/core/format";
-import { companyProfile } from "@afriterminal/core/company-profiles";
-import { GLOSSARY } from "@afriterminal/core/glossary";
-import type { OHLCV } from "@afriterminal/core/types";
+import { annualizedVolatility, maxDrawdown } from "@wariba/core/risk";
+import { compactFcfa, compactVolume, dateFr, fcfa, millions, num, pct, ratio } from "@wariba/core/format";
+import { companyProfile } from "@wariba/core/company-profiles";
+import { GLOSSARY } from "@wariba/core/glossary";
+import type { OHLCV } from "@wariba/core/types";
 import { AdvancedChart } from "../../src/components/AdvancedChart";
 import { YearComparison } from "../../src/components/YearComparison";
 import type { WebChartMarker } from "../../src/components/chart/WebChart";
-import { ChangePill, EmptyState, LoadingState, Metric, Page, Row, Section, SegmentedTabs } from "../../src/components/ui";
+import { ActionButton, ChangePill, EmptyState, LoadingState, Metric, Page, Row, Section, SegmentedTabs } from "../../src/components/ui";
 import { useMarketData } from "../../src/providers/MarketDataProvider";
 import { useSettingsStore, useWatchlistStore } from "../../src/stores";
 import { countryFromTicker, sectorLabel } from "../../src/lib/sectors";
+import { openTrustedExternalUrl } from "../../src/lib/external-links";
 import { colors, radius, tabular, type } from "../../src/theme";
 
 const STOCK_TABS = [
@@ -73,16 +74,30 @@ export default function StockScreen() {
   const params = useLocalSearchParams<{ ticker: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const reduceMotion = useReducedMotion();
   const ticker = String(params.ticker ?? "SNTS").toUpperCase();
   const market = useMarketData();
+  const loadSeries = market.loadSeries;
   const quote = market.quotes[ticker];
   const fundamental = market.fundamentals[ticker];
   const [series, setSeries] = useState<OHLCV[]>([]);
+  const [seriesLoading, setSeriesLoading] = useState(true);
+  const [seriesError, setSeriesError] = useState(false);
   const [tab, setTab] = useState<Tab>("chart");
   const watched = useWatchlistStore((state) => state.tickers.includes(ticker));
   const beginner = useSettingsStore((state) => state.experienceLevel === "debutant");
   const toggle = useWatchlistStore((state) => state.toggle);
-  useEffect(() => { void market.loadSeries(ticker).then(setSeries); }, [market.loadSeries, ticker]);
+  useEffect(() => {
+    let cancelled = false;
+    setSeries([]);
+    setSeriesError(false);
+    setSeriesLoading(true);
+    void loadSeries(ticker)
+      .then((next) => { if (!cancelled) setSeries(next); })
+      .catch(() => { if (!cancelled) setSeriesError(true); })
+      .finally(() => { if (!cancelled) setSeriesLoading(false); });
+    return () => { cancelled = true; };
+  }, [loadSeries, ticker]);
   const riskSeries = useMemo(() => series.map((bar) => ({ time: String(bar.time), close: bar.close })), [series]);
   const risk = useMemo(() => ({ volatility: annualizedVolatility(riskSeries), drawdown: maxDrawdown(riskSeries) }), [riskSeries]);
   const documents = useMemo(() => market.documents.filter((document) => document.ticker === ticker).slice(0, 15), [market.documents, ticker]);
@@ -103,8 +118,28 @@ export default function StockScreen() {
   const bpa = fundamental?.sharesOutstanding ? (fundamental.netIncomeM * 1e6) / fundamental.sharesOutstanding : null;
 
   const refreshAll = async () => {
-    const [, nextSeries] = await Promise.all([market.refresh(), market.loadSeries(ticker, { force: true })]);
-    setSeries(nextSeries);
+    setSeriesError(false);
+    setSeriesLoading(true);
+    try {
+      const [, nextSeries] = await Promise.all([market.refresh(), loadSeries(ticker, { force: true })]);
+      setSeries(nextSeries);
+    } catch {
+      setSeriesError(true);
+    } finally {
+      setSeriesLoading(false);
+    }
+  };
+
+  const retrySeries = async () => {
+    setSeriesError(false);
+    setSeriesLoading(true);
+    try {
+      setSeries(await loadSeries(ticker, { force: true }));
+    } catch {
+      setSeriesError(true);
+    } finally {
+      setSeriesLoading(false);
+    }
   };
 
   return (
@@ -112,7 +147,7 @@ export default function StockScreen() {
     <Page refreshing={market.refreshing} onRefresh={() => void refreshAll()}>
       <Stack.Screen options={{ title: ticker }} />
 
-      <Animated.View entering={FadeInDown.duration(280)} style={styles.hero}>
+      <Animated.View entering={reduceMotion ? undefined : FadeInDown.duration(280)} style={styles.hero}>
         <View style={styles.heroCopy}>
           <Text numberOfLines={2} style={styles.name}>
             {quote.name} · {sectorLabel(quote.sectorCode)}{country ? ` · ${country}` : ""}
@@ -143,10 +178,15 @@ export default function StockScreen() {
 
       <SegmentedTabs tabs={STOCK_TABS} active={tab} onChange={setTab} />
 
-      {tab === "chart" ? <Animated.View key="chart" entering={FadeIn.duration(200)} style={styles.tabContent}>
-        {series.length ? (
+      {tab === "chart" ? <Animated.View key="chart" entering={reduceMotion ? undefined : FadeIn.duration(200)} style={styles.tabContent}>
+        {seriesLoading ? <LoadingState label="Chargement de la série…" /> : seriesError ? (
+          <View style={styles.seriesError}>
+            <EmptyState icon="cloud-offline-outline" title="Historique indisponible" detail="La série n'a pas pu être validée ou téléchargée. Les autres données restent accessibles." />
+            <ActionButton label="Réessayer" icon="refresh-outline" onPress={() => void retrySeries()} />
+          </View>
+        ) : series.length ? (
           <AdvancedChart ticker={ticker} data={series} previousClose={quote.prevClose} week52High={quote.week52High} week52Low={quote.week52Low} events={events} />
-        ) : <LoadingState label="Chargement de la série…" />}
+        ) : <EmptyState icon="analytics-outline" title="Aucun historique" detail={`Aucune séance exploitable n'est disponible pour ${ticker}.`} />}
 
         <Section title="Résumé" detail="Séance et variations">
           <View style={styles.statsGrid}>
@@ -189,12 +229,12 @@ export default function StockScreen() {
         </Section>
       </Animated.View> : null}
 
-      {tab === "fundamentals" ? <Animated.View key="fundamentals" entering={FadeIn.duration(200)} style={styles.tabContent}>
+      {tab === "fundamentals" ? <Animated.View key="fundamentals" entering={reduceMotion ? undefined : FadeIn.duration(200)} style={styles.tabContent}>
         {beginner ? (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Comprendre ces chiffres — ouvrir la méthodologie"
-            onPress={() => void Linking.openURL("https://rodthenewcomer.github.io/AfriTerminal/methodologie/")}
+            onPress={() => void openTrustedExternalUrl("https://rodthenewcomer.github.io/WARIBA/methodologie/")}
             style={({ pressed }) => [styles.beginnerBanner, pressed && { opacity: 0.75 }]}
           >
             <Ionicons name="school-outline" size={17} color={colors.accent} />
@@ -241,7 +281,7 @@ export default function StockScreen() {
             <View style={styles.yearBlock}>
               <YearComparison fundamental={fundamental} />
             </View>
-            <Row icon="open-outline" title="Document source BRVM" detail="États financiers officiels dont sont issus ces chiffres" onPress={() => void Linking.openURL(fundamental.source)} />
+            <Row icon="open-outline" title="Document source BRVM" detail="États financiers officiels dont sont issus ces chiffres" onPress={() => void openTrustedExternalUrl(fundamental.source)} />
           </> : (
             <EmptyState title="Fondamentaux détaillés indisponibles" detail="Aucun état financier vérifié n'est encore curé pour cette société." />
           )}
@@ -265,7 +305,7 @@ export default function StockScreen() {
         ) : null}
       </Animated.View> : null}
 
-      {tab === "risk" ? <Animated.View key="risk" entering={FadeIn.duration(200)} style={styles.tabContent}>
+      {tab === "risk" ? <Animated.View key="risk" entering={reduceMotion ? undefined : FadeIn.duration(200)} style={styles.tabContent}>
         <Section title="Risque historique" detail="Calculé sur l'historique complet des clôtures">
           <View style={styles.metrics}>
             <Metric label="Volatilité annualisée" value={risk.volatility === null ? "—" : pct(risk.volatility, { signed: false, digits: 1 })} />
@@ -277,20 +317,20 @@ export default function StockScreen() {
         </Section>
         <Section title="Opérations sur capital" detail="Splits, augmentations, fusions actés à la BRVM">
           {operations.length
-            ? operations.map((item) => <Row key={item.url} icon="git-branch-outline" title={item.title} detail={`${item.type} · ${dateFr(item.date)}`} onPress={() => void Linking.openURL(item.url)} />)
+            ? operations.map((item) => <Row key={item.url} icon="git-branch-outline" title={item.title} detail={`${item.type} · ${dateFr(item.date)}`} onPress={() => void openTrustedExternalUrl(item.url)} />)
             : <EmptyState icon="git-branch-outline" title="Aucune opération" detail="Aucune opération sur capital identifiée pour cette société." />}
         </Section>
       </Animated.View> : null}
 
-      {tab === "news" ? <Animated.View key="news" entering={FadeIn.duration(200)} style={styles.tabContent}>
+      {tab === "news" ? <Animated.View key="news" entering={reduceMotion ? undefined : FadeIn.duration(200)} style={styles.tabContent}>
         <Section title="Actualités" detail={news.length ? `${news.length} articles liés` : undefined}>
           {news.length
-            ? news.map((item) => <Row key={item.link} icon="newspaper-outline" title={item.title} detail={`${item.source} · ${item.publishedAt.slice(0, 10)}`} onPress={() => void Linking.openURL(item.link)} />)
+            ? news.map((item) => <Row key={item.link} icon="newspaper-outline" title={item.title} detail={`${item.source} · ${item.publishedAt.slice(0, 10)}`} onPress={() => void openTrustedExternalUrl(item.link)} />)
             : <EmptyState icon="newspaper-outline" title="Aucun article" detail={`Aucune actualité sourcée liée à ${ticker}.`} />}
         </Section>
         <Section title="Publications officielles" detail={`${documents.length} récentes`}>
           {documents.length
-            ? documents.map((document) => <Row key={document.url} icon="document-text-outline" title={document.title} detail={`${document.type} · ${dateFr(document.date)}`} onPress={() => void Linking.openURL(document.url)} />)
+            ? documents.map((document) => <Row key={document.url} icon="document-text-outline" title={document.title} detail={`${document.type} · ${dateFr(document.date)}`} onPress={() => void openTrustedExternalUrl(document.url)} />)
             : <EmptyState icon="document-text-outline" title="Aucune publication" detail={`Aucun document officiel lié à ${ticker} pour le moment.`} />}
         </Section>
       </Animated.View> : null}
@@ -351,6 +391,7 @@ const styles = StyleSheet.create({
   footerSecondaryText: { color: colors.ink2, fontSize: 14, fontWeight: "700" },
   hero: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 },
   tabContent: { gap: 26 },
+  seriesError: { gap: 12, alignItems: "center" },
   heroStats: { gap: 6, paddingTop: 4 },
   heroStatRow: { flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 8 },
   heroStatLabel: { ...type.label, fontSize: 9 },

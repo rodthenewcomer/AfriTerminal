@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getSnapshot, getSnapshots } from "@/lib/data";
-import { dateFr, fcfa, pct } from "@afriterminal/core/format";
+import { dateFr, fcfa, pct } from "@wariba/core/format";
 import { StockView } from "@/components/stocks/stock-view";
 
 export function generateStaticParams() {

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { Alert as NativeAlert, Pressable, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -10,6 +10,9 @@ import { usePriceAlertStore, useSettingsStore, type PriceAlertRule } from "../sr
 import { disableNotifications, enableNotifications, evaluatePriceAlerts } from "../src/services/alerts";
 import { parseAmount } from "../src/lib/forms";
 import { colors, radius, tabular, type } from "../src/theme";
+import { useMobileAuth } from "../src/providers/AuthProvider";
+import { uploadMobileData } from "../src/services/cloud-sync";
+import { trackMobileEvent } from "../src/services/analytics";
 
 function RuleRow({ rule, onRemove, onRearm }: { rule: PriceAlertRule; onRemove: () => void; onRearm: () => void }) {
   const above = rule.direction === "above";
@@ -24,6 +27,9 @@ function RuleRow({ rule, onRemove, onRearm }: { rule: PriceAlertRule; onRemove: 
         </Text>
         <Text style={styles.ruleDetail}>
           {rule.triggeredAt ? `Déclenchée le ${rule.triggeredAt.slice(0, 10)} — inactive, réarmez-la pour surveiller à nouveau` : "En attente du prochain cours officiel"}
+        </Text>
+        <Text style={styles.ruleDetail}>
+          Canaux : {(rule.channels ?? ["in_app"]).map((channel) => channel === "in_app" ? "app" : channel).join(", ")}
         </Text>
       </View>
       {rule.triggeredAt ? (
@@ -51,6 +57,7 @@ function RuleRow({ rule, onRemove, onRearm }: { rule: PriceAlertRule; onRemove: 
 }
 
 export default function AlertsScreen() {
+  const { session } = useMobileAuth();
   const market = useMarketData();
   const params = useLocalSearchParams<{ ticker?: string }>();
   const rules = usePriceAlertStore((state) => state.rules);
@@ -58,39 +65,61 @@ export default function AlertsScreen() {
   const remove = usePriceAlertStore((state) => state.remove);
   const rearm = usePriceAlertStore((state) => state.rearm);
   const notifications = useSettingsStore((state) => state.notifications);
+  const emailNotifications = useSettingsStore((state) => state.emailNotifications);
   const [ticker, setTicker] = useState(typeof params.ticker === "string" && params.ticker ? params.ticker.toUpperCase() : "SNTS");
   const [target, setTarget] = useState("");
   const [direction, setDirection] = useState<"above" | "below">("above");
   const quote = market.quotes[ticker.toUpperCase()];
+  const parsedTarget = parseAmount(target);
+  const formError = !ticker.trim()
+    ? "Saisissez un ticker."
+    : !quote
+      ? `Ticker inconnu : ${ticker.toUpperCase()}.`
+      : target && parsedTarget === null
+        ? "Le seuil doit être un montant positif en FCFA."
+        : null;
+  const canSubmit = Boolean(quote && parsedTarget !== null);
 
-  const submit = () => {
-    const parsed = parseAmount(target);
-    if (!quote || parsed === null) {
+  const syncNow = async () => {
+    if (session?.access_token) await uploadMobileData(session.access_token);
+  };
+
+  const submit = async () => {
+    if (!quote || parsedTarget === null) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
     }
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    add({ id: `${Date.now()}`, ticker: ticker.toUpperCase(), target: parsed, direction, enabled: true });
+    const channels: ("in_app" | "push" | "email")[] = ["in_app"];
+    if (notifications && session) channels.push("push");
+    if (emailNotifications && session) channels.push("email");
+    add({ id: `${Date.now()}`, ticker: ticker.toUpperCase(), target: parsedTarget, direction, enabled: true, channels });
+    try {
+      await syncNow();
+    } catch {
+      NativeAlert.alert("Alerte créée localement", "La synchronisation a échoué. Relancez-la depuis Compte quand le réseau revient.");
+    }
+    void trackMobileEvent("alert_create", { ticker: ticker.toUpperCase(), push: channels.includes("push"), email: channels.includes("email") }, "/alerts");
     setTarget("");
   };
 
   return (
     <Page
-      subtitle="Seuils évalués contre le dernier cours officiel — à l'ouverture, au rafraîchissement et lors des fenêtres système"
+      subtitle="Seuils évalués contre le dernier cours officiel, localement et par le serveur pour les comptes synchronisés"
       refreshing={market.refreshing}
       onRefresh={() => void market.refresh().then(() => evaluatePriceAlerts(market.quotes))}
     >
       <View style={styles.permission}>
         <View style={styles.permissionCopy}>
-          <Text style={styles.permissionTitle}>Notifications locales</Text>
+          <Text style={styles.permissionTitle}>Notifications de prix</Text>
           <Text style={styles.permissionDetail}>
-            Sans serveur, une app totalement arrêtée ne reçoit pas de push temps réel.
+            {session ? "Push serveur sur cet appareil ; les seuils sont synchronisés à leur création." : "Sans compte, vérification locale uniquement."}
           </Text>
         </View>
         <Switch
           accessibilityLabel="Activer les notifications locales"
           value={notifications}
-          onValueChange={(value) => void (value ? enableNotifications() : disableNotifications())}
+          onValueChange={(value) => void (value ? enableNotifications(session?.access_token) : disableNotifications(session?.access_token))}
           trackColor={{ false: colors.surface2, true: "rgba(226,166,61,0.45)" }}
           thumbColor={notifications ? colors.accent : colors.ink3}
         />
@@ -99,29 +128,25 @@ export default function AlertsScreen() {
       <Section title="Créer un seuil" detail={quote ? `${ticker.toUpperCase()} · dernier cours ${quote.lastClose.toLocaleString("fr-FR")} FCFA` : "Ticker inconnu"}>
         <View style={styles.form}>
           <View style={styles.formRow}>
-            <TextInput
-              value={ticker}
-              onChangeText={setTicker}
-              placeholder="Ticker"
-              placeholderTextColor={colors.ink3}
-              autoCapitalize="characters"
-              style={[styles.input, { flex: 0.7 }]}
-            />
-            <TextInput
-              value={target}
-              onChangeText={setTarget}
-              placeholder="Prix seuil (FCFA)"
-              placeholderTextColor={colors.ink3}
-              keyboardType="decimal-pad"
-              style={styles.input}
-            />
+            <View style={[styles.field, { flex: 0.7 }]}>
+              <Text style={styles.inputLabel}>Ticker</Text>
+              <TextInput accessibilityLabel="Ticker de l'alerte" value={ticker} onChangeText={setTicker} placeholder="Ex. SNTS" placeholderTextColor={colors.ink3} autoCapitalize="characters" style={styles.input} />
+            </View>
+            <View style={styles.field}>
+              <Text style={styles.inputLabel}>Seuil (FCFA)</Text>
+              <TextInput accessibilityLabel="Seuil de prix en FCFA" value={target} onChangeText={setTarget} placeholder="Ex. 32 000" placeholderTextColor={colors.ink3} keyboardType="decimal-pad" style={styles.input} />
+            </View>
           </View>
+          {formError ? <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.formError}>{formError}</Text> : null}
           <SegmentedTabs
             tabs={[{ id: "above", label: "Au-dessus" }, { id: "below", label: "En dessous" }] as const}
             active={direction}
             onChange={setDirection}
           />
-          <Pressable accessibilityRole="button" accessibilityLabel="Créer l'alerte de prix" onPress={submit} style={({ pressed }) => [styles.submit, (!quote || !target) && styles.submitDisabled, pressed && { opacity: 0.75 }]}>
+          <Text style={styles.channelHint}>
+            Canaux : app{notifications && session ? ", push" : ""}{emailNotifications && session ? ", e-mail" : ""}. Modifiables dans Réglages.
+          </Text>
+          <Pressable disabled={!canSubmit} accessibilityRole="button" accessibilityLabel="Créer l'alerte de prix" accessibilityState={{ disabled: !canSubmit }} onPress={() => void submit()} style={({ pressed }) => [styles.submit, !canSubmit && styles.submitDisabled, pressed && { opacity: 0.75 }]}>
             <Ionicons name="notifications-outline" size={16} color={colors.background} />
             <Text style={styles.submitText}>Créer l'alerte</Text>
           </Pressable>
@@ -130,7 +155,7 @@ export default function AlertsScreen() {
 
       <Section title="Mes seuils" detail={rules.length ? `${rules.length} actif${rules.length > 1 ? "s" : ""}` : undefined}>
         {rules.length
-          ? rules.map((rule) => <RuleRow key={rule.id} rule={rule} onRemove={() => remove(rule.id)} onRearm={() => rearm(rule.id)} />)
+          ? rules.map((rule) => <RuleRow key={rule.id} rule={rule} onRemove={() => { remove(rule.id); void syncNow().catch(() => undefined); }} onRearm={() => { rearm(rule.id); void syncNow().catch(() => undefined); }} />)
           : <EmptyState icon="notifications-off-outline" title="Aucun seuil" detail="Créez une alerte de prix locale — elle reste sur cet appareil." />}
       </Section>
 
@@ -156,6 +181,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface, borderColor: colors.line, borderWidth: 1, borderRadius: radius.lg,
   },
   formRow: { flexDirection: "row", gap: 10 },
+  field: { flex: 1, gap: 6 },
+  inputLabel: { ...type.label, color: colors.ink2 },
   input: {
     flex: 1, height: 46, color: colors.ink, fontSize: 13.5, fontVariant: tabular,
     backgroundColor: colors.surface2, borderColor: colors.line, borderWidth: 1, borderRadius: radius.md, paddingHorizontal: 13,
@@ -165,6 +192,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent, borderRadius: radius.md,
   },
   submitDisabled: { opacity: 0.45 },
+  formError: { color: colors.down, fontSize: 12, lineHeight: 16 },
+  channelHint: { ...type.caption },
   submitText: { color: colors.background, fontSize: 14, fontWeight: "800" },
   rule: { minHeight: 58, flexDirection: "row", alignItems: "center", gap: 12, borderBottomColor: colors.line, borderBottomWidth: 1, paddingVertical: 10 },
   ruleIcon: { width: 34, height: 34, alignItems: "center", justifyContent: "center", borderRadius: radius.md },

@@ -5,7 +5,7 @@
  * laissait passer des quantités/prix invalides jusque dans le stockage
  * persistant. Tout passe désormais par ces fonctions.
  */
-import type { PortfolioTransaction } from "@afriterminal/core/portfolio";
+import type { PortfolioTransaction } from "@wariba/core/portfolio";
 import type { PriceAlertRule } from "../stores";
 
 /** Ouverture de la BRVM : aucune transaction ne peut être antérieure. */

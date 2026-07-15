@@ -3,9 +3,11 @@ import * as BackgroundTask from "expo-background-task";
 import * as TaskManager from "expo-task-manager";
 import { Platform } from "react-native";
 import { fetchDataFile } from "../data/api";
+import { quoteMapSchema } from "../data/validation";
 import { priceAlertMatches } from "../lib/forms";
 import type { QuoteMap } from "../data/types";
 import { usePriceAlertStore, useSettingsStore } from "../stores";
+import { registerPushDevice, unregisterPushDevice } from "./push-registration";
 
 const TASK_NAME = "afriterminal-price-alert-check";
 
@@ -19,7 +21,8 @@ Notifications.setNotificationHandler({
 });
 
 export async function evaluatePriceAlerts(quotes: QuoteMap): Promise<number> {
-  if (!useSettingsStore.getState().notifications) return 0;
+  const settings = useSettingsStore.getState();
+  if (!settings.notifications || settings.serverPushRegistered) return 0;
   const state = usePriceAlertStore.getState();
   let triggered = 0;
   for (const rule of state.rules) {
@@ -49,7 +52,7 @@ TaskManager.defineTask(TASK_NAME, async () => {
       usePriceAlertStore.persist.rehydrate(),
       useSettingsStore.persist.rehydrate(),
     ]);
-    const quotes = await fetchDataFile<QuoteMap>("real/snapshot.json");
+    const quotes = await fetchDataFile("real/snapshot.json", quoteMapSchema);
     await evaluatePriceAlerts(quotes.data);
     return BackgroundTask.BackgroundTaskResult.Success;
   } catch {
@@ -57,9 +60,9 @@ TaskManager.defineTask(TASK_NAME, async () => {
   }
 });
 
-export async function enableNotifications(): Promise<boolean> {
+export async function enableNotifications(accessToken?: string): Promise<boolean> {
   if (Platform.OS === "android") {
-    await Notifications.setNotificationChannelAsync("default", {
+    await Notifications.setNotificationChannelAsync("price-alerts", {
       name: "Alertes de prix",
       importance: Notifications.AndroidImportance.DEFAULT,
     });
@@ -68,14 +71,26 @@ export async function enableNotifications(): Promise<boolean> {
   const permission = current.granted ? current : await Notifications.requestPermissionsAsync();
   const enabled = permission.granted;
   useSettingsStore.getState().setNotifications(enabled);
-  if (enabled && await TaskManager.isAvailableAsync()) {
+  if (enabled && accessToken) {
+    try {
+      await registerPushDevice(accessToken);
+      useSettingsStore.getState().setServerPushRegistered(true);
+      if (await TaskManager.isTaskRegisteredAsync(TASK_NAME)) await BackgroundTask.unregisterTaskAsync(TASK_NAME);
+    } catch (error) {
+      useSettingsStore.getState().setNotifications(false);
+      useSettingsStore.getState().setServerPushRegistered(false);
+      throw error;
+    }
+  } else if (enabled && await TaskManager.isAvailableAsync()) {
     await BackgroundTask.registerTaskAsync(TASK_NAME, { minimumInterval: 15 });
   }
   return enabled;
 }
 
-export async function disableNotifications(): Promise<void> {
+export async function disableNotifications(accessToken?: string): Promise<void> {
+  if (accessToken) await unregisterPushDevice(accessToken);
   useSettingsStore.getState().setNotifications(false);
+  useSettingsStore.getState().setServerPushRegistered(false);
   if (await TaskManager.isTaskRegisteredAsync(TASK_NAME)) {
     await BackgroundTask.unregisterTaskAsync(TASK_NAME);
   }

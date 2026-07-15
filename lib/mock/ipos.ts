@@ -1,4 +1,4 @@
-import type { IPOItem } from "@afriterminal/core/types";
+import type { IPOItem } from "@wariba/core/types";
 
 export const IPOS: IPOItem[] = [
   {

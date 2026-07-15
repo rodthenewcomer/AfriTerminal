@@ -1,6 +1,6 @@
 import { Coins } from "lucide-react";
 import { dividendHistoryFor } from "@/lib/real-dividends";
-import { dateFr, fcfa } from "@afriterminal/core/format";
+import { dateFr, fcfa } from "@wariba/core/format";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 
 /**

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
-import { pct } from "@afriterminal/core/format";
+import { pct } from "@wariba/core/format";
 import { ActionButton, EmptyState, Metric, Page, Section } from "../../src/components/ui";
 import { QuoteRow } from "../../src/components/QuoteRow";
 import { useMarketData } from "../../src/providers/MarketDataProvider";

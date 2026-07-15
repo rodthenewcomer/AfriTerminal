@@ -52,7 +52,7 @@ interface ChartLayoutsState {
 
 export const useChartLayouts = create<ChartLayoutsState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       layouts: [seedLayout()],
       activeId: "default",
       setActive: (id) => set({ activeId: id }),

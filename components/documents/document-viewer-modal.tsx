@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { CheckCircle2, ExternalLink, Sparkles, XCircle } from "lucide-react";
-import type { DocItem } from "@afriterminal/core/types";
-import { dateFr } from "@afriterminal/core/format";
+import type { DocItem } from "@wariba/core/types";
+import { dateFr } from "@wariba/core/format";
 import { STOCK_MAP } from "@/lib/mock/stocks";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

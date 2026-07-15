@@ -3,7 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { WebView, type WebViewMessageEvent } from "react-native-webview";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
-import type { OHLCV } from "@afriterminal/core/types";
+import type { OHLCV } from "@wariba/core/types";
 import { colors, radius } from "../../theme";
 import { LWC_RUNTIME } from "./lwc-runtime";
 
@@ -389,7 +389,7 @@ export const WebChart = forwardRef<WebChartHandle, {
     if (!base64) return;
     const uri = `${FileSystem.cacheDirectory}${payload.ticker}-chart.png`;
     await FileSystem.writeAsStringAsync(uri, base64, { encoding: FileSystem.EncodingType.Base64 });
-    if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(uri, { mimeType: "image/png", dialogTitle: `${payload.ticker} · AfriTerminal` });
+    if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(uri, { mimeType: "image/png", dialogTitle: `${payload.ticker} · WARIBA` });
   }, [payload.ticker]);
 
   const onMessage = useCallback((event: WebViewMessageEvent) => {
@@ -406,7 +406,8 @@ export const WebChart = forwardRef<WebChartHandle, {
       } else if (message.type === "png" && message.dataUrl) {
         void sharePng(message.dataUrl);
       } else if (message.type === "error" && message.message) {
-        setBridgeError(message.message);
+        if (__DEV__) console.warn("Chart bridge error", message.message);
+        setBridgeError("Le moteur graphique n'a pas pu afficher cette série.");
       }
     } catch {
       // Message non JSON — ignoré.
@@ -418,8 +419,8 @@ export const WebChart = forwardRef<WebChartHandle, {
       <WebView
         ref={webRef}
         source={{ html }}
-        originWhitelist={["*"]}
-        onShouldStartLoadWithRequest={(request) => !/^https?:/i.test(request.url)}
+        originWhitelist={["about:blank", "data:text/html"]}
+        onShouldStartLoadWithRequest={(request) => request.url === "about:blank" || request.url.startsWith("data:text/html")}
         onMessage={onMessage}
         scrollEnabled={false}
         overScrollMode="never"
@@ -435,7 +436,7 @@ export const WebChart = forwardRef<WebChartHandle, {
           <Text style={styles.bootingText}>Préparation du graphique…</Text>
         </View>
       ) : null}
-      {bridgeError ? <Text style={styles.error}>Erreur moteur chart : {bridgeError}</Text> : null}
+      {bridgeError ? <Text accessibilityRole="alert" style={styles.error}>{bridgeError}</Text> : null}
     </View>
   );
 });

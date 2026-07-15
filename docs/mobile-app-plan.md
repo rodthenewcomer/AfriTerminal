@@ -1,17 +1,17 @@
-# AfriTerminal Mobile — plan Expo (iOS/Android)
+# WARIBA Mobile — plan Expo (iOS/Android)
 
-Statut : **Phases 0 à 5 implémentées ; validation finale des gestes sur
-appareil et builds stores en attente**. Le site web (Next.js, GitHub Pages)
-n'est **pas remplacé** : il continue de vivre à l'identique, en parallèle.
+Statut : **Phases 0 à 5 et couche compte/synchronisation implémentées ;
+validation finale sur appareil et builds stores en attente**. Le site web
+Next.js est désormais server-backed ; GitHub Pages conserve le miroir JSON.
 
 ## Contraintes fixées par le produit
 
 1. **Niveau de finition « 2026, outstanding »** — pas un wrapper qui a
    l'air d'un site web dans une coquille. Interactions natives
    (haptics, gestes, transitions), et la même identité visuelle que le
-   site (palette sombre `#09090b`/`#111113`/`#18181b`, accent ambre
-   `#e2a63d`, vert/rouge `#22c55e`/`#ef4444`, violet `#8b5cf6` pour
-   MACD/opérations, or pour dividendes).
+   site (obsidienne `#06110d`, surfaces `#0a1812`/`#10241a`, signal
+   jade `#34d98f`, point or `#f4c96b`, vert/rouge marché et violet
+   `#8b5cf6` pour MACD/opérations).
 2. **Chart : moteur du site web via WebView** *(décision produit révisée
    le 2026-07-12)*. Le spike Skia natif (Phase 1) a été mené à bout puis
    remplacé : le rendu ne satisfaisait pas le niveau de finition visé, et
@@ -58,7 +58,11 @@ Native. La reconstruction utilise les primitives RN (`View`, `Text`,
 Ce choix évite une couche NativeWind supplémentaire tout en gardant les
 valeurs de `globals.css` comme source de vérité.
 
-## Le moteur de graphique — le vrai chantier
+## Historique de décision du moteur graphique (obsolète)
+
+La section ci-dessous décrit le spike Skia initial. La décision finale et
+actuelle est celle des lignes 15–25 : renderer `lightweight-charts` local
+dans une WebView durcie, entouré de contrôles React Native.
 
 Le chart actuel (`components/charts/main-chart.tsx`, moteur v3.1) fait
 déjà beaucoup : 6 types de rendu (chandelles, ligne, aire, baseline,
@@ -75,7 +79,7 @@ tel quel dans `packages/core`. Ce qui doit être réécrit, c'est
 uniquement le **rendu** — dessiner les chandelles, gérer le pan/zoom
 tactile, les marqueurs, les sous-panneaux.
 
-**Moteur retenu : `@shopify/react-native-skia`** + `react-native-gesture-handler`
+**Moteur du spike historique : `@shopify/react-native-skia`** + `react-native-gesture-handler`
 + `react-native-reanimated`. C'est la stack qui permet un rendu GPU
 personnalisable (seul moyen d'atteindre la qualité TradingView en natif
 pur) et qui a l'écosystème le plus mature pour ce niveau d'exigence en
@@ -110,9 +114,9 @@ est le prix du rendu 100 % natif demandé.
 
 ## Ce qui ne change pas
 
-- Le site web (`apps/web` après migration) garde son pipeline de données
-  (`scripts/boc/`, GitHub Actions), son export statique, son déploiement
-  GitHub Pages — rien de ce document n'affecte son fonctionnement actuel.
+- Le pipeline public (`scripts/boc/`, GitHub Actions) reste identique ;
+  GitHub Pages publie ses JSON, tandis que le site/auth/API s'exécute sur
+  un runtime Next.js Node.
 - Aucune donnée n'est dupliquée : l'app mobile consomme les mêmes JSON
   publics déjà générés pour le site.
 
@@ -304,3 +308,8 @@ Ouvrir ensuite l'URL `exp://` dans Expo Go SDK 54 sur l'iPhone et vérifier :
 7. passer hors ligne après un premier chargement et vérifier le mode cache ;
 8. relever toute erreur rouge, disparition, désynchronisation ou saccade avec
    ticker, geste et capture/vidéo.
+
+Les achats intégrés RevenueCat exigent un development build ou un build signé,
+pas Expo Go. Avec les clés et produits sandbox configurés, vérifier aussi le
+chargement des offres, l'achat, la restauration, l'ouverture de la gestion
+d'abonnement et la mise à jour serveur de l'accès Pro sur iOS puis Android.

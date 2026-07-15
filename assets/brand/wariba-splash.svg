@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="signal" x1="250" y1="268" x2="774" y2="660" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#90F4C7"/>
+      <stop offset=".55" stop-color="#2DD58B"/>
+      <stop offset="1" stop-color="#0EAA69"/>
+    </linearGradient>
+  </defs>
+  <path d="M258 286L374 630L512 402L650 630L766 286" fill="none" stroke="url(#signal)" stroke-width="72" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="766" cy="286" r="34" fill="#F4C96B"/>
+  <text x="512" y="790" fill="#F3FAF6" font-family="Arial, Helvetica, sans-serif" font-size="92" font-weight="800" letter-spacing="16" text-anchor="middle">WARIBA</text>
+  <text x="512" y="850" fill="#8FA89B" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="600" letter-spacing="6" text-anchor="middle">LA BRVM, CLAIREMENT.</text>
+</svg>

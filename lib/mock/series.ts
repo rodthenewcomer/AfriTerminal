@@ -1,4 +1,4 @@
-import type { OHLCV, SeriesProfile, Timeframe } from "@afriterminal/core/types";
+import type { OHLCV, SeriesProfile, Timeframe } from "@wariba/core/types";
 import { STOCK_MAP, TODAY } from "./stocks";
 
 /** PRNG déterministe (mulberry32) pour que SSR et client génèrent les mêmes séries. */

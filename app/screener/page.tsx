@@ -5,10 +5,10 @@ import Link from "next/link";
 import { BookmarkPlus, Briefcase, Grid3X3, RotateCcw, X } from "lucide-react";
 import { useSavedFilters, useSavedFiltersHydrated } from "@/hooks/use-saved-filters";
 import { usePortfolio, usePortfolioHydrated } from "@/hooks/use-portfolio";
-import { computePositions } from "@afriterminal/core/portfolio";
+import { computePositions } from "@wariba/core/portfolio";
 import { getSnapshots } from "@/lib/data";
-import type { Country, Sector, StockSnapshot } from "@afriterminal/core/types";
-import { cn } from "@afriterminal/core/utils";
+import type { Country, Sector, StockSnapshot } from "@wariba/core/types";
+import { cn } from "@wariba/core/utils";
 import { Input, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { StockTable } from "@/components/stocks/stock-table";
@@ -99,7 +99,7 @@ export default function ScreenerPage() {
     setFilters((f) => ({ ...f, [key]: value }));
   };
 
-  const usePreset = (id: string) => {
+  const applyPreset = (id: string) => {
     const p = PRESETS.find((x) => x.id === id);
     if (!p) return;
     setPreset(id);
@@ -153,7 +153,7 @@ export default function ScreenerPage() {
         {PRESETS.map((p) => (
           <button
             key={p.id}
-            onClick={() => usePreset(p.id)}
+            onClick={() => applyPreset(p.id)}
             className={cn(
               "rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap cursor-pointer transition-colors",
               preset === p.id

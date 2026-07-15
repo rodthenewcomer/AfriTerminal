@@ -4,7 +4,7 @@ import type {
   SectorStats,
   Stock,
   StockSnapshot,
-} from "@afriterminal/core/types";
+} from "@wariba/core/types";
 import { STOCKS, STOCK_MAP } from "./mock/stocks";
 import { getSeries } from "./mock/series";
 import { IRVM_RATE } from "./mock/dividends";
@@ -12,7 +12,7 @@ import { computeScores, detectSignals } from "./signals";
 import { generateInsight } from "./insights";
 import { getAllRealQuotes, getRealQuote, REAL_INDICES } from "./real-data";
 import { realOnlySnapshot } from "./real-universe";
-import { companyProfile } from "@afriterminal/core/company-profiles";
+import { companyProfile } from "@wariba/core/company-profiles";
 
 function pctChange(from: number, to: number): number {
   if (from === 0) return 0;

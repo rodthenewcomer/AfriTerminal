@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { AlertTriangle, Lightbulb, Rocket, Sparkles } from "lucide-react";
-import type { IPOItem } from "@afriterminal/core/types";
-import { dateFr } from "@afriterminal/core/format";
+import type { IPOItem } from "@wariba/core/types";
+import { dateFr } from "@wariba/core/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";

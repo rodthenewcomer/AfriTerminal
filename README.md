@@ -1,8 +1,14 @@
-# AfriTerminal
+# WARIBA
 
-Terminal de charting et d'analyse des actions africaines — MVP BRVM.
-« La BRVM devient lisible » : charts, fondamentaux, dividendes, documents
-officiels et signaux intelligents.
+**La BRVM, clairement.** WARIBA est le terminal premium web, iOS et Android
+pour suivre les marchés de l'UEMOA : cours officiels, graphiques, fondamentaux,
+dividendes, portefeuille, documents, alertes et synchronisation privée.
+
+- Web production : [wariba.app](https://wariba.app)
+- Application native : Expo SDK 54, prête pour les builds iOS/Android signés
+- Compte : e-mail/mot de passe, Apple et Google via Supabase Auth
+- Monétisation : Stripe sur le web, RevenueCat pour App Store / Google Play
+- Données : pipeline BRVM officiel, aucune valeur inventée
 
 Depuis le 2026-07-08, **toute l'app** tourne sur les données réelles
 BRVM : les **48 sociétés cotées** (cours, variations, volumes, PER,
@@ -25,7 +31,7 @@ dérivées du bulletin
 (`lib/real-universe.ts` : secteur via code BOC, pays via suffixe du
 ticker).
 
-## Prérequis
+## Démarrage local
 
 - Node.js 20+ (testé sur v20.20.2)
 - npm (le repo est verrouillé via `package-lock.json`)
@@ -40,11 +46,12 @@ npm run start    # sert le build de production, après npm run build
 npm run audit:prod # audit npm production high/critical
 ```
 
-Aucune variable d'environnement n'est requise : l'app lit des artefacts
-JSON committés dans `data/real/`, `data/news/` et `data/boc/series/`.
-`lib/mock/` ne sert plus qu'aux descriptions curées, aux anciens jeux de
-repli technique et aux scénarios pédagogiques explicitement simulés
-(onglet « Apprendre » de la page IPO).
+Les écrans de marché fonctionnent sans compte à partir des artefacts JSON
+committés dans `data/real/`, `data/news/` et `data/boc/series/`. Copiez
+`.env.example` vers `.env.local` pour activer Supabase Auth, la
+synchronisation, Stripe, RevenueCat, les notifications et l'analytics.
+`lib/mock/` ne sert qu'aux descriptions curées, replis techniques et
+scénarios pédagogiques explicitement signalés.
 
 ## Stack
 
@@ -58,20 +65,26 @@ repli technique et aux scénarios pédagogiques explicitement simulés
   l'app iOS/Android dans `apps/mobile`, avec Zustand + AsyncStorage — les
   sauvegardes JSON sont interchangeables entre le site et l'app
 
-## Écart connu par rapport au brief initial
+## Système de marque et assets
 
-Le brief demandait shadcn/ui. Les primitives dans `components/ui/`
-(`button.tsx`, `card.tsx`, `badge.tsx`, `input.tsx`, `dialog.tsx`, `tabs.tsx`,
-`skeleton.tsx`) sont **écrites à la main** avec le même rendu visuel et la
-même API que shadcn (props, `cn()`, Tailwind), mais ne sont pas générées par
-la CLI shadcn : pas de `components.json`, pas de dépendance Radix. À faire si
-besoin de l'écosystème shadcn : `npx shadcn@latest init` puis remplacer ces
-fichiers par les composants générés (les imports `@/components/ui/*`
-resteraient inchangés).
+La source vectorielle de l'identité WARIBA vit dans `assets/brand/`.
+Les déclinaisons prêtes pour les plateformes sont générées dans :
 
-Aucun linter n'est configuré (`npm run lint` n'existe pas) — seul `tsc
---noEmit` (via `next build`) vérifie les types. À ajouter avec
-`npx eslint --init` si le projet grandit au-delà du MVP.
+- `app/icon.svg`, `app/icon.png`, `app/apple-icon.png` pour Next.js/PWA/iOS ;
+- `apps/mobile/assets/icon.png` pour l'icône iOS ;
+- `apps/mobile/assets/android-icon-foreground.png`,
+  `android-icon-background.png` et `android-icon-monochrome.png` pour
+  l'icône adaptative Android ;
+- `apps/mobile/assets/splash-icon.png` pour l'écran de lancement natif.
+
+Identifiants natifs : scheme `wariba://`, bundle iOS et package Android
+`app.wariba.mobile`.
+
+## Qualité de livraison
+
+Le gate exécute ESLint, TypeScript web/mobile, Vitest, les tests Python, le
+build Next.js, Expo Doctor, la compatibilité des versions Expo, les exports
+iOS/Android et l'audit des dépendances de production.
 
 ## Structure
 
@@ -186,9 +199,10 @@ que `StockSnapshot.real` existe. Les autres tickers sont dérivés du
 bulletin (secteur via code BOC, pays via suffixe du ticker), sans
 description longue inventée.
 
-Pour productiser au-delà du statique (comptes, alertes personnalisées,
-billing, équipes), voir `docs/ship-readiness.md` : l'app actuelle reste
-un MVP public sans backend utilisateur.
+La couche produit server-backed est maintenant présente : comptes Supabase,
+API de synchronisation privée, entitlements multi-provider, facturation Stripe web et achats App Store/Play via RevenueCat.
+L'activation production et les blockers externes sont suivis dans
+`docs/ship-readiness.md`.
 
 ## Avertissement
 
@@ -198,15 +212,14 @@ investissement.
 
 ## Déploiement & automatisation (depuis le 2026-07-08)
 
-Le site est un export statique Next.js (`output: "export"`) déployé sur
-**GitHub Pages** : https://rodthenewcomer.github.io/AfriTerminal/
+Le site et l'API sont un build Next.js `standalone` pour runtime Node.
+**GitHub Pages** conserve uniquement les JSON publics consommés par mobile ;
+voir `docs/server-deployment.md` pour Supabase, Stripe, RevenueCat et le déploiement web/mobile.
 
 Sept workflows GitHub Actions (`.github/workflows/`) :
 
-- **deploy.yml** — build + déploiement Pages à chaque push sur `main`
-  (le `basePath` `/AfriTerminal` est injecté au build via
-  `NEXT_PUBLIC_BASE_PATH`, absent en dev local) ; l'export inclut aussi
-  `data/real/` et `data/news/`, consommés par l'app mobile ;
+- **deploy.yml** — publication Pages de `data/real/` et `data/news/`,
+  consommés par l'app mobile ;
 - **boc-daily.yml** — chaque jour ouvré (17h30 UTC, retentes 20h00,
   22h30 et 05h00 le lendemain — la BRVM publie parfois tard) :
   télécharge le bulletin officiel, le fusionne dans `data/boc/series/`
@@ -224,25 +237,31 @@ Sept workflows GitHub Actions (`.github/workflows/`) :
 - **freshness.yml** — watchdog quotidien (07h00 UTC) : un bulletin en
   ligne mais absent de nos données met le workflow en rouge (e-mail) —
   la staleness silencieuse est interdite ;
-- **ci.yml** — vitest + unittest Python + build sur chaque push/PR.
+- **ci.yml** — ESLint, TypeScript web/mobile, vitest, unittest Python,
+  audit, build Next, Expo Doctor/compatibilité et exports iOS/Android.
 
-Fraîcheur en heures — le temps réel exigera un hébergement serveur
-(ISR), limite assumée du statique.
+La fraîcheur publique reste pilotée par le pipeline planifié ; le runtime
+Node porte les comptes, la synchronisation, la facturation, les alertes
+push/e-mail, l'analytics consentie, le throttling distribué et les sondes
+d'exploitation.
 
 Aucune machine locale n'est nécessaire : la fraîcheur des données et le
 déploiement sont entièrement portés par GitHub Actions.
 
-## Roadmap — app mobile (iOS/Android)
+## Application mobile iOS/Android
 
 Implémentée dans `apps/mobile` : app Expo/React Native, chart motorisé
 par le build lightweight-charts du site dans une WebView hors-ligne
 (décision 2026-07-12), navigation Router, données réseau/cache,
 portefeuille (transactions rétrodatables, saisies validées et testées),
-watchlist, screener, documents, alertes locales réarmables et
+watchlist, screener, documents, alertes locales réarmables avec push/e-mail
+serveur optionnel pour les comptes synchronisés, et
 sauvegarde/restauration JSON compatible avec le site. La logique de
 calcul reste partagée dans `packages/core` et le site conserve son
 comportement. La revue 22 rôles du 2026-07-13 est intégrée (voir
-`docs/ship-readiness.md`). La validation finale sur appareil et les
-builds signés stores restent à effectuer. Détail :
+`docs/ship-readiness.md`). L'identité WARIBA, l'ouverture animée,
+l'onboarding, la connexion et l'inscription sont partagés entre iOS et
+Android. La validation finale sur appareils physiques et les builds signés
+stores restent à effectuer. Détail :
 [docs/mobile-app-plan.md](docs/mobile-app-plan.md) ; comptes et
 onboarding : [docs/auth-onboarding-plan.md](docs/auth-onboarding-plan.md).

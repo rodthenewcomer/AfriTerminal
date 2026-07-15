@@ -3,11 +3,11 @@
 import { useMemo, useState } from "react";
 import { getSnapshots } from "@/lib/data";
 import { usePortfolio } from "@/hooks/use-portfolio";
-import { fcfa } from "@afriterminal/core/format";
+import { fcfa } from "@wariba/core/format";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Input, Select } from "@/components/ui/input";
-import { cn } from "@afriterminal/core/utils";
+import { cn } from "@wariba/core/utils";
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);

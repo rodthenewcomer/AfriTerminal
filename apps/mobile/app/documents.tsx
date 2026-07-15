@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Linking, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { ActionButton, EmptyState, Page, Row, Section } from "../src/components/ui";
 import { useMarketData } from "../src/providers/MarketDataProvider";
+import { openTrustedExternalUrl } from "../src/lib/external-links";
 
 export default function DocumentsScreen() {
   const market = useMarketData();
@@ -11,7 +12,7 @@ export default function DocumentsScreen() {
       <Section title="Publications" detail={`${Math.min(limit, market.documents.length)} sur ${market.documents.length}`}>
         {market.documents.length ? <>
           {market.documents.slice(0, limit).map((item) => (
-            <Row key={item.url} icon="document-text-outline" title={`${item.ticker} · ${item.title}`} detail={`${item.type} · ${item.date}`} onPress={() => void Linking.openURL(item.url)} />
+            <Row key={item.url} icon="document-text-outline" title={`${item.ticker} · ${item.title}`} detail={`${item.type} · ${item.date}`} onPress={() => void openTrustedExternalUrl(item.url)} />
           ))}
           {limit < market.documents.length ? (
             <View style={styles.moreRow}>

@@ -3,7 +3,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
-import { cn } from "@afriterminal/core/utils";
+import { cn } from "@wariba/core/utils";
 
 export function Dialog({
   open,

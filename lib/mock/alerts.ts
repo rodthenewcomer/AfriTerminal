@@ -1,4 +1,4 @@
-import type { AlertItem } from "@afriterminal/core/types";
+import type { AlertItem } from "@wariba/core/types";
 
 // basis: "réel" = vérifié contre data/real/snapshot.json le 2026-07-08.
 // basis: "illustratif" = scénario pédagogique signalé comme tel, construit

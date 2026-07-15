@@ -5,7 +5,7 @@ import { Bell, FileText, Newspaper } from "lucide-react";
 import { newsDate, newsForTicker } from "@/lib/news";
 import { realDocsForTicker } from "@/lib/real-documents";
 import { REAL_ALERTS } from "@/lib/real-alerts";
-import { dateFr } from "@afriterminal/core/format";
+import { dateFr } from "@wariba/core/format";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 
