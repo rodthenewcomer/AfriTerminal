@@ -1,6 +1,6 @@
 # Pipeline quotidien BOC : télécharge le bulletin officiel du jour,
 # le fusionne dans les séries historiques, reconstruit les données de
-# l'app, committe, puis redéploie le site.
+# l'app et committe. Le push sur main déclenche le déploiement Vercel.
 #
 # Heure d'Abidjan = UTC toute l'année. La séance ferme à 14h45 GMT et
 # le bulletin est publié dans l'après-midi : on tente à 17h30 UTC puis
@@ -76,12 +76,3 @@ jobs:
             git push
             echo "pushed=true" >> "$GITHUB_OUTPUT"
           fi
-
-  deploy:
-    needs: update-data
-    if: needs.update-data.outputs.pushed == 'true'
-    uses: ./.github/workflows/deploy.yml
-    permissions:
-      contents: read
-      pages: write
-      id-token: write

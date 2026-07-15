@@ -26,6 +26,14 @@ import { AlertCard } from "@/components/alerts/alert-card";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { InfoHint } from "@/components/ui/info-hint";
+import {
+  currentSessionSnapshots,
+  marketBreadth,
+  rankGainers,
+  rankLosers,
+  rankUnusualVolumes,
+  rankWeeklyMovers,
+} from "@/lib/dashboard-metrics";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -64,27 +72,15 @@ function MoverRow({
 
 export default function DashboardPage() {
   const snapshots = getSnapshots();
+  const sessionSnapshots = currentSessionSnapshots(snapshots);
   const indices = getIndices();
-  const gainers = [...snapshots].sort((a, b) => b.dayChange - a.dayChange).slice(0, 5);
-  const losers = [...snapshots].sort((a, b) => a.dayChange - b.dayChange).slice(0, 5);
-  const unusualVolume = snapshots
-    .filter((s) => s.volumeRatio >= 1.5)
-    .sort((a, b) => b.volumeRatio - a.volumeRatio)
-    .slice(0, 5);
+  const gainers = rankGainers(snapshots);
+  const losers = rankLosers(snapshots);
+  const unusualVolume = rankUnusualVolumes(snapshots);
   const delayedLive = snapshots.some((s) => s.real?.quoteStatus === "delayed-live");
-  // Sur données réelles, pas de scores fondamentaux fiables : on classe par
-  // amplitude du mouvement (variation absolue + ratio de volume) plutôt que
-  // par qualité/momentum/risque (fictifs pour les tickers réels).
-  const watchScore = (s: (typeof snapshots)[number]) =>
-    s.real
-      ? Math.abs(s.weekChange) * 1.5 + s.volumeRatio * 10
-      : s.scores.quality + s.scores.momentum - s.scores.risk;
-  const toWatch = [...snapshots].sort((a, b) => watchScore(b) - watchScore(a)).slice(0, 4);
+  const toWatch = rankWeeklyMovers(snapshots);
   const dayAlerts = latestSessionAlerts(3);
-  // Breadth de la dernière séance (barre hausses/baisses façon Finviz)
-  const advancing = snapshots.filter((s) => s.dayChange > 0).length;
-  const declining = snapshots.filter((s) => s.dayChange < 0).length;
-  const unchanged = snapshots.length - advancing - declining;
+  const { advancing, declining, unchanged, total } = marketBreadth(snapshots);
   // Extrêmes 52 semaines depuis le moteur d'alertes (fenêtre 5 séances)
   const extremes = REAL_ALERTS.filter((a) => a.title.includes("52 semaines"));
   const highs = extremes.filter((a) => a.severity === "positive").slice(0, 5);
@@ -107,11 +103,11 @@ export default function DashboardPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-ink">
-            Votre radar BRVM intelligent
+            Tableau de marché BRVM
           </h1>
           <p className="mt-1 text-sm text-ink-3">
-            {MARKET_DATA_LABEL} · Ne regarde pas seulement
-            le prix. Comprends le mouvement.
+            {MARKET_DATA_LABEL} · {sessionSnapshots.length} valeurs sur la séance
+            courante · {snapshots.length - sessionSnapshots.length} cotation suspendue
           </p>
         </div>
         <InfoHint
@@ -151,17 +147,17 @@ export default function DashboardPage() {
           <span className="text-down">Baisses {declining}</span>
         </div>
         <div className="mt-1.5 flex h-1.5 w-full gap-0.5 overflow-hidden rounded-full">
-          <span className="bg-up" style={{ width: `${(advancing / snapshots.length) * 100}%` }} />
-          <span className="bg-ink-3/30" style={{ width: `${(unchanged / snapshots.length) * 100}%` }} />
-          <span className="bg-down" style={{ width: `${(declining / snapshots.length) * 100}%` }} />
+          <span className="bg-up" style={{ width: `${(advancing / total) * 100}%` }} />
+          <span className="bg-ink-3/30" style={{ width: `${(unchanged / total) * 100}%` }} />
+          <span className="bg-down" style={{ width: `${(declining / total) * 100}%` }} />
         </div>
       </div>
 
       {/* Performance sectorielle — barres divergentes (moyenne du jour) */}
       <Card>
-        <CardHeader
-          title="Performance par secteur"
-          subtitle="Moyenne des variations de la séance · nombre de valeurs à droite"
+          <CardHeader
+            title="Performance par secteur"
+            subtitle={`Moyenne équipondérée de la séance sur ${total} valeurs actives · effectif à droite`}
         />
         <CardBody>
           <SectorPerformance />
@@ -173,6 +169,7 @@ export default function DashboardPage() {
         <Card className="lg:col-span-2">
           <CardHeader
             title="Carte du marché"
+            subtitle="Taille = cours × volume moyen 30 j · couleur = variation factuelle"
             action={
               <Link href="/map" className="inline-flex items-center gap-1 text-xs text-accent hover:underline">
                 Agrandir <ArrowRight className="h-3 w-3" />
@@ -186,7 +183,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader
             title="Extrêmes 52 semaines"
-            subtitle="Franchissements des 5 dernières séances"
+            subtitle="Nouvelles clôtures extrêmes détectées sur les 5 dernières séances"
           />
           <CardBody className="space-y-0.5">
             {highs.length === 0 && lows.length === 0 ? (
@@ -224,9 +221,9 @@ export default function DashboardPage() {
             }
           />
           <CardBody className="space-y-0.5">
-            {gainers.map((s) => (
+            {gainers.length ? gainers.map((s) => (
               <MoverRow key={s.ticker} ticker={s.ticker} name={s.name} price={s.lastPrice} change={s.dayChange} />
-            ))}
+            )) : <p className="py-4 text-center text-xs text-ink-3">Aucune hausse sur la séance.</p>}
           </CardBody>
         </Card>
         <Card>
@@ -238,9 +235,9 @@ export default function DashboardPage() {
             }
           />
           <CardBody className="space-y-0.5">
-            {losers.map((s) => (
+            {losers.length ? losers.map((s) => (
               <MoverRow key={s.ticker} ticker={s.ticker} name={s.name} price={s.lastPrice} change={s.dayChange} />
-            ))}
+            )) : <p className="py-4 text-center text-xs text-ink-3">Aucune baisse sur la séance.</p>}
           </CardBody>
         </Card>
         <Card>
@@ -343,10 +340,10 @@ export default function DashboardPage() {
           <CardHeader
             title={
               <span className="inline-flex items-center gap-1.5">
-                <Radar className="h-3.5 w-3.5 text-accent" /> Actions à surveiller cette semaine
+                <Radar className="h-3.5 w-3.5 text-accent" /> Mouvements à surveiller
               </span>
             }
-            subtitle={delayedLive ? "Plus forte amplitude hebdomadaire" : "Plus forte amplitude (semaine × volume)"}
+            subtitle="Plus fortes amplitudes absolues sur 1 semaine · classement descriptif, sans recommandation"
           />
           <CardBody className="space-y-3">
             {toWatch.map((s) => (

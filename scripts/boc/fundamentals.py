@@ -4,13 +4,14 @@ Pipeline fondamentaux : télécharge les états financiers épinglés du
 REGISTRY, extrait les indicateurs (extracteur SYSCOHADA ou bancaire),
 normalise en MILLIONS de FCFA et écrit data/real/fundamentals.json.
 
-Philosophie différente du pipeline BOC quotidien : ce pipeline est
-**curé à la main, société par société** — chaque entrée du REGISTRY
+Le registre de référence reste **curé à la main, société par société** :
+chaque entrée du REGISTRY
 épingle un PDF précis (pas « le dernier »), une unité vérifiée
 manuellement (les documents mélangent FCFA pleins, milliers et
-millions, rarement libellés) et un extracteur validé sur ce gabarit.
-Il s'exécute à la main quand de nouveaux états sortent, pas en cron :
-ajouter une société = travail de validation, pas de configuration.
+millions, rarement libellés) et un extracteur validé sur ce gabarit. Les
+mises à jour automatiques validées par refresh_fundamentals.py sont ensuite
+superposées depuis fundamentals-auto.json : un run manuel complet ne peut
+donc plus revenir à un exercice ancien.
 
 Inférence d'unité semi-automatique pour les ajouts du 2026-07-08 :
 unité retenue = la seule parmi {FCFA, milliers, millions, milliards}
@@ -1147,6 +1148,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", default="data/real/fundamentals.json")
     parser.add_argument("--pdf-cache", default="data/fundamentals-pdf-cache")
+    parser.add_argument(
+        "--auto-overrides", default="data/real/fundamentals-auto.json"
+    )
     args = parser.parse_args()
 
     out: dict[str, dict] = {}
@@ -1180,6 +1184,22 @@ def main() -> None:
             f"{ticker}: {rec['revenueLabel']} {rec['revenueM']:,} M · RN {rec['netIncomeM']:,} M"
             + (f" ({growth:+.1f}%)" if growth is not None else "")
         )
+
+    override_path = Path(args.auto_overrides)
+    sibling_override = Path(args.out).with_name("fundamentals-auto.json")
+    if not override_path.exists() and sibling_override.exists():
+        override_path = sibling_override
+    if override_path.exists():
+        overrides = json.loads(override_path.read_text(encoding="utf-8"))
+        for ticker, record in overrides.items():
+            if ticker not in out:
+                continue
+            if record.get("fiscalYear", 0) >= out[ticker]["fiscalYear"]:
+                out[ticker] = record
+                print(
+                    f"{ticker}: surcharge automatique exercice "
+                    f"{record['fiscalYear']} conservée"
+                )
 
     Path(args.out).write_text(
         json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8"

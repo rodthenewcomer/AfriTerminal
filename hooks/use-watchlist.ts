@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { WatchlistDef } from "@wariba/core/types";
+import { migratedStorageKey } from "@/lib/storage-keys";
 
 const SEED_LISTS: WatchlistDef[] = [
   { id: "default", name: "Ma watchlist", tickers: ["SNTS", "NSBC", "PALC"] },
@@ -68,7 +69,7 @@ export const useWatchlist = create<WatchlistState>()(
       replaceAll: (lists, activeId) =>
         set({ lists, activeId: lists.some((l) => l.id === activeId) ? activeId : (lists[0]?.id ?? "default") }),
     }),
-    { name: "afriterminal-watchlists", skipHydration: true }
+    { name: migratedStorageKey("wariba-watchlists", "watchlists"), skipHydration: true }
   )
 );
 

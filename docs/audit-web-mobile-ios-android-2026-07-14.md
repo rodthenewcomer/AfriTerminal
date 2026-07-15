@@ -18,10 +18,9 @@ operations, release and commercial readiness.
 
 ## Product identity delivered
 
-WARIBA replaces the former product name on every customer-facing surface,
-metadata file and document. Historical migration filenames and local storage
-keys remain immutable where renaming would break applied database history or
-erase user data.
+WARIBA is the only product name on customer-facing surfaces, metadata and
+documentation. Persisted namespaces are now WARIBA-native; compatibility
+with older local exports is handled without exposing the former brand.
 
 - Visual thesis: obsidian market intelligence with a luminous jade W-signal
   and a restrained gold origin point.
@@ -60,6 +59,7 @@ The previous discoverability failure is fixed:
 | Senior Frontend Engineer | Responsive web shell, auth routes and PWA metadata implemented |
 | Applied AI / LLM Engineer | No investment-advice AI shipped; intentionally out of scope |
 | Data Engineer | Official BRVM ingestion and freshness automation remain product foundation |
+| Market Data QA | 48/48 actions, fundamentals and publication pages covered; stale suspended values excluded from session rankings |
 | DevOps / Cloud Engineer | Vercel/Supabase active; EAS and provider secrets remain |
 | Security & Compliance | RLS, security headers, protected secrets and deletion flow implemented; legal/store declarations remain |
 | Product Designer | WARIBA brand, icon system, splash, onboarding and auth hierarchy delivered |

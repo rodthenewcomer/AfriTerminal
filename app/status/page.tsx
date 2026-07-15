@@ -6,13 +6,14 @@ import { REAL_ALERTS } from "@/lib/real-alerts";
 import { REAL_DOCUMENTS } from "@/lib/real-documents";
 import { latestNews, newsDate } from "@/lib/news";
 import fundamentalsJson from "@/data/real/fundamentals.json";
+import fundamentalsStatusJson from "@/data/real/fundamentals-status.json";
 import { dateFr } from "@wariba/core/format";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 
 export const metadata: Metadata = {
   title: "Statut des données",
   description:
-    "Fraîcheur et provenance de chaque source de données d'WARIBA : bulletins officiels BRVM, indices, actualités, fondamentaux, documents.",
+    "Fraîcheur et provenance de chaque source de données WARIBA : bulletins officiels BRVM, indices, actualités, fondamentaux, documents.",
 };
 
 /** Figé au build : le site étant statique, cette date EST celle du dernier déploiement. */
@@ -30,12 +31,17 @@ export default function StatusPage() {
   const lastNews = latestNews(1)[0];
   const lastAlert = REAL_ALERTS[0];
   const lastDoc = REAL_DOCUMENTS[0];
+  const fundamentalsStatus = fundamentalsStatusJson as {
+    coverage: number;
+    current: number;
+    reviewRequired: number;
+  };
 
   const rows: { source: string; freshness: string; detail: string }[] = [
     {
       source: "Cours & volumes",
       freshness: MARKET_DATA_LABEL,
-      detail: `${snapshots.length} sociétés cotées · cours différés relevés toutes les 15 min en séance · clôtures et volumes officiels consolidés chaque soir`,
+      detail: `${snapshots.length} sociétés cotées · cours différés relevés toutes les 5 min en séance · clôtures et volumes officiels consolidés chaque soir`,
     },
     {
       source: "Indices BRVM",
@@ -44,13 +50,13 @@ export default function StatusPage() {
     },
     {
       source: "Plus haut / plus bas intraday",
-      freshness: "Collecte toutes les 15 min en séance",
+      freshness: "Collecte toutes les 5 min en séance",
       detail: "Cours différés de 15 min relevés pendant la séance (10h00–15h15 UTC) — les bougies gagnent de vraies mèches depuis le 8 juil. 2026",
     },
     {
       source: "Actualités",
       freshness: lastNews ? `Dernier article : ${newsDate(lastNews.publishedAt)}` : "—",
-      detail: "Sika Finance + Financial Afrik, agrégées toutes les 15 min en journée",
+      detail: "Sika Finance + Financial Afrik, agrégées toutes les 5 min en journée",
     },
     {
       source: "Alertes",
@@ -59,13 +65,13 @@ export default function StatusPage() {
     },
     {
       source: "États financiers",
-      freshness: `${fundamentals.length} sociétés intégrées`,
-      detail: `Extraction vérifiée à la main, unités contrôlées · dernière publication intégrée : ${lastFundamental ? dateFr(lastFundamental) : "—"}`,
+      freshness: `${fundamentalsStatus.current}/${fundamentalsStatus.coverage} à jour`,
+      detail: `Détection sur 48 sociétés, extraction PDF/OCR avec recoupement automatique N-1 et blocage des cas ambigus · ${fundamentalsStatus.reviewRequired} à revoir · dernière publication intégrée : ${lastFundamental ? dateFr(lastFundamental) : "—"}`,
     },
     {
       source: "Documents officiels",
       freshness: lastDoc ? `${REAL_DOCUMENTS.length} publications · dernière du ${dateFr(lastDoc.date)}` : "—",
-      detail: "Surveillés toutes les 15 min depuis les fiches sociétés brvm.org (liens directs vers les PDF originaux)",
+      detail: "48 fiches actions surveillées toutes les 5 min sur brvm.org (liens directs vers les PDF originaux)",
     },
   ];
 

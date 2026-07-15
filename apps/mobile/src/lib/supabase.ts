@@ -2,23 +2,48 @@ import "react-native-url-polyfill/auto";
 import { AppState } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { createClient, processLock, type SupportedStorage } from "@supabase/supabase-js";
+import { legacyStorageKey } from "@wariba/core/legacy";
 
 const CHUNK_SIZE = 1800;
 let refreshListenerInstalled = false;
 
 function storageKey(key: string): string {
-  return `afriterminal.auth.${key.replace(/[^A-Za-z0-9._-]/g, "_")}`;
+  return `wariba.auth.${key.replace(/[^A-Za-z0-9._-]/g, "_")}`;
+}
+
+function previousStorageKey(key: string): string {
+  return legacyStorageKey(`auth.${key.replace(/[^A-Za-z0-9._-]/g, "_")}`, ".");
+}
+
+async function readChunked(base: string): Promise<string | null> {
+  const count = Number(await SecureStore.getItemAsync(`${base}.chunks`));
+  if (!Number.isInteger(count) || count <= 0) return null;
+  const chunks = await Promise.all(
+    Array.from({ length: count }, (_, index) => SecureStore.getItemAsync(`${base}.${index}`))
+  );
+  return chunks.every((chunk): chunk is string => chunk !== null) ? chunks.join("") : null;
+}
+
+async function removeChunked(base: string): Promise<void> {
+  const count = Number(await SecureStore.getItemAsync(`${base}.chunks`)) || 0;
+  await Promise.all([
+    ...Array.from({ length: count }, (_, index) => SecureStore.deleteItemAsync(`${base}.${index}`)),
+    SecureStore.deleteItemAsync(`${base}.chunks`),
+  ]);
 }
 
 const secureStorage: SupportedStorage = {
   async getItem(key) {
     const base = storageKey(key);
-    const count = Number(await SecureStore.getItemAsync(`${base}.chunks`));
-    if (!Number.isInteger(count) || count <= 0) return null;
-    const chunks = await Promise.all(
-      Array.from({ length: count }, (_, index) => SecureStore.getItemAsync(`${base}.${index}`))
-    );
-    return chunks.every((chunk): chunk is string => chunk !== null) ? chunks.join("") : null;
+    const current = await readChunked(base);
+    if (current !== null) return current;
+    const previousBase = previousStorageKey(key);
+    const previous = await readChunked(previousBase);
+    if (previous !== null) {
+      await secureStorage.setItem(key, previous);
+      await removeChunked(previousBase);
+    }
+    return previous;
   },
   async setItem(key, value) {
     const base = storageKey(key);
@@ -36,11 +61,9 @@ const secureStorage: SupportedStorage = {
     );
   },
   async removeItem(key) {
-    const base = storageKey(key);
-    const count = Number(await SecureStore.getItemAsync(`${base}.chunks`)) || 0;
     await Promise.all([
-      ...Array.from({ length: count }, (_, index) => SecureStore.deleteItemAsync(`${base}.${index}`)),
-      SecureStore.deleteItemAsync(`${base}.chunks`),
+      removeChunked(storageKey(key)),
+      removeChunked(previousStorageKey(key)),
     ]);
   },
 };

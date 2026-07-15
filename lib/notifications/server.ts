@@ -239,7 +239,7 @@ export async function dispatchPendingDeliveries(): Promise<{ push: number; email
             to: email,
             subject: `${alert.ticker} a franchi votre seuil`,
             html: emailHtml(alert),
-          }, { idempotencyKey: `afriterminal-alert-${delivery.id}-${delivery.attempts + 1}` });
+          }, { idempotencyKey: `wariba-alert-${delivery.id}-${delivery.attempts + 1}` });
           if (result.error || !result.data?.id) throw new Error(result.error?.message ?? "Resend rejected message");
           const { error: updateError } = await admin.from("notification_deliveries").update({
             status: "sent", provider_id: result.data.id, attempts: delivery.attempts + 1, last_error: null,

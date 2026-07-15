@@ -4,7 +4,6 @@ const ALLOWED_HOSTS = [
   "brvm.org",
   "sikafinance.com",
   "financialafrik.com",
-  "rodthenewcomer.github.io",
 ] as const;
 
 function allowedHost(hostname: string): boolean {

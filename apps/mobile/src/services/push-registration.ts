@@ -3,8 +3,11 @@ import Constants from "expo-constants";
 import * as Crypto from "expo-crypto";
 import * as Notifications from "expo-notifications";
 import * as SecureStore from "expo-secure-store";
+import { legacyStorageKey } from "@wariba/core/legacy";
+import { migratedSecureValue } from "../lib/secure-migration";
 
-const DEVICE_ID_KEY = "afriterminal-push-device-id";
+const DEVICE_ID_KEY = "wariba-push-device-id";
+const PREVIOUS_DEVICE_ID_KEY = legacyStorageKey("push-device-id");
 
 function apiUrl(): string {
   const value = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "");
@@ -13,7 +16,7 @@ function apiUrl(): string {
 }
 
 async function deviceId(): Promise<string> {
-  const existing = await SecureStore.getItemAsync(DEVICE_ID_KEY);
+  const existing = await migratedSecureValue(DEVICE_ID_KEY, PREVIOUS_DEVICE_ID_KEY);
   if (existing) return existing;
   const created = Crypto.randomUUID();
   await SecureStore.setItemAsync(DEVICE_ID_KEY, created, {
@@ -44,7 +47,7 @@ export async function registerPushDevice(accessToken: string): Promise<void> {
 }
 
 export async function unregisterPushDevice(accessToken: string): Promise<void> {
-  const id = await SecureStore.getItemAsync(DEVICE_ID_KEY);
+  const id = await migratedSecureValue(DEVICE_ID_KEY, PREVIOUS_DEVICE_ID_KEY);
   if (!id) return;
   let serverError: Error | null = null;
   try {

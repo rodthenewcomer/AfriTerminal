@@ -2,7 +2,8 @@
 
 Statut : **Phases 0 à 5 et couche compte/synchronisation implémentées ;
 validation finale sur appareil et builds stores en attente**. Le site web
-Next.js est désormais server-backed ; GitHub Pages conserve le miroir JSON.
+Next.js est désormais server-backed ; Vercel sert aussi les JSON publics
+sur `https://wariba.app/data`.
 
 ## Contraintes fixées par le produit
 
@@ -40,8 +41,8 @@ packages/
 (fonctions pures, zéro DOM) : `lib/portfolio.ts`, `lib/risk.ts`,
 `lib/indicators.ts`, `lib/dividend-calendar.ts`, `lib/format.ts`,
 `lib/glossary.ts`, `lib/company-profiles.ts`, `lib/types.ts`,
-`lib/real-*.ts`, et tous les `data/real/*.json` (servis depuis le site
-GitHub Pages déjà public — pas de nouveau backend à créer).
+`lib/real-*.ts`, et tous les `data/real/*.json` (servis depuis
+`wariba.app/data` — pas de backend de données séparé).
 
 **Ce qui migre avec un adaptateur mineur** : les stores zustand
 (`hooks/use-watchlist.ts`, `use-portfolio.ts`, `use-price-alerts.ts`,
@@ -115,8 +116,8 @@ est le prix du rendu 100 % natif demandé.
 ## Ce qui ne change pas
 
 - Le pipeline public (`scripts/boc/`, GitHub Actions) reste identique ;
-  GitHub Pages publie ses JSON, tandis que le site/auth/API s'exécute sur
-  un runtime Next.js Node.
+  chaque push de données déclenche Vercel, qui publie à la fois le site,
+  l'auth/API et les JSON sous la même origine `wariba.app`.
 - Aucune donnée n'est dupliquée : l'app mobile consomme les mêmes JSON
   publics déjà générés pour le site.
 
@@ -192,11 +193,10 @@ Babel Expo présent. `expo-haptics` utilise la version SDK 54.
 
 - **Navigation :** Expo Router, stack native et tabs Accueil, Marché,
   Watchlist, Portefeuille, Plus.
-- **Données :** JSON communs sous `/data`, Pages en priorité puis miroir
-  `raw.githubusercontent.com`, timeout et cache AsyncStorage. Le workflow de
-  déploiement copie maintenant `data/real` et `data/news` dans l'export
-  statique ; le miroir brut reste le secours tant que ce workflow n'a pas
-  redéployé Pages.
+- **Données :** JSON communs sous `https://wariba.app/data`, puis miroir
+  `raw.githubusercontent.com` en secours, timeout et cache AsyncStorage.
+  L'app active vérifie les mises à jour chaque minute ; une source
+  secondaire en panne ne vide jamais les cotations déjà valides.
 - **État :** stores Zustand persistés avec `skipHydration` et réhydratation
   centralisée pour watchlist, portefeuille, seuils, chart, niveaux, filtres
   du screener et réglages. Aucune donnée secrète n'est stockée ; la

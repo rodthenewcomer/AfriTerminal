@@ -13,6 +13,7 @@ import { generateInsight } from "./insights";
 import { getAllRealQuotes, getRealQuote, REAL_INDICES } from "./real-data";
 import { realOnlySnapshot } from "./real-universe";
 import { companyProfile } from "@wariba/core/company-profiles";
+import { currentSessionSnapshots } from "./dashboard-metrics";
 
 function pctChange(from: number, to: number): number {
   if (from === 0) return 0;
@@ -144,7 +145,7 @@ export function getSectorPerformance(): {
   count: number;
 }[] {
   const groups = new Map<string, number[]>();
-  for (const s of getSnapshots()) {
+  for (const s of currentSessionSnapshots(getSnapshots())) {
     const arr = groups.get(s.sector) ?? [];
     arr.push(s.dayChange);
     groups.set(s.sector, arr);

@@ -114,12 +114,13 @@ lib/
   mock/             scénarios pédagogiques (IPO) + méta héritées
 ```
 
-## Fiches sociétés curées (15)
+## Couverture des actions BRVM
 
-`SNTS` Sonatel · `ORAC` Orange CI · `NSBC` NSIA Banque CI · `SGBC` SGCI ·
-`SIBC` SIB · `BICC` BICICI · `CBIBF` Coris Bank · `BOAB` BOA Burkina ·
-`ETIT` Ecobank ETI · `ONTBF` Onatel BF · `PALC` Palm CI · `SPHC` SAPH ·
-`UNXC` Uniwax · `CIEC` CIE · `TTLC` TotalEnergies Marketing CI
+WARIBA couvre les **48/48 actions** du snapshot officiel : cotation,
+historique, fondamentaux vérifiés et fiche de publications pour chaque
+ticker. La séance active contient actuellement 47 valeurs ; `SVOC` reste
+accessible mais est explicitement signalée comme suspendue depuis 2019 et
+est exclue des tops, de la breadth et des moyennes de séance.
 
 ## Pipeline de données réelles (BRVM)
 
@@ -146,10 +147,15 @@ artefacts JSON committés dans `data/real/`, `data/news/`, `data/live/` et
   (REGISTRY : PDF épinglé, unité vérifiée, extracteur ou saisie manuelle
   recoupée ; nombre d'actions uniquement sur deux preuves concordantes)
   → `data/real/fundamentals.json` (48/48 sociétés).
+- **`refresh_fundamentals.py`** — pour les 48 tickers, détecte un nouvel
+  exercice annuel, lit PDF texte ou scan OCR, détermine unité et colonnes
+  par recoupement N-1, puis actualise automatiquement. Une ambiguïté bloque
+  l'écrasement et apparaît dans `fundamentals-status.json`.
 - **`build_alerts.py`** — alertes factuelles des 5 dernières séances.
 - **`fetch_documents.py`** / **`fetch_operations.py`** — publications
   officielles par société et avis/opérations sur capital (ESV) depuis
-  brvm.org, liens vers les PDF sources.
+  brvm.org, liens vers les PDF sources. Les 48 fiches sont contrôlées à
+  chaque passage ; un ticker non couvert fait échouer le workflow.
 - **`check_freshness.py`** — watchdog : bulletin en ligne mais non
   ingéré → workflow rouge (e-mail).
 
@@ -163,8 +169,9 @@ les fiches actions, le dashboard, les marchés, le screener, la watchlist
 et la recherche.
 
 **Volontairement indisponible quand la donnée n'est pas vérifiée** : les
-fondamentaux couvrent 48/48 sociétés et les capitaux propres 47/48 ; SGBC
-reste sans equity faute de bilan complet dans la publication officielle.
+fondamentaux couvrent 48/48 sociétés. Les capitaux propres ne sont affichés
+que pour l'exercice qu'ils documentent : CFAO 2025 et SGBC restent sans ROE
+récent faute de bilan complet dans la publication annuelle correspondante.
 Capitalisation/BPA demandent un nombre d'actions doublement recoupé
 (12/48), P/B/ROE demandent en plus les capitaux propres. Partout ailleurs :
 masqué avec une explication, jamais rempli avec un chiffre inventé. Scores
@@ -212,37 +219,41 @@ investissement.
 
 ## Déploiement & automatisation (depuis le 2026-07-08)
 
-Le site et l'API sont un build Next.js `standalone` pour runtime Node.
-**GitHub Pages** conserve uniquement les JSON publics consommés par mobile ;
-voir `docs/server-deployment.md` pour Supabase, Stripe, RevenueCat et le déploiement web/mobile.
+Le site, l'API et les JSON publics utilisent le même déploiement Vercel
+Next.js `standalone` sur `wariba.app`. L'app mobile lit en priorité
+`https://wariba.app/data`; `raw.githubusercontent.com` reste uniquement un
+secours réseau. GitHub Pages n'est plus dans le chemin de production.
+Voir `docs/server-deployment.md` pour l'architecture complète.
 
-Sept workflows GitHub Actions (`.github/workflows/`) :
+Six workflows GitHub Actions (`.github/workflows/`) :
 
-- **deploy.yml** — publication Pages de `data/real/` et `data/news/`,
-  consommés par l'app mobile ;
 - **boc-daily.yml** — chaque jour ouvré (17h30 UTC, retentes 20h00,
   22h30 et 05h00 le lendemain — la BRVM publie parfois tard) :
   télécharge le bulletin officiel, le fusionne dans `data/boc/series/`
   (`merge_day.py`, incrémental et idempotent), reconstruit
-  `data/real/` (y c. alertes et opérations), committe et redéploie ;
-- **live-poll.yml** — toutes les 15 min pendant la séance : collecte
+  `data/real/` (y c. alertes et opérations) et committe ; le push déclenche
+  automatiquement Vercel ;
+- **live-poll.yml** — toutes les 5 min pendant la séance : collecte
   les cours différés de brvm.org dans `data/live/` pour reconstruire
   le plus haut/plus bas intraday que le bulletin ne publie pas, met à
-  jour `data/real/live.json` et le republie immédiatement au mobile ;
-- **news.yml** — toutes les 15 min en journée : agrège les actualités
+  jour `data/real/live.json` ;
+- **news.yml** — toutes les 5 min en journée : agrège les actualités
   Sika Finance + Financial Afrik (`scripts/news/fetch_news.py`,
   rattachement aux tickers, liens vers les articles originaux) et
-  redéploie ;
-- **documents.yml** — toutes les 15 min : publications officielles par
-  société depuis les fiches brvm.org, alerte décisionnelle immédiate et
-  redéploiement des données web/mobile ;
+  et pousse la nouvelle version ;
+- **documents.yml** — toutes les 5 min : publications officielles des
+  48 actions depuis les fiches brvm.org, alerte décisionnelle immédiate et
+  push de la nouvelle version ;
 - **freshness.yml** — watchdog quotidien (07h00 UTC) : un bulletin en
   ligne mais absent de nos données met le workflow en rouge (e-mail) —
   la staleness silencieuse est interdite ;
 - **ci.yml** — ESLint, TypeScript web/mobile, vitest, unittest Python,
   audit, build Next, Expo Doctor/compatibilité et exports iOS/Android.
 
-La fraîcheur publique reste pilotée par le pipeline planifié ; le runtime
+Chaque build copie `data/real` et `data/news` dans `/data` sur
+`wariba.app`. Le web vérifie la version toutes les 60 secondes et recharge
+atomiquement quand Vercel publie un nouveau snapshot ; le mobile rafraîchit
+chaque minute au premier plan. La fraîcheur publique reste pilotée par le pipeline planifié ; le runtime
 Node porte les comptes, la synchronisation, la facturation, les alertes
 push/e-mail, l'analytics consentie, le throttling distribué et les sondes
 d'exploitation.

@@ -6,7 +6,7 @@
 # étant différés de 15 min, on commence à 10h00 (avant, la page montre
 # encore la clôture de la veille, ce qui polluerait le "open" du jour)
 # et on continue jusqu'à 15h15 pour capter les derniers échanges.
-# ~23 sondages par séance ; l'état du jour vit dans
+# ~64 sondages par séance ; l'état du jour vit dans
 # data/live/AAAA-MM-JJ.json, committé à chaque run — c'est le commit
 # qui rend la collecte cumulative d'un run CI au suivant.
 #
@@ -17,8 +17,8 @@ name: live-poll
 
 on:
   schedule:
-    - cron: "*/15 10-14 * * 1-5"
-    - cron: "0,15 15 * * 1-5"
+    - cron: "*/5 10-14 * * 1-5"
+    - cron: "0,5,10,15 15 * * 1-5"
   workflow_dispatch:
 
 permissions:
@@ -61,12 +61,3 @@ jobs:
             fi
             echo "pushed=true" >> "$GITHUB_OUTPUT"
           fi
-
-  deploy-mobile-data:
-    needs: poll
-    if: needs.poll.outputs.pushed == 'true'
-    uses: ./.github/workflows/deploy.yml
-    permissions:
-      contents: read
-      pages: write
-      id-token: write

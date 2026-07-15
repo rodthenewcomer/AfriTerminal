@@ -113,6 +113,10 @@ export default function StockScreen() {
   const riskSeries = useMemo(() => chartSeries.map((bar) => ({ time: String(bar.time), close: bar.close })), [chartSeries]);
   const risk = useMemo(() => ({ volatility: annualizedVolatility(riskSeries), drawdown: maxDrawdown(riskSeries) }), [riskSeries]);
   const documents = useMemo(() => market.documents.filter((document) => document.ticker === ticker).slice(0, 15), [market.documents, ticker]);
+  const latestFinancialDocument = useMemo(
+    () => documents.find((item) => item.type === "Résultats" || item.type === "États financiers"),
+    [documents]
+  );
   const operations = useMemo(() => documents.filter((item) => /capital|split|fusion/i.test(item.title)), [documents]);
   const news = useMemo(() => market.news.filter((item) => item.tickers.includes(ticker)).slice(0, 10), [market.news, ticker]);
   const events = useMemo<WebChartMarker[]>(() => [
@@ -232,7 +236,7 @@ export default function StockScreen() {
           {description ? <Text style={styles.description}>{description}</Text> : null}
           <View style={styles.rangeBlock}>
             <View style={styles.rangeHeader}>
-              <Text style={styles.rangeLabel}>Extrêmes 52 semaines</Text>
+              <Text style={styles.rangeLabel}>Clôtures extrêmes 52 semaines</Text>
               <Text style={styles.rangeValues}>{fcfa(quote.week52Low)} – {fcfa(quote.week52High)}</Text>
             </View>
             <View style={styles.rangeTrack}>
@@ -253,7 +257,7 @@ export default function StockScreen() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Comprendre ces chiffres — ouvrir la méthodologie"
-            onPress={() => void openTrustedExternalUrl("https://rodthenewcomer.github.io/WARIBA/methodologie/")}
+            onPress={() => void openTrustedExternalUrl("https://wariba.app/methodologie")}
             style={({ pressed }) => [styles.beginnerBanner, pressed && { opacity: 0.75 }]}
           >
             <Ionicons name="school-outline" size={17} color={colors.accent} />
@@ -267,6 +271,16 @@ export default function StockScreen() {
           title="Fondamentaux"
           detail={fundamental ? `Exercice ${fundamental.fiscalYear} · publié le ${dateFr(fundamental.publishedOn)}` : undefined}
         >
+          {latestFinancialDocument ? (
+            <View style={styles.latestPublication}>
+              <Row
+                icon="document-text-outline"
+                title={`Dernière publication · ${latestFinancialDocument.title}`}
+                detail={`${dateFr(latestFinancialDocument.date)} · ${fundamental?.source === latestFinancialDocument.url ? "chiffres intégrés et recoupés avec N-1" : "document officiel disponible ; extraction automatique sous contrôle"}`}
+                onPress={() => void openTrustedExternalUrl(latestFinancialDocument.url)}
+              />
+            </View>
+          ) : null}
           <View style={styles.metrics}>
             <Metric label="PER" value={quote.per !== null ? ratio(quote.per) : "—"} />
             <Metric label="Rendement net" value={quote.netYieldPct !== null ? pct(quote.netYieldPct, { signed: false, digits: 2 }) : "—"} tone={quote.netYieldPct !== null && quote.netYieldPct >= 6 ? "up" : "default"} />
@@ -416,6 +430,10 @@ const styles = StyleSheet.create({
   heroStatLabel: { ...type.label, fontSize: 9 },
   heroStatValue: { color: colors.ink2, fontSize: 11, fontWeight: "600", fontVariant: tabular },
   yearBlock: { marginTop: 12, marginBottom: 12 },
+  latestPublication: {
+    marginBottom: 12, paddingHorizontal: 12, borderRadius: radius.lg,
+    backgroundColor: colors.accentSoft, borderColor: "rgba(226,166,61,0.35)", borderWidth: 1,
+  },
   infoChips: { flexDirection: "row", flexWrap: "wrap", gap: 7, marginTop: 9 },
   infoChip: {
     flexDirection: "row", alignItems: "center", gap: 5,

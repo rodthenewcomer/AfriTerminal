@@ -41,7 +41,7 @@ export function verifyBearerSecret(request: Request, envName: string): boolean {
   const expected = process.env[envName];
   if (!expected || expected.length < 32) return false;
   const provided = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
-  const expectedDigest = createHmac("sha256", expected).update("afriterminal-secret").digest();
-  const providedDigest = createHmac("sha256", provided).update("afriterminal-secret").digest();
+  const expectedDigest = createHmac("sha256", expected).update("wariba-secret").digest();
+  const providedDigest = createHmac("sha256", provided).update("wariba-secret").digest();
   return timingSafeEqual(expectedDigest, providedDigest);
 }

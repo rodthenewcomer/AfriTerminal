@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { cn } from "@wariba/core/utils";
-import { Bell, Sparkles } from "lucide-react";
+import { Bell, FileText, Sparkles } from "lucide-react";
 import { getSectorStats, getSnapshot, getSnapshots } from "@/lib/data";
 import { getRealQuote, LATEST_TRADING_DATE } from "@/lib/real-data";
 import { getRealFundamentals, growthPct } from "@/lib/real-fundamentals";
@@ -76,6 +76,10 @@ export function StockView({ ticker }: { ticker: string }) {
 
   if (!stock) return null;
   const docs = realDocsForTicker(ticker);
+  const latestFinancialDoc = docs.find(
+    (document) =>
+      document.type === "Résultats" || document.type === "États financiers"
+  );
   const dividend = DIVIDEND_MAP.get(ticker);
   const sectorStats = getSectorStats().find((s) => s.sector === stock.sector);
   const f = stock.fundamentals;
@@ -250,7 +254,7 @@ export function StockView({ ticker }: { ticker: string }) {
                 <div className="space-y-2.5 border-t border-line pt-3">
                   <div>
                     <div className="flex items-center justify-between text-[11px] text-ink-3">
-                      <span>Extrêmes 52 semaines</span>
+                      <span>Clôtures extrêmes 52 semaines</span>
                       <span className="num text-ink-2">
                         {fcfa(real.week52Low)} – {fcfa(real.week52High)}
                       </span>
@@ -300,6 +304,32 @@ export function StockView({ ticker }: { ticker: string }) {
         <h2 className="mb-2.5 text-sm font-semibold text-ink">Fondamentaux</h2>
         {real ? (
           <>
+            {latestFinancialDoc ? (
+              <a
+                href={latestFinancialDoc.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mb-3 flex items-start gap-3 rounded-xl border border-accent/30 bg-accent/10 p-3.5 transition-colors hover:bg-accent/15"
+              >
+                <FileText className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-xs font-semibold text-ink">
+                    Dernière publication financière · {dateFr(latestFinancialDoc.date)}
+                  </span>
+                  <span className="mt-0.5 block text-[11px] text-ink-2">
+                    {latestFinancialDoc.title}
+                  </span>
+                  <span className="mt-1 block text-[10px] text-ink-3">
+                    {realFund?.source === latestFinancialDoc.url
+                      ? "Chiffres structurés ci-dessous issus de ce document vérifié."
+                      : "Document officiel disponible immédiatement. Les chiffres structurés ci-dessous peuvent encore refléter la publication annuelle vérifiée précédente."}
+                  </span>
+                </span>
+                <Badge tone={realFund?.source === latestFinancialDoc.url ? "positive" : "warning"}>
+                  {realFund?.source === latestFinancialDoc.url ? "Intégrée" : "À lire"}
+                </Badge>
+              </a>
+            ) : null}
             <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
               <MetricCard label="PER" term="per" value={real.per ? ratio(real.per) : "—"} />
               <MetricCard
@@ -438,7 +468,7 @@ export function StockView({ ticker }: { ticker: string }) {
                 >
                   document source (BRVM)
                 </a>
-                , extraction vérifiée manuellement.
+                , extraction vérifiée et recoupée avec l&apos;exercice précédent.
                 {realFund.sharesOutstanding
                   ? realFund.equityM !== null
                     ? " Capitalisation, BPA, P/B et ROE sont calculés sur le nombre d'actions et les capitaux propres vérifiés au document."

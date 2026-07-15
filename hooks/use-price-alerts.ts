@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { migratedStorageKey } from "@/lib/storage-keys";
 
 export interface PriceAlert {
   id: string;
@@ -47,7 +48,7 @@ export const usePriceAlerts = create<PriceAlertsState>()(
         set((state) => ({ alerts: state.alerts.filter((x) => x.id !== id) })),
       clear: () => set({ alerts: [] }),
     }),
-    { name: "afriterminal-price-alerts", skipHydration: true }
+    { name: migratedStorageKey("wariba-price-alerts", "price-alerts"), skipHydration: true }
   )
 );
 

@@ -8,8 +8,10 @@ import { priceAlertMatches } from "../lib/forms";
 import type { QuoteMap } from "../data/types";
 import { usePriceAlertStore, useSettingsStore } from "../stores";
 import { registerPushDevice, unregisterPushDevice } from "./push-registration";
+import { legacyStorageKey } from "@wariba/core/legacy";
 
-const TASK_NAME = "afriterminal-price-alert-check";
+const TASK_NAME = "wariba-price-alert-check";
+const PREVIOUS_TASK_NAME = legacyStorageKey("price-alert-check");
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -46,7 +48,7 @@ export async function evaluatePriceAlerts(quotes: QuoteMap): Promise<number> {
   return triggered;
 }
 
-TaskManager.defineTask(TASK_NAME, async () => {
+const runPriceAlertTask = async () => {
   try {
     await Promise.all([
       usePriceAlertStore.persist.rehydrate(),
@@ -58,7 +60,18 @@ TaskManager.defineTask(TASK_NAME, async () => {
   } catch {
     return BackgroundTask.BackgroundTaskResult.Failed;
   }
-});
+};
+
+TaskManager.defineTask(TASK_NAME, runPriceAlertTask);
+TaskManager.defineTask(PREVIOUS_TASK_NAME, runPriceAlertTask);
+
+async function unregisterBackgroundTasks(): Promise<void> {
+  for (const name of [TASK_NAME, PREVIOUS_TASK_NAME]) {
+    if (await TaskManager.isTaskRegisteredAsync(name)) {
+      await BackgroundTask.unregisterTaskAsync(name);
+    }
+  }
+}
 
 export async function enableNotifications(accessToken?: string): Promise<boolean> {
   if (Platform.OS === "android") {
@@ -75,13 +88,16 @@ export async function enableNotifications(accessToken?: string): Promise<boolean
     try {
       await registerPushDevice(accessToken);
       useSettingsStore.getState().setServerPushRegistered(true);
-      if (await TaskManager.isTaskRegisteredAsync(TASK_NAME)) await BackgroundTask.unregisterTaskAsync(TASK_NAME);
+      await unregisterBackgroundTasks();
     } catch (error) {
       useSettingsStore.getState().setNotifications(false);
       useSettingsStore.getState().setServerPushRegistered(false);
       throw error;
     }
   } else if (enabled && await TaskManager.isAvailableAsync()) {
+    if (await TaskManager.isTaskRegisteredAsync(PREVIOUS_TASK_NAME)) {
+      await BackgroundTask.unregisterTaskAsync(PREVIOUS_TASK_NAME);
+    }
     await BackgroundTask.registerTaskAsync(TASK_NAME, { minimumInterval: 15 });
   }
   return enabled;
@@ -91,7 +107,5 @@ export async function disableNotifications(accessToken?: string): Promise<void> 
   if (accessToken) await unregisterPushDevice(accessToken);
   useSettingsStore.getState().setNotifications(false);
   useSettingsStore.getState().setServerPushRegistered(false);
-  if (await TaskManager.isTaskRegisteredAsync(TASK_NAME)) {
-    await BackgroundTask.unregisterTaskAsync(TASK_NAME);
-  }
+  await unregisterBackgroundTasks();
 }

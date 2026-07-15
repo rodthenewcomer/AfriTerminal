@@ -24,7 +24,7 @@ export default function StatusScreen() {
       <Section title="Résumé" detail={market.updatedAt ? `Vérifié à ${market.updatedAt.slice(11, 16)} UTC` : undefined}>
         <View style={styles.metrics}>
           <Metric label="Cotations" value={`${quotes.length} / 48`} tone={quotes.length === 48 ? "up" : "down"} detail={marketDetail} />
-          <Metric label="Fondamentaux" value={`${Object.keys(market.fundamentals).length} / 48`} tone="up" detail="sociétés curées" />
+          <Metric label="Fondamentaux" value={`${Object.keys(market.fundamentals).length} / 48`} tone="up" detail="exercices intégrés" />
           <Metric label="Documents" value={`${market.documents.length}`} detail="liens brvm.org" />
           <Metric label="Mode" value={market.offline ? "Cache" : "Réseau"} tone={market.offline ? "accent" : "up"} detail={market.offline ? "données locales" : "sources en ligne"} />
         </View>
@@ -32,8 +32,8 @@ export default function StatusScreen() {
 
       <Section title="Sources">
         <Row icon="stats-chart-outline" title="Cours et indices" detail={`BRVM · ${marketDetail ?? "indisponible"} · actualisation automatique`} />
-        <Row icon="business-outline" title="Fondamentaux" detail="États financiers officiels, extraction curée société par société" />
-        <Row icon="document-text-outline" title="Documents" detail={`${market.documents.length} publications · vérification toutes les 15 min`} />
+        <Row icon="business-outline" title="Fondamentaux" detail="États officiels · contrôle automatique N-1 · PDF ambigu jamais écrasé" />
+        <Row icon="document-text-outline" title="Documents" detail={`${market.documents.length} publications · 48 fiches vérifiées toutes les 5 min`} />
         <Row icon="newspaper-outline" title="Actualités" detail={`${market.news.length} articles, chacun avec sa source`} />
         <Row icon="cash-outline" title="Dividendes" detail={`${Object.keys(market.dividends).length} sociétés avec historique de versements`} />
       </Section>

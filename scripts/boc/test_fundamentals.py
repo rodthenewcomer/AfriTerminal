@@ -13,6 +13,13 @@ import unittest
 
 from fundamentals import REGISTRY, normalize, to_millions
 from fetch_documents import SLUGS
+from refresh_fundamentals import (
+    LABELS,
+    build_record,
+    choose_core_values,
+    extract_pairs,
+    is_annual_document,
+)
 
 
 class ToMillionsTest(unittest.TestCase):
@@ -99,6 +106,7 @@ class NormalizeTest(unittest.TestCase):
 class RegistryContractTest(unittest.TestCase):
     def test_full_brvm_universe_is_curated(self) -> None:
         self.assertEqual(len(REGISTRY), 48)
+        self.assertEqual(set(REGISTRY), set(SLUGS))
         self.assertEqual(len({meta["pdf"] for meta in REGISTRY.values()}), 48)
         self.assertTrue(
             all(meta["pdf"].startswith("https://www.brvm.org/") for meta in REGISTRY.values())
@@ -107,6 +115,13 @@ class RegistryContractTest(unittest.TestCase):
         self.assertEqual(REGISTRY["UNXC"]["fiscalYear"], 2025)
         self.assertEqual(REGISTRY["UNXC"]["publishedOn"], "2026-07-13")
         self.assertEqual(REGISTRY["UNXC"]["raw"]["net_income"], -624_111_470)
+
+    def test_decision_document_classification(self) -> None:
+        from fetch_documents import doc_type
+
+        self.assertEqual(doc_type("20260713_-_rapport_annuel_-_exercice_2025.pdf"), "Résultats")
+        self.assertEqual(doc_type("20260713_-_rapport_de_gestion_-_exercice_2025.pdf"), "Résultats")
+        self.assertEqual(doc_type("20260713_-_etats_financiers_-_exercice_2025.pdf"), "États financiers")
 
     def test_financial_institutions_have_bank_shape(self) -> None:
         banks = [
@@ -139,6 +154,63 @@ class RegistryContractTest(unittest.TestCase):
             sum("sharesOutstanding" in meta for meta in REGISTRY.values()),
             12,
         )
+
+
+class AutomaticRefreshTest(unittest.TestCase):
+    CFAO_OCR = """
+    RAPPORT D'ACTIVITE ANNEE 2025
+    Chiffre d’affaires 180 544 660 176 158 313 246 307 22 231 413 869 14,04%
+    Résultat des activités ordinaires 11 413 442 623 6 941 869 756 4 471 572 867 64,41%
+    Résultat net 8 416 348 823 4 693 479 450 3 722 869 373 79,32%
+    """
+    PREVIOUS = {
+        "ticker": "CFAC",
+        "fiscalYear": 2024,
+        "revenueLabel": "CA",
+        "revenueM": 158_313,
+        "netIncomeM": 4_693,
+        "equityM": 19_453,
+    }
+
+    def test_annual_filter_excludes_quarters(self) -> None:
+        self.assertTrue(
+            is_annual_document({"title": "Rapport annuel — exercice 2025"})
+        )
+        self.assertFalse(
+            is_annual_document({"title": "États financiers — 1er trimestre 2026"})
+        )
+
+    def test_scanned_table_segmentation_uses_previous_year_guard(self) -> None:
+        pairs = extract_pairs(self.CFAO_OCR, LABELS["revenue"])
+        self.assertIn((180_544_660_176, 158_313_246_307), pairs)
+        chosen = choose_core_values(self.CFAO_OCR, self.PREVIOUS)
+        self.assertIsNotNone(chosen)
+        values, unit, reverse, score = chosen
+        self.assertEqual(unit, 1)
+        self.assertFalse(reverse)
+        self.assertEqual(score, 0)
+        self.assertEqual(values["revenueM"], 180_545)
+        self.assertEqual(values["netIncomeM"], 8_416)
+        self.assertEqual(values["ordinaryIncomeM"], 11_413)
+        self.assertIsNone(values["equityM"])
+
+    def test_build_record_never_carries_stale_year_specific_ratios(self) -> None:
+        built = build_record(
+            "CFAC",
+            self.PREVIOUS,
+            {
+                "title": "Rapport annuel — exercice 2025",
+                "date": "2026-07-13",
+                "url": "https://www.brvm.org/cfac-2025.pdf",
+            },
+            self.CFAO_OCR,
+        )
+        self.assertIsNotNone(built)
+        record, _audit = built
+        self.assertEqual(record["fiscalYear"], 2025)
+        self.assertIsNone(record["equityM"])
+        self.assertIsNone(record["cirPct"])
+        self.assertIsNone(record["proposedGrossDividend"])
 
 
 if __name__ == "__main__":

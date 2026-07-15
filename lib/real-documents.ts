@@ -3,7 +3,7 @@ import documentsJson from "@/data/real/documents.json";
 /**
  * Publications officielles réelles, référencées depuis les fiches
  * sociétés de brvm.org (pipeline scripts/boc/fetch_documents.py,
- * rafraîchi chaque semaine par CI). Chaque entrée pointe vers le PDF
+ * contrôlé toutes les 5 minutes par CI sur les 48 fiches actions). Chaque entrée pointe vers le PDF
  * original — WARIBA référence, il ne republie pas.
  */
 export interface RealDocument {

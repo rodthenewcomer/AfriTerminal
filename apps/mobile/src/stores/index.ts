@@ -3,8 +3,24 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { ChartType, IndicatorId } from "@wariba/core/types";
 import type { PortfolioTransaction } from "@wariba/core/portfolio";
+import { legacyStorageKey } from "@wariba/core/legacy";
 
-const storage = createJSONStorage(() => AsyncStorage);
+const migratedAsyncStorage = {
+  async getItem(name: string) {
+    const current = await AsyncStorage.getItem(name);
+    if (current !== null || !name.startsWith("wariba-")) return current;
+    const previous = legacyStorageKey(name.slice("wariba-".length));
+    const value = await AsyncStorage.getItem(previous);
+    if (value !== null) {
+      await AsyncStorage.setItem(name, value);
+      await AsyncStorage.removeItem(previous);
+    }
+    return value;
+  },
+  setItem: (name: string, value: string) => AsyncStorage.setItem(name, value),
+  removeItem: (name: string) => AsyncStorage.removeItem(name),
+};
+const storage = createJSONStorage(() => migratedAsyncStorage);
 
 interface WatchlistState {
   tickers: string[];
@@ -23,7 +39,7 @@ export const useWatchlistStore = create<WatchlistState>()(persist(
     hasHydrated: false,
     setHydrated: (hasHydrated) => set({ hasHydrated }),
   }),
-  { name: "afriterminal-watchlist", storage, skipHydration: true, onRehydrateStorage: () => (state) => state?.setHydrated(true) }
+  { name: "wariba-watchlist", storage, skipHydration: true, onRehydrateStorage: () => (state) => state?.setHydrated(true) }
 ));
 
 interface PortfolioState {
@@ -45,7 +61,7 @@ export const usePortfolioStore = create<PortfolioState>()(persist(
     hasHydrated: false,
     setHydrated: (hasHydrated) => set({ hasHydrated }),
   }),
-  { name: "afriterminal-portfolio", storage, skipHydration: true, onRehydrateStorage: () => (state) => state?.setHydrated(true) }
+  { name: "wariba-portfolio", storage, skipHydration: true, onRehydrateStorage: () => (state) => state?.setHydrated(true) }
 ));
 
 export interface PriceAlertRule {
@@ -74,7 +90,7 @@ export const usePriceAlertStore = create<AlertState>()(persist(
     rearm: (id) => set({ rules: get().rules.map((item) => item.id === id ? { ...item, enabled: true, triggeredAt: undefined } : item) }),
     replaceAll: (rules) => set({ rules: [...rules] }),
   }),
-  { name: "afriterminal-price-alerts", storage, skipHydration: true }
+  { name: "wariba-price-alerts", storage, skipHydration: true }
 ));
 
 interface ChartState {
@@ -102,7 +118,7 @@ export const useChartStore = create<ChartState>()(persist(
     toggleLog: () => set({ logarithmic: !get().logarithmic }),
     togglePercent: () => set({ percentMode: !get().percentMode }),
   }),
-  { name: "afriterminal-chart", storage, skipHydration: true }
+  { name: "wariba-chart", storage, skipHydration: true }
 ));
 
 interface LevelState {
@@ -118,7 +134,7 @@ export const useChartLevelStore = create<LevelState>()(persist(
       set({ byTicker: { ...get().byTicker, [ticker]: near ? current.filter((value) => value !== near) : [...current, price] } });
     },
   }),
-  { name: "afriterminal-chart-levels", storage, skipHydration: true }
+  { name: "wariba-chart-levels", storage, skipHydration: true }
 ));
 
 export type ScreenerSort = "variation" | "rendement" | "per" | "liquidite";
@@ -200,7 +216,7 @@ export const useSettingsStore = create<SettingsState>()(persist(
     setExperienceLevel: (experienceLevel) => set({ experienceLevel }),
     completeOnboarding: (experienceLevel) => set({ experienceLevel, onboardingVersion: ONBOARDING_VERSION }),
   }),
-  { name: "afriterminal-settings", storage, skipHydration: true }
+  { name: "wariba-settings", storage, skipHydration: true }
 ));
 
 export async function rehydrateStores(): Promise<void> {

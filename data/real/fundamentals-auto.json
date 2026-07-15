@@ -1,0 +1,27 @@
+{
+  "CFAC": {
+    "ticker": "CFAC",
+    "fiscalYear": 2025,
+    "revenueLabel": "CA",
+    "revenueM": 180545,
+    "revenuePrevM": 158313,
+    "netIncomeM": 8416,
+    "netIncomePrevM": 4693,
+    "ordinaryIncomeM": 11413,
+    "ordinaryIncomePrevM": 6942,
+    "equityM": null,
+    "equityPrevM": 19453,
+    "cirPct": null,
+    "cirPrevPct": null,
+    "depositsM": null,
+    "depositsPrevM": null,
+    "loansM": null,
+    "loansPrevM": null,
+    "costOfRiskM": null,
+    "costOfRiskPrevM": null,
+    "proposedGrossDividend": null,
+    "sharesOutstanding": null,
+    "source": "https://www.brvm.org/sites/default/files/20260713_-_rapport_annuel_-_exercice_2025_-_cfao_motors_ci.pdf",
+    "publishedOn": "2026-07-13"
+  }
+}

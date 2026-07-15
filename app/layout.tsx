@@ -5,6 +5,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 import { GOOGLE_SITE_VERIFICATION, SITE_ORIGIN } from "@/lib/site";
+import { DataAutoRefresh } from "@/components/data-auto-refresh";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -66,6 +67,7 @@ export default function RootLayout({
         >
           <AuthProvider>
             <AnalyticsProvider>
+              <DataAutoRefresh />
               <AppShell>{children}</AppShell>
             </AnalyticsProvider>
           </AuthProvider>

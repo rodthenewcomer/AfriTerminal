@@ -21,7 +21,7 @@ interface MarketContextValue extends MarketPayload {
 }
 
 const MarketContext = createContext<MarketContextValue | null>(null);
-const FOREGROUND_REFRESH_MS = 2 * 60 * 1000;
+const FOREGROUND_REFRESH_MS = 60 * 1000;
 
 export function MarketDataProvider({ children }: { children: React.ReactNode }) {
   const [payload, setPayload] = useState(EMPTY);

@@ -72,6 +72,14 @@ export default function DashboardScreen() {
   const { loading: authLoading, user } = useMobileAuth();
   const watchedTickers = useWatchlistStore((state) => state.tickers);
   const quotes = useMemo(() => Object.values(market.quotes), [market.quotes]);
+  const latestQuoteDate = useMemo(
+    () => quotes.reduce((latest, quote) => quote.asOfDate > latest ? quote.asOfDate : latest, ""),
+    [quotes]
+  );
+  const sessionQuotes = useMemo(
+    () => quotes.filter((quote) => quote.asOfDate === latestQuoteDate),
+    [latestQuoteDate, quotes]
+  );
   const watched = useMemo(
     () => watchedTickers.map((ticker) => market.quotes[ticker]).filter(Boolean).slice(0, 4),
     [market.quotes, watchedTickers]
@@ -80,19 +88,29 @@ export default function DashboardScreen() {
     return prioritizeCriticalAlerts(market.alerts).slice(0, 4);
   }, [market.alerts]);
   const stats = useMemo(() => {
-    const pers = quotes.map((quote) => quote.per).filter((value): value is number => value !== null && Number.isFinite(value)).sort((a, b) => a - b);
+    const pers = sessionQuotes.map((quote) => quote.per).filter((value): value is number => value !== null && Number.isFinite(value)).sort((a, b) => a - b);
     const medianPer = pers.length ? pers[Math.floor(pers.length / 2)] : null;
-    const yields = quotes.map((quote) => quote.netYieldPct).filter((value): value is number => value !== null && Number.isFinite(value));
+    const yields = sessionQuotes.map((quote) => quote.netYieldPct).filter((value): value is number => value !== null && Number.isFinite(value));
     const meanYield = yields.length ? yields.reduce((sum, value) => sum + value, 0) / yields.length : null;
     return { medianPer, meanYield };
-  }, [quotes]);
+  }, [sessionQuotes]);
   if (market.loading && quotes.length === 0) return <LoadingState />;
 
-  const gainers = [...quotes].filter((quote) => quote.dayChangePct > 0).sort((a, b) => b.dayChangePct - a.dayChangePct).slice(0, 3);
-  const losers = [...quotes].filter((quote) => quote.dayChangePct < 0).sort((a, b) => a.dayChangePct - b.dayChangePct).slice(0, 3);
+  const gainers = [...sessionQuotes].filter((quote) => quote.dayChangePct > 0).sort((a, b) => b.dayChangePct - a.dayChangePct).slice(0, 3);
+  const losers = [...sessionQuotes].filter((quote) => quote.dayChangePct < 0).sort((a, b) => a.dayChangePct - b.dayChangePct).slice(0, 3);
+  const unusualVolumes = [...sessionQuotes]
+    .filter((quote) => quote.quoteStatus !== "delayed-live" && quote.volumeRatio >= 1.5)
+    .sort((a, b) => b.volumeRatio - a.volumeRatio)
+    .slice(0, 4);
+  const weeklyMovers = [...sessionQuotes]
+    .sort((a, b) => Math.abs(b.weekChangePct) - Math.abs(a.weekChangePct))
+    .slice(0, 4);
+  const extremeAlerts = market.alerts
+    .filter((alert) => alert.title.includes("52 semaines"))
+    .slice(0, 4);
   const mainIndex = market.indices.find((index) => index.code === "BRVMC") ?? market.indices[0];
   const otherIndices = market.indices.filter((index) => index !== mainIndex);
-  const liveQuote = quotes.find((quote) => quote.quoteStatus === "delayed-live");
+  const liveQuote = sessionQuotes.find((quote) => quote.quoteStatus === "delayed-live");
   const officialDate = quotes.reduce(
     (latest, quote) => (quote.officialCloseDate ?? quote.asOfDate) > latest
       ? (quote.officialCloseDate ?? quote.asOfDate)
@@ -144,13 +162,13 @@ export default function DashboardScreen() {
         </Section>
       ) : null}
 
-      <Section title="Séance" detail={liveQuote ? "Cours différés · volumes après clôture" : "Dernière clôture officielle"}>
-        <BreadthBar quotes={quotes} />
+      <Section title="Séance" detail={`${sessionQuotes.length} valeurs actives · ${quotes.length - sessionQuotes.length} suspendue · ${liveQuote ? "cours différés, volumes après clôture" : "clôture officielle"}`}>
+        <BreadthBar quotes={sessionQuotes} />
         <View style={[styles.metrics, { marginTop: 10 }]}>
           <Metric
             label="Valeur échangée"
-            value={liveQuote ? "—" : compactFcfa(quotes.reduce((sum, quote) => sum + (quote.dayValueFcfa ?? 0), 0))}
-            detail={liveQuote ? "publiée après clôture" : `${compactVolume(quotes.reduce((sum, quote) => sum + quote.dayVolume, 0))} titres`}
+            value={liveQuote ? "—" : compactFcfa(sessionQuotes.reduce((sum, quote) => sum + (quote.dayValueFcfa ?? 0), 0))}
+            detail={liveQuote ? "publiée après clôture" : `${compactVolume(sessionQuotes.reduce((sum, quote) => sum + quote.dayVolume, 0))} titres`}
           />
           <Metric label="PER médian" value={stats.medianPer === null ? "—" : stats.medianPer.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} detail="cote entière" />
           <Metric label="Rendement moyen" value={stats.meanYield === null ? "—" : pct(stats.meanYield, { signed: false, digits: 2 })} tone="accent" detail="dividende net" />
@@ -158,7 +176,7 @@ export default function DashboardScreen() {
       </Section>
 
       <Section title="Performance par secteur" detail="Moyenne des variations du jour">
-        <SectorPerformance quotes={quotes} />
+        <SectorPerformance quotes={sessionQuotes} />
       </Section>
 
       <Section title="Plus fortes hausses" detail="Variation du jour">
@@ -174,6 +192,22 @@ export default function DashboardScreen() {
         <View style={styles.moreRow}>
           <ActionButton label="Toute la cote" icon="list-outline" onPress={() => router.push("/search")} />
         </View>
+      </Section>
+
+      <Section title="Volumes anormaux" detail={liveQuote ? "Volumes officiels publiés après clôture" : "Ratio au volume moyen des 30 séances précédentes"}>
+        {unusualVolumes.length
+          ? unusualVolumes.map((quote, index) => <QuoteRow key={quote.ticker} quote={quote} rank={index + 1} />)
+          : <EmptyState icon="stats-chart-outline" title={liveQuote ? "En attente de la clôture" : "Aucun volume inhabituel"} detail={liveQuote ? "WARIBA n'affiche jamais le volume de la veille comme s'il était intraday." : "Aucune valeur ne dépasse 1,5× sa moyenne 30 jours."} />}
+      </Section>
+
+      <Section title="Clôtures extrêmes 52 semaines" detail="Franchissements détectés sur les 5 dernières séances">
+        {extremeAlerts.length
+          ? extremeAlerts.map((alert) => <AlertRow key={alert.id} alert={alert} onPress={alert.ticker ? () => router.push(`/stocks/${alert.ticker}`) : undefined} />)
+          : <EmptyState icon="analytics-outline" title="Aucun nouvel extrême" detail="Aucune clôture n'a franchi son intervalle des 52 dernières semaines." />}
+      </Section>
+
+      <Section title="Mouvements à surveiller" detail="Plus fortes amplitudes absolues sur 1 semaine · descriptif, sans recommandation">
+        {weeklyMovers.map((quote, index) => <QuoteRow key={quote.ticker} quote={quote} rank={index + 1} />)}
       </Section>
 
       <Section title="Actualités" detail={market.news.length ? `${market.news.length} articles sourcés` : undefined}>

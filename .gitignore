@@ -2,6 +2,7 @@ node_modules/
 .next/
 out/
 build/
+public/data/
 .DS_Store
 *.pem
 npm-debug.log*

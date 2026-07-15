@@ -8,10 +8,10 @@ import {
   newsSchema, operationsSchema, quoteMapSchema, seriesSchema,
 } from "./validation";
 
-const PAGE_ROOT = "https://rodthenewcomer.github.io/WARIBA/data";
+const PAGE_ROOT = "https://wariba.app/data";
 const RAW_ROOT = "https://raw.githubusercontent.com/rodthenewcomer/WARIBA/main/data";
 const CACHE_PREFIX = "@wariba:data:v3:";
-const CACHE_VERSION = 3 as const;
+const CACHE_VERSION = 4 as const;
 const TIMEOUT_MS = 12_000;
 
 type CachedValue<T> = { version: typeof CACHE_VERSION; savedAt: string; data: T };

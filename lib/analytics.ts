@@ -1,5 +1,7 @@
 "use client";
 
+import { migratedStorageKey } from "@/lib/storage-keys";
+
 export type AnalyticsConsent = "unknown" | "granted" | "denied";
 export type ProductEventName =
   | "page_view" | "onboarding_complete" | "search" | "ticker_view"
@@ -7,8 +9,8 @@ export type ProductEventName =
   | "document_open" | "data_refresh_failure" | "notification_tap"
   | "auth_complete" | "subscription_started";
 
-export const ANALYTICS_CONSENT_KEY = "afriterminal-analytics-consent";
-const ANONYMOUS_ID_KEY = "afriterminal-anonymous-id";
+export const ANALYTICS_CONSENT_KEY = migratedStorageKey("wariba-analytics-consent", "analytics-consent");
+const ANONYMOUS_ID_KEY = migratedStorageKey("wariba-anonymous-id", "anonymous-id");
 let accessToken: string | null = null;
 let enabled = false;
 

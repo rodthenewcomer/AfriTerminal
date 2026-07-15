@@ -1,0 +1,344 @@
+{
+  "generatedAt": "2026-07-15T19:20:45.305489+00:00",
+  "coverage": 48,
+  "current": 48,
+  "reviewRequired": 0,
+  "tickers": {
+    "ABJC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260427_-_etats_financiers_ifrs_-_exercice_2025_-_servair_abidjan_ci.pdf"
+    },
+    "BICB": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260619_-_rapport_dactivites_annuel_et_etats_financiers_ifrs_-_exercice_2025_-_biic.pdf"
+    },
+    "BICC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260417_-_etats_financiers_-_exercice_2025_-_bici_ci.pdf"
+    },
+    "BNBC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260430_-_etats_financiers_-_exercice_2025_-_bernabe_ci.pdf"
+    },
+    "BOAB": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260415_-_etats_financiers_-_exercice_2025_-_boa_bn.pdf"
+    },
+    "BOABF": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260323_-_etats_financiers_-_exercice_2025_-_boa_bf.pdf"
+    },
+    "BOAC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260612_-_rapport_des_commissaires_aux_comptes_et_etats_financiers_annuels_-_exercice_2025_-_boa_ci.pdf"
+    },
+    "BOAM": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260324_-_etats_financiers_-_exercice_2025_-_boa_ml.pdf"
+    },
+    "BOAN": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260401_-_rapport_des_commissaires_aux_comptes_sur_les_etats_financiers_annuels_-_exercice_2025_-_boa_ng.pdf"
+    },
+    "BOAS": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260317_-_etats_financiers_-_exercice_2025_-_boa_sn.pdf"
+    },
+    "CABC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260311_-_etats_financiers_ifrs_-_exercice_2025_-_sicable_ci.pdf"
+    },
+    "CBIBF": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260707_-_etats_financiers_-_exercice_2025_-_coris_bank_international_bf.pdf"
+    },
+    "CFAC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260713_-_rapport_annuel_-_exercice_2025_-_cfao_motors_ci.pdf"
+    },
+    "CIEC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260520_-_etats_financiers_syscohada_et_ifrs_-_exercice_2025_-_cie_ci.pdf"
+    },
+    "ECOC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260414_-_rapport_dactivites_et_etats_financiers_-_exercice_2025_-_ecobank_ci.pdf"
+    },
+    "ETIT": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260413_-_etats_financiers_ifrs_-_exercice_2025_-_eti_tg.pdf"
+    },
+    "FTSC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260610_-_etats_financiers_-_exercice_2025_-_filtisac_ci.pdf"
+    },
+    "LNBB": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260430_-_etats_financiers_-_exercice_2025_-_lnb_bn.pdf"
+    },
+    "NEIC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260423_-_etats_financiers_syscohada_-_exercice_2025_-_nei_ceda_ci.pdf"
+    },
+    "NSBC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260513_-_etats_financiers_et_communique_-_exercice_2025_-_nsia_banque_ci.pdf"
+    },
+    "NTLC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260430_-_etats_financiers_-_exercice_2025_-_nestle_ci.pdf"
+    },
+    "ONTBF": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260611_-_etats_financiers_approuves_-_exercice_2025_-_onatel_bf.pdf"
+    },
+    "ORAC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260608_-_etats_financiers_approuves_-_exercice_2025_-_orange_ci.pdf"
+    },
+    "ORGT": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260504_-_etats_financiers_-_exercice_2025_-_oragroup_tg.pdf"
+    },
+    "PALC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260323_-_etats_financiers_-_exercice_2025_-_palm_ci.pdf"
+    },
+    "PRSC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260430_-_etats_financiers_-_exercice_2025_-_tractafric_motors_ci.pdf"
+    },
+    "SAFC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260609_-_etats_financiers_-_exercice_2025_-_safca_ci_annule_et_remplace_le_precedent.pdf"
+    },
+    "SCRC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260518_-_etats_financiers_-_exercice_2025_-_sucrivoire_ci_annule_et_remplace_le_precedent.pdf"
+    },
+    "SDCC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260427_-_etats_financiers_-_exercice_2025_-_sodeci.pdf"
+    },
+    "SDSC": {
+      "fiscalYear": 2024,
+      "latestAnnualYear": 2024,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20250829_-_etats_financiers_et_rapport_des_cac_-_exercice_2024_-_africa_global_logistics_ci.pdf"
+    },
+    "SEMC": {
+      "fiscalYear": 2023,
+      "latestAnnualYear": 2023,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20241216_-_etats_financiers_de_synthese_-exercice_2023_-_eviosys_packaging_siem_ci.pdf"
+    },
+    "SGBC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260421_-_rapport_dactivites_annuel_et_etats_financiers_-_exercice_2025_-_societe_generale_ci_annule_et_remplace_le_precedent.pdf"
+    },
+    "SHEC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260603_-_etats_financiers_-_exercice_2025_-_vivo_energy.pdf"
+    },
+    "SIBC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260421_-_rapport_dactivites_annuel_et_etats_financiers_-_exercice_2025_-_sib_ci.pdf"
+    },
+    "SICC": {
+      "fiscalYear": 2024,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Source intégrée; exercice 2024 validé dans le contenu malgré le millésime 2025 du titre BRVM.",
+      "source": "https://www.brvm.org/sites/default/files/20260612_-_rapport_dactivites_annuel_et_etats_financiers_-_exercice_2025_-_sicor_ci.pdf"
+    },
+    "SIVC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260626_-_etats_financiers_-_exercice_2025_-_erium_ci.pdf"
+    },
+    "SLBC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260519_-_etats_financiers_-_exercice_2025_-_solibra_ci.pdf"
+    },
+    "SMBC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260512_-_etats_financiers_et_projet_daffectation_du_resultat_-_exercice_2025_-_smb_ci.pdf"
+    },
+    "SNTS": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260216_-_etats_financiers_2025_et_attestation_des_cac_-_sonatel_sn.pdf"
+    },
+    "SOGC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260422_-_etats_financiers_syscohada_-_exercice_2025_-_sogb_ci.pdf"
+    },
+    "SPHC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260318_-_etats_financiers_syscohada_-_exercice_2025_-_saph_ci.pdf"
+    },
+    "STAC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260413_-_etats_financiers_-_exercice_2025_-_setao_ci.pdf"
+    },
+    "STBC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260625_-_etats_financiers_-_exercice_2025_-_sitab_ci_annule_et_remplace_le_precedent.pdf"
+    },
+    "SVOC": {
+      "fiscalYear": 2019,
+      "latestAnnualYear": 2019,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20201022_-_etats_financiers_-_exercice_2019_-_movis_ci.pdf"
+    },
+    "TTLC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260601_-_etats_financiers_approuves_-_exercice_2025_-_totalenergies_marketing_ci.pdf"
+    },
+    "TTLS": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260430_-_etats_financiers_ifrs_-_exercice_2025_-_totalenergies_marketing_sn.pdf"
+    },
+    "UNLC": {
+      "fiscalYear": 2023,
+      "latestAnnualYear": 2023,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20240904_-_etats_financiers_-_exercice_2023_-_unilever_ci.pdf"
+    },
+    "UNXC": {
+      "fiscalYear": 2025,
+      "latestAnnualYear": 2025,
+      "status": "current",
+      "detail": "Publication annuelle intégrée ou aucun exercice plus récent détecté.",
+      "source": "https://www.brvm.org/sites/default/files/20260713_-_etats_financiers_-_exercice_2025_-_uniwax_ci.pdf"
+    }
+  }
+}

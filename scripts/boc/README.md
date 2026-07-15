@@ -125,7 +125,7 @@ que le corps. C'est une limite de la source, pas un bug du parseur —
 pas laisser croire à une precision qui n'existe pas dans la donnée
 officielle. **Atténuation** : depuis le 2026-07-08, `build_app_data.py`
 élargit high/low avec la fourchette réellement observée par
-`live_poll.py` (`data/live/`, collecte GitHub Actions toutes les 15 min
+`live_poll.py` (`data/live/`, collecte GitHub Actions toutes les 5 min
 en séance) — les bougies gagnent de vraies mèches à partir de ce jour,
 jamais rétroactivement. Le golden test `test_parse_boc.py` (fixture PDF
 committée, bulletin du 2023-06-05) fige par ailleurs le comportement du
@@ -156,7 +156,7 @@ python3 live_poll.py --out-dir ../../data/live
 
 Testé le 2026-07-07 : 47 cotations récupérées en un appel, format
 stable. **Décision prise (2026-07-08)** : exécution planifiée dans
-GitHub Actions (`.github/workflows/live-poll.yml`), toutes les 15 min
+GitHub Actions (`.github/workflows/live-poll.yml`), toutes les 5 min
 pendant la séance (10h00–15h15 UTC, décalé de 15 min pour tenir compte
 du différé des cours affichés), l'état du jour étant committé dans le
 repo à chaque run — pas de dépendance à une machine locale. Le
@@ -164,16 +164,16 @@ bulletin quotidien est lui aussi automatisé
 (`.github/workflows/boc-daily.yml` : fetch + merge_day.py +
 build_app_data.py + commit + redéploiement du site).
 
-## Pipeline fondamentaux (48/48 sociétés — 2026-07-11)
+## Pipeline fondamentaux automatique (48/48 sociétés — 2026-07-15)
 
 `fundamentals.py` épingle un PDF BRVM officiel par société, normalise les
 montants en millions de FCFA et produit `data/real/fundamentals.json`.
 Chaque enregistrement expose sa source et sa date de publication. Le run
 complet couvre les **48 sociétés cotées**, dont les **16 établissements
-financiers** avec PNB, résultat net, coefficient d'exploitation, coût du
-risque, dépôts et crédits. Les capitaux propres sont présents pour 47/48 ;
-SGBC reste volontairement vide sur ce champ, son rapport annuel 2025 ne
-publiant pas de bilan complet.
+financiers**. `refresh_fundamentals.py` surveille ensuite toute nouvelle
+publication annuelle détectée par `fetch_documents.py`, y compris les scans.
+Le statut public `data/real/fundamentals-status.json` expose la couverture et
+les éventuels documents refusés par les garde-fous.
 
 ### Architecture retenue
 
@@ -195,12 +195,23 @@ Le compromis retenu est donc hybride :
    extracteurs. Les documents scannés sont rendus puis lus par OCR ; les
    valeurs critiques sont confirmées sur une seconde occurrence ou un
    tableau indépendant.
+4. `refresh_fundamentals.py` traite automatiquement tout exercice plus récent
+   pour chacun des 48 tickers. Il essaie le texte natif puis OCR, énumère les
+   unités et l'ordre N/N-1, et n'accepte que la combinaison dont N-1 recoupe le
+   dernier exercice validé pour le CA/PNB et le résultat net.
 
 Cette architecture conserve l'automatisation là où elle est reproductible
 et rend chaque exception explicite dans le registre. SNTS, ORAC, FTSC,
 SCRC et TTLS ont notamment été résolus par lecture visuelle des publications
 approuvées ; le millésime SICC est 2024 malgré le nom de fichier BRVM qui
 mentionne 2025.
+
+Le workflow `documents.yml` exécute ce rafraîchissement dès qu'un nouveau PDF
+apparaît. CFAO/CFAC constitue le test scanné de non-régression : le rapport
+annuel 2025 publié le 13 juillet 2026 actualise automatiquement le CA à
+180 545 M FCFA, le résultat net à 8 416 M et le résultat ordinaire à
+11 413 M. Son ROE 2024 est retiré, car ce rapport d'activité ne publie pas les
+capitaux propres 2025.
 
 ### Règles de confiance
 
@@ -221,10 +232,10 @@ python3 fundamentals.py \
   --pdf-cache ../../data/fundamentals-pdf-cache
 ```
 
-Ajouter ou actualiser une société signifie épingler la nouvelle publication,
-vérifier visuellement le millésime et les unités, choisir l'extracteur le plus
-étroit qui fonctionne, recouper les champs sensibles, puis exécuter les tests
-et le run 48/48. Le cache PDF est régénérable et n'est pas une source produit.
+Une mise à jour compatible est automatique. Si le recoupement N-1 échoue, le
+document reste immédiatement visible dans la fiche et le statut passe à
+`review_required`; l'ancien enregistrement n'est jamais écrasé. La revue
+humaine ne sert alors qu'à résoudre l'exception et enrichir le registre.
 
 Autres scripts du dossier : `build_alerts.py` (alertes factuelles),
 `fetch_documents.py` / `fetch_operations.py` (publications et

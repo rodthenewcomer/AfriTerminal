@@ -2,7 +2,7 @@
   "name": "@wariba/core",
   "version": "0.0.0",
   "private": true,
-  "description": "Logique métier pure d'WARIBA (calculs portefeuille/risque/indicateurs, formatage, glossaire) — partagée entre le site web (apps web) et une future app mobile. Zéro dépendance DOM/React Native : que du TypeScript.",
+  "description": "Logique métier pure de WARIBA (calculs portefeuille/risque/indicateurs, formatage, glossaire) — partagée entre le site web et les apps mobiles. Zéro dépendance DOM/React Native : que du TypeScript.",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {

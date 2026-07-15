@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { PortfolioTransaction } from "@wariba/core/portfolio";
+import { migratedStorageKey } from "@/lib/storage-keys";
 
 interface PortfolioState {
   transactions: PortfolioTransaction[];
@@ -32,7 +33,7 @@ export const usePortfolio = create<PortfolioState>()(
       clear: () => set({ transactions: [] }),
       replaceAll: (transactions) => set({ transactions }),
     }),
-    { name: "afriterminal-portfolio", skipHydration: true }
+    { name: migratedStorageKey("wariba-portfolio", "portfolio"), skipHydration: true }
   )
 );
 

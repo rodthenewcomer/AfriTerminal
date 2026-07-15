@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { migratedStorageKey } from "@/lib/storage-keys";
 
 interface ChartLevelsState {
   /** Niveaux horizontaux (supports/résistances) posés par l'utilisateur,
@@ -36,7 +37,7 @@ export const useChartLevels = create<ChartLevelsState>()(
         set((s) => ({ levels: { ...s.levels, [ticker]: [] } })),
       clearAll: () => set({ levels: {} }),
     }),
-    { name: "afriterminal-chart-levels", skipHydration: true }
+    { name: migratedStorageKey("wariba-chart-levels", "chart-levels"), skipHydration: true }
   )
 );
 

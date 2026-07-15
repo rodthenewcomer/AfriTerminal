@@ -1,6 +1,6 @@
 # Déploiement web, API et facturation
 
-WARIBA n'est plus un export statique : les callbacks Supabase, l'API de synchronisation, la suppression de compte, les notifications, l'analytics consentie et les webhooks exigent un runtime Node.js. GitHub Pages reste uniquement le miroir public JSON utilisé par l'app mobile.
+WARIBA n'est plus un export statique : les callbacks Supabase, l'API de synchronisation, la suppression de compte, les notifications, l'analytics consentie et les webhooks exigent un runtime Node.js. Vercel sert aussi les JSON publics sous `https://wariba.app/data` ; le web et les apps mobiles partagent donc la même origine canonique.
 
 ## Environnements
 
@@ -21,6 +21,14 @@ Le déploiement web recommandé utilise un projet Vercel relié au dépôt avec 
 ## Infrastructure active
 
 Le 15 juillet 2026, les deux migrations de production ont été appliquées au projet Supabase `lxcjiocyzptrrnzvywmn` (PostgreSQL 17.6). Les 15 tables applicatives ont RLS activé et les 32 politiques d'isolation utilisateur sont installées. Le projet Vercel `prj_D7ZaxJINbUx6zC1mRDZi60TwuP4G` est configuré en Next.js et sert `https://wariba.app` ainsi que `https://www.wariba.app`.
+
+Les commits de données créés par GitHub Actions sur `main` déclenchent la
+même intégration Git Vercel que les commits applicatifs. Le script de
+prébuild `scripts/sync-public-data.mjs` publie `data/real` et `data/news`
+sous `/data` et produit un hash `version.json`. GitHub Pages a été retiré :
+il doublonnait l'hébergement sans apporter de fraîcheur supplémentaire.
+L'app mobile conserve le dépôt GitHub brut comme secours si `wariba.app`
+est temporairement indisponible.
 
 Les clés legacy anon et `service_role` valides sont installées sur Vercel, respectivement dans les variables publique et serveur. La readiness Supabase répond 200. Un test de production jetable a validé création admin sans e-mail, connexion mot de passe, lecture RLS de `/api/v1/me`, confirmation obligatoire de suppression, suppression par l'API WARIBA et cascades à zéro. La configuration des URLs de site/redirects Supabase doit encore être confirmée dans le Dashboard pour les e-mails, OTP et OAuth web/mobile. Ne jamais placer la clé secrète dans une variable `NEXT_PUBLIC_*` ou `EXPO_PUBLIC_*`.
 

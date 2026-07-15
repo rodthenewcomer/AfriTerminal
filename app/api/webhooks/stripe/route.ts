@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getStripe, recomputeEntitlements } from "@/lib/billing";
+import { legacyStorageKey } from "@wariba/core/legacy";
 
 export const dynamic = "force-dynamic";
+const PREVIOUS_USER_ID_KEY = legacyStorageKey("user_id", "_");
 
 function customerId(subscription: Stripe.Subscription): string {
   return typeof subscription.customer === "string"
@@ -22,7 +24,7 @@ function periodEnd(subscription: Stripe.Subscription): string | null {
 async function syncSubscription(subscription: Stripe.Subscription) {
   const admin = createAdminSupabaseClient();
   const providerCustomerId = customerId(subscription);
-  let userId = subscription.metadata.afriterminal_user_id;
+  let userId = subscription.metadata.wariba_user_id ?? subscription.metadata[PREVIOUS_USER_ID_KEY];
   if (!userId) {
     const { data } = await admin
       .from("subscriptions")
@@ -86,7 +88,7 @@ export async function POST(request: Request) {
 
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
-      const userId = session.metadata?.afriterminal_user_id ?? session.client_reference_id;
+      const userId = session.metadata?.wariba_user_id ?? session.metadata?.[PREVIOUS_USER_ID_KEY] ?? session.client_reference_id;
       const customer = typeof session.customer === "string" ? session.customer : session.customer?.id;
       if (userId && customer) {
         const { error } = await admin.from("subscriptions").upsert({

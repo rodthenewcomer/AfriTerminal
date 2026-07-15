@@ -1,6 +1,7 @@
 import type { PortfolioTransaction } from "@wariba/core/portfolio";
 import type { WatchlistDef } from "@wariba/core/types";
 import type { SavedFilter } from "@/hooks/use-saved-filters";
+import { legacyProductLabel } from "@wariba/core/legacy";
 
 /**
  * Sauvegarde/restauration des données locales — le portefeuille, les
@@ -98,7 +99,7 @@ export function parseBackup(raw: string): BackupParseResult {
     return { ok: false, error: "Structure de fichier inattendue." };
   }
   const b = json as Record<string, unknown>;
-  if (b.app !== "WARIBA" && b.app !== "AfriTerminal") {
+  if (b.app !== "WARIBA" && b.app !== legacyProductLabel()) {
     return {
       ok: false,
       error: "Ce fichier ne provient pas de WARIBA (champ « app » absent).",

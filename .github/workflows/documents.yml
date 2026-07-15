@@ -1,11 +1,12 @@
 # Surveille les publications officielles (PDF) des sociétés BRVM. Une
 # publication financière peut changer une décision le jour même : la
-# détection vise moins de 15 minutes, puis pousse web + mobile.
+# détection vise moins de 5 minutes, puis le push sur main déclenche
+# automatiquement le déploiement Vercel de wariba.app.
 name: documents
 
 on:
   schedule:
-    - cron: "*/15 5-20 * * *"
+    - cron: "*/5 5-20 * * *"
   workflow_dispatch:
 
 permissions:
@@ -22,8 +23,35 @@ jobs:
       pushed: ${{ steps.commit.outputs.pushed }}
     steps:
       - uses: actions/checkout@v4
-      - name: Référencer les publications (stdlib Python)
+      - name: Référencer les publications (48 sociétés)
+        id: documents
+        shell: bash
         run: python3 scripts/boc/fetch_documents.py --out data/real/documents.json
+
+      - name: Détecter une nouvelle publication
+        id: changed
+        shell: bash
+        run: |
+          if git diff --quiet -- data/real/documents.json; then
+            echo "value=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Détecter un exercice annuel non intégré
+        id: pending
+        shell: bash
+        run: |
+          count=$(python3 scripts/boc/refresh_fundamentals.py --pending-count)
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          echo "$count publication(s) annuelle(s) à intégrer."
+      - name: Installer le lecteur PDF et OCR
+        if: steps.pending.outputs.count != '0' && (steps.changed.outputs.value == 'true' || github.event_name == 'workflow_dispatch')
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends poppler-utils tesseract-ocr tesseract-ocr-fra
+      - name: Actualiser les fondamentaux annuels sans écrasement ambigu
+        if: steps.pending.outputs.count != '0' && (steps.changed.outputs.value == 'true' || github.event_name == 'workflow_dispatch')
+        run: python3 scripts/boc/refresh_fundamentals.py
       - name: Générer immédiatement les alertes de publications capitales
         run: python3 scripts/boc/build_alerts.py --out data/real/alerts.json
       - name: Committer
@@ -31,7 +59,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/real/documents.json data/real/alerts.json
+          git add data/real/documents.json data/real/alerts.json \
+            data/real/fundamentals.json data/real/fundamentals-auto.json \
+            data/real/fundamentals-status.json
           if git diff --cached --quiet; then
             echo "Aucune nouvelle publication."
             echo "pushed=false" >> "$GITHUB_OUTPUT"
@@ -48,12 +78,3 @@ jobs:
             fi
             echo "pushed=true" >> "$GITHUB_OUTPUT"
           fi
-
-  deploy:
-    needs: fetch-documents
-    if: needs.fetch-documents.outputs.pushed == 'true'
-    uses: ./.github/workflows/deploy.yml
-    permissions:
-      contents: read
-      pages: write
-      id-token: write

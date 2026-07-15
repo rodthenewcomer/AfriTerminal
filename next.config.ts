@@ -25,6 +25,13 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: "/data/:path*",
+        headers: [
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          { key: "Cache-Control", value: "public, max-age=60, stale-while-revalidate=300" },
+        ],
+      },
+      {
         source: "/(.*)",
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },

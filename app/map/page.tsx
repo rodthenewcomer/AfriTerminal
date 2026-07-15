@@ -6,7 +6,7 @@ import { dateFr } from "@wariba/core/format";
 export const metadata: Metadata = {
   title: "Carte du marché",
   description:
-    "Carte de la BRVM en un coup d'œil : les 48 sociétés cotées groupées par secteur, taille selon la liquidité, couleur selon la variation du jour. Données officielles.",
+    "Carte de la BRVM en un coup d'œil : les valeurs actives groupées par secteur, taille selon la liquidité, couleur selon la variation du jour. Données officielles.",
 };
 
 export default function MapPage() {
@@ -18,7 +18,7 @@ export default function MapPage() {
             Carte du marché
           </h1>
           <p className="mt-1 text-sm text-ink-3">
-            La cote BRVM en un coup d&apos;œil · séance du{" "}
+            Les valeurs actives de la cote BRVM · séance du{" "}
             {dateFr(LATEST_TRADING_DATE)}. Chaque tuile est une société :
             sa taille reflète l&apos;activité du titre (liquidité), sa
             couleur la variation sur l&apos;horizon choisi. Cliquez une

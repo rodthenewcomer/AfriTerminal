@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { migratedStorageKey } from "@/lib/storage-keys";
 
 export interface SavedFilter {
   id: string;
@@ -34,7 +35,7 @@ export const useSavedFilters = create<SavedFiltersState>()(
         set((state) => ({ saved: state.saved.filter((f) => f.id !== id) })),
       replaceAll: (saved) => set({ saved }),
     }),
-    { name: "afriterminal-screener-filters", skipHydration: true }
+    { name: migratedStorageKey("wariba-screener-filters", "screener-filters"), skipHydration: true }
   )
 );
 

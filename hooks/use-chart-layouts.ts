@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { legacyStorageKey } from "@wariba/core/legacy";
+import { migratedStorageKey } from "@/lib/storage-keys";
 
 export type LayoutKind = 1 | 2 | 4;
 
@@ -16,7 +18,7 @@ export interface ChartLayout {
 }
 
 const DEFAULT_TICKERS = ["SNTS", "ORAC", "SGBC", "PALC"];
-const LEGACY_KEY = "afriterminal-chart-layout";
+const LEGACY_KEY = legacyStorageKey("chart-layout");
 
 function seedLayout(): ChartLayout {
   // Migre l'ancienne disposition unique (pré-dispositions multiples) plutôt
@@ -92,7 +94,7 @@ export const useChartLayouts = create<ChartLayoutsState>()(
           };
         }),
     }),
-    { name: "afriterminal-chart-layouts", skipHydration: true }
+    { name: migratedStorageKey("wariba-chart-layouts", "chart-layouts"), skipHydration: true }
   )
 );
 

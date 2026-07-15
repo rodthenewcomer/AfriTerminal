@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { CHART_COLORS } from "@/lib/chart-utils";
+import { migratedStorageKey } from "@/lib/storage-keys";
 
 /** Moyennes mobiles dont la couleur est personnalisable. */
 export type MaId = "sma20" | "sma50" | "sma100" | "sma200" | "ema20";
@@ -30,7 +31,7 @@ export const useChartPrefs = create<ChartPrefsState>()(
         set((state) => ({ maColors: { ...state.maColors, [id]: color } })),
       resetMaColors: () => set({ maColors: DEFAULT_MA_COLORS }),
     }),
-    { name: "afriterminal-chart-prefs", skipHydration: true }
+    { name: migratedStorageKey("wariba-chart-prefs", "chart-prefs"), skipHydration: true }
   )
 );
 

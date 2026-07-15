@@ -5,7 +5,7 @@ import { useEffect } from "react";
 /**
  * Boundary d'erreur globale. Cas principal visé : le « chunk périmé » —
  * un onglet ouvert sur un ancien déploiement clique vers une page dont
- * le fichier JS haché n'existe plus sur GitHub Pages (chaque déploiement
+ * le fichier JS haché n'existe plus sur le déploiement actif (chaque version
  * remplace tout). Dans ce cas, recharger suffit : le HTML frais pointe
  * vers les nouveaux fichiers. On recharge automatiquement UNE fois
  * (verrou sessionStorage pour ne jamais boucler), sinon on affiche un
@@ -15,7 +15,7 @@ import { useEffect } from "react";
 const CHUNK_ERROR =
   /ChunkLoadError|Loading chunk|css chunk|fetch dynamically imported module|Importing a module script failed/i;
 
-const RELOAD_LOCK = "afriterminal-chunk-reload";
+const RELOAD_LOCK = "wariba-chunk-reload";
 
 export default function GlobalError({
   error,

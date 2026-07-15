@@ -85,7 +85,7 @@ def main() -> None:
     start, end = date.fromisoformat(args.start), date.fromisoformat(args.end)
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    tmp_pdf = Path("/tmp/afriterminal-backfill-current.pdf")
+    tmp_pdf = Path("/tmp/wariba-backfill-current.pdf")
 
     ok = missing = unsupported = errors = skipped_existing = 0
 

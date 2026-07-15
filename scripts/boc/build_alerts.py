@@ -36,7 +36,9 @@ VOLUME_FLOOR = 500
 FUNDAMENTALS_FRESH_DAYS = 30
 DOCUMENTS_FRESH_DAYS = 30
 DECISION_DOCUMENT_TYPES = {"Résultats", "États financiers"}
-DOCUMENT_SUMMARIES = {
+# Résumés numériques relus dans le PDF source. La détection reste exhaustive
+# pour les 48 émetteurs même lorsqu'aucun résumé chiffré n'est encore curé.
+VERIFIED_DOCUMENT_SUMMARIES = {
     "20260713_-_etats_financiers_-_exercice_2025_-_uniwax_ci.pdf": (
         "Exercice 2025 : chiffre d'affaires 29,032 Md FCFA contre 27,333 Md ; "
         "perte nette ramenée à 624 M FCFA contre 2,189 Md en 2024."
@@ -223,7 +225,7 @@ def document_alerts(documents: list[dict], latest_date: str, names: dict[str, st
         if age < 0 or age > DOCUMENTS_FRESH_DAYS:
             continue
         ticker = doc["ticker"]
-        summary = DOCUMENT_SUMMARIES.get(doc["url"].rsplit("/", 1)[-1])
+        summary = VERIFIED_DOCUMENT_SUMMARIES.get(doc["url"].rsplit("/", 1)[-1])
         out.append(
             alert(
                 "document",

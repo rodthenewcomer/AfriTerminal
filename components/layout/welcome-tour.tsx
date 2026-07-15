@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BrandSignature } from "./brand-signature";
+import { migratedStorageKey } from "@/lib/storage-keys";
 
 /**
  * Première visite — bannière discrète (pas de carrousel bloquant sur le
@@ -14,7 +15,7 @@ import { BrandSignature } from "./brand-signature";
  * localStorage : vue ou refusée, la bannière ne revient pas.
  */
 
-const STORAGE_KEY = "afriterminal:tour";
+const STORAGE_KEY = migratedStorageKey("wariba:tour", "tour", ":");
 const TOUR_VERSION = "v1";
 
 const STEPS = [

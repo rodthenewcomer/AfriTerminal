@@ -42,7 +42,7 @@ const LEVELS: { id: ExperienceLevel; label: string }[] = [
   { id: "avance", label: "Avancé" },
 ];
 
-const SITE_URL = process.env.EXPO_PUBLIC_SITE_URL ?? process.env.EXPO_PUBLIC_API_URL ?? "https://rodthenewcomer.github.io/WARIBA/";
+const SITE_URL = process.env.EXPO_PUBLIC_SITE_URL ?? process.env.EXPO_PUBLIC_API_URL ?? "https://wariba.app";
 
 async function openTrustedUrl(path: string) {
   try {
@@ -172,12 +172,10 @@ export default function SettingsScreen() {
     <Page subtitle="Préférences locales, compte, notifications et confidentialité">
       <View style={styles.identity}>
         <View style={styles.monogram}>
-          <Text style={styles.monogramText}>A</Text>
+          <Text style={styles.monogramText}>W</Text>
         </View>
         <View style={styles.identityCopy}>
-          <Text style={styles.identityName}>
-            Afri<Text style={styles.identityAccent}>Terminal</Text>
-          </Text>
+          <Text style={styles.identityName}>WARIBA</Text>
           <Text style={styles.identityVersion}>Version {version} · mode sombre permanent</Text>
         </View>
       </View>

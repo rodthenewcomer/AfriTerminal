@@ -8,7 +8,7 @@ vers le PDF sur brvm.org. On référence, on ne copie pas les fichiers.
 Les noms de fichiers BRVM suivent une convention stable :
     YYYYMMDD_-_type_du_document_-_periode_-_societe.pdf
 d'où sont dérivés la date, le type et le titre. Exécution toutes les
-15 minutes en CI (documents.yml) + à la main : une publication de
+5 minutes en CI (documents.yml) + à la main : une publication de
 résultats ne doit jamais attendre le prochain lundi.
 
 Usage :
@@ -26,7 +26,9 @@ from pathlib import Path
 
 USER_AGENT = "WARIBA-documents/1.0 (agrégateur non commercial, liens vers la source)"
 BASE = "https://www.brvm.org"
-MAX_PER_COMPANY = 8
+# Conserver assez d'historique pour ne pas perdre un rapport quand plusieurs
+# PDF (activité, états, IFRS, SYSCOHADA, attestation) paraissent le même jour.
+MAX_PER_COMPANY = 20
 
 # Ticker -> slug de la fiche société BRVM (vérifiés sur le listing
 # /fr/rapports-societes-cotees, 2026-07). Les slugs non-actions (FCTC,
@@ -55,7 +57,11 @@ DATE_RE = re.compile(r"/(\d{8})_")
 
 TYPE_RULES: list[tuple[str, str]] = [
     (r"etats_financiers|comptes_annuels", "États financiers"),
-    (r"rapport_d.?activites|resultats", "Résultats"),
+    (
+        r"rapport_d.?activites|resultats|rapport_annuel|rapport_de_gestion|"
+        r"informations?_trimestrielles?|commentaires?_sur_l.?activite",
+        "Résultats",
+    ),
     (r"dividende", "Dividende"),
     (r"assemblee|_ago_|_age_|mixte", "AGO"),
     (r"attestation|commissaires", "États financiers"),
@@ -102,7 +108,9 @@ def parse_page(html: str, ticker: str) -> list[dict]:
                 "url": url,
             }
         )
-    docs.sort(key=lambda d: d["date"], reverse=True)
+    docs.sort(
+        key=lambda d: (-int(d["date"].replace("-", "")), d["url"])
+    )
     return docs[:MAX_PER_COMPANY]
 
 
@@ -116,7 +124,21 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", default="data/real/documents.json")
     parser.add_argument("--workers", type=int, default=6)
+    parser.add_argument("--snapshot", default="data/real/snapshot.json")
     args = parser.parse_args()
+
+    snapshot_path = Path(args.snapshot)
+    if snapshot_path.exists():
+        expected = set(json.loads(snapshot_path.read_text(encoding="utf-8")))
+        configured = set(SLUGS)
+        if configured != expected:
+            missing = sorted(expected - configured)
+            obsolete = sorted(configured - expected)
+            raise SystemExit(
+                "Couverture documents incomplète. "
+                f"Tickers sans fiche: {missing or 'aucun'}; "
+                f"tickers hors snapshot: {obsolete or 'aucun'}."
+            )
 
     out_path = Path(args.out)
     previous: dict[str, list[dict]] = {}
@@ -140,7 +162,21 @@ def main() -> None:
             ticker, slug = futures[future]
             try:
                 _, docs = future.result()
-                all_docs.extend(docs)
+                # Certaines pages BRVM alternent entre plusieurs PDF placés à
+                # la même date. L'union avec le dernier état connu empêche un
+                # rapport de disparaître puis réapparaître au run suivant.
+                merged = {
+                    item["url"]: item
+                    for item in [*previous.get(ticker, []), *docs]
+                }
+                stable_docs = sorted(
+                    merged.values(),
+                    key=lambda d: (
+                        -int(d["date"].replace("-", "")),
+                        d["url"],
+                    ),
+                )
+                all_docs.extend(stable_docs[:MAX_PER_COMPANY])
             except Exception as e:  # une fiche en panne ne bloque pas les autres
                 errors += 1
                 # Un incident réseau ne doit jamais supprimer les dernières
@@ -148,7 +184,12 @@ def main() -> None:
                 all_docs.extend(previous.get(ticker, []))
                 print(f"{ticker} ({slug}): erreur {type(e).__name__}: {e}")
 
-    all_docs.sort(key=lambda d: d["date"], reverse=True)
+    # Ordre déterministe malgré les réponses concurrentes : sans le ticker et
+    # l'URL comme départage, deux documents du même jour changeaient parfois
+    # de place et déclenchaient à tort OCR, commit et déploiement.
+    all_docs.sort(
+        key=lambda d: (-int(d["date"].replace("-", "")), d["ticker"], d["url"])
+    )
     out_path.write_text(
         json.dumps(all_docs, ensure_ascii=False, indent=1), encoding="utf-8"
     )

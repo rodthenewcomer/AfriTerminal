@@ -1,0 +1,286 @@
+{
+  "surface": "report",
+  "manifest": {
+    "version": 1,
+    "surface": "report",
+    "title": "Fiabilité des données WARIBA",
+    "description": "Contrôle décisionnel de la couverture, de la fraîcheur et des calculs affichés sur le web et le mobile.",
+    "generatedAt": "2026-07-15T18:45:09Z",
+    "charts": [
+      {
+        "id": "coverage_chart",
+        "title": "Couverture de l'univers BRVM par couche",
+        "subtitle": "Nombre de valeurs couvertes sur un univers de 48 actions.",
+        "type": "bar",
+        "dataset": "coverage",
+        "sourceId": "coverage_query",
+        "intent": "comparison",
+        "question": "Chaque couche nécessaire au produit couvre-t-elle bien les 48 actions?",
+        "rationale": "Un graphique en barres rend immédiatement visibles les éventuels trous de couverture entre les couches.",
+        "layout": "full",
+        "encodings": {
+          "x": { "field": "layer", "type": "nominal", "label": "Couche" },
+          "y": { "field": "covered", "type": "quantitative", "label": "Actions couvertes" },
+          "tooltip": [
+            { "field": "covered", "type": "quantitative", "label": "Couvertes" },
+            { "field": "target", "type": "quantitative", "label": "Cible" }
+          ]
+        },
+        "yAxisTitle": "Actions couvertes sur 48"
+      }
+    ],
+    "tables": [
+      {
+        "id": "control_table",
+        "title": "Contrôles des données visibles",
+        "subtitle": "Règle de calcul, couverture et limite explicitement vérifiées pour chaque bloc.",
+        "dataset": "controls",
+        "sourceId": "control_query",
+        "density": "spacious",
+        "layout": "full",
+        "columns": [
+          { "field": "surface", "label": "Information", "type": "text" },
+          { "field": "coverage", "label": "Couverture", "type": "text" },
+          { "field": "rule", "label": "Règle vérifiée", "type": "text" },
+          { "field": "status", "label": "État", "type": "text" },
+          { "field": "limit", "label": "Limite affichée", "type": "text" }
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "committed_quality_test",
+        "label": "Test exhaustif des données versionnées",
+        "path": "scripts/boc/test_committed_data_quality.py"
+      },
+      {
+        "id": "coverage_query",
+        "label": "Projection de couverture auditée",
+        "path": "scripts/boc/test_committed_data_quality.py"
+      },
+      {
+        "id": "control_query",
+        "label": "Projection des contrôles auditables",
+        "path": "scripts/boc/test_committed_data_quality.py"
+      },
+      {
+        "id": "market_snapshot",
+        "label": "Instantané et historiques de marché WARIBA",
+        "path": "data/real/snapshot.json"
+      },
+      {
+        "id": "official_documents",
+        "label": "Registre des publications officielles",
+        "path": "data/real/documents.json"
+      },
+      {
+        "id": "brvm_reports",
+        "label": "Rapports des sociétés cotées BRVM",
+        "href": "https://www.brvm.org/fr/rapports-societes-cotees"
+      }
+    ],
+    "blocks": [
+      {
+        "id": "executive_summary",
+        "type": "markdown",
+        "layout": "full",
+        "sourceId": "committed_quality_test",
+        "body": "# Fiabilité des données WARIBA\n\n## Executive Summary\n\nLe contrôle couvre **les 48 actions BRVM**, et non une seule valeur. Les classements de séance utilisent désormais uniquement les **47 valeurs actives à la dernière clôture**; la valeur suspendue reste consultable mais ne fausse plus la hausse, la baisse, la largeur de marché, les secteurs ou la carte. Les 890 publications retrouvées couvrent 48/48 sociétés.\n\nLa chaîne de collecte vérifie les publications officielles toutes les cinq minutes et Vercel publie chaque commit validé. Le web et l'application mobile contrôlent ensuite la version publiée toutes les 60 secondes. Cette architecture accélère la diffusion partout sans présenter comme temps réel une cotation BRVM qui reste différée."
+      },
+      {
+        "id": "findings",
+        "type": "markdown",
+        "layout": "full",
+        "sourceId": "market_snapshot",
+        "body": "## Constats décisionnels\n\n- Les listes de hausse et de baisse appliquent maintenant le signe du rendement avant le tri: une baisse ne peut plus apparaître parmi les hausses faute de titres positifs.\n- Le volume inhabituel exige un ratio d'au moins 1,5 fois la moyenne sur 30 séances et n'est calculé qu'après une clôture officielle.\n- Les extrêmes sur 52 semaines utilisent les cours de clôture des 252 dernières séances; ils ne sont plus présentés comme des extrêmes intrajournaliers.\n- La section hebdomadaire est descriptive et ne constitue ni un conseil ni un signal d'achat.\n- Sur chaque fiche action, la publication financière officielle la plus récente apparaît avant les ratios structurés, même lorsque son extraction numérique n'est pas encore validée."
+      },
+      {
+        "id": "coverage_chart_block",
+        "type": "chart",
+        "layout": "full",
+        "chartId": "coverage_chart",
+        "sourceId": "committed_quality_test"
+      },
+      {
+        "id": "control_table_block",
+        "type": "table",
+        "layout": "full",
+        "tableId": "control_table",
+        "sourceId": "committed_quality_test"
+      },
+      {
+        "id": "next_steps",
+        "type": "markdown",
+        "layout": "full",
+        "sourceId": "official_documents",
+        "body": "## Next Steps\n\n1. Surveiller les exécutions automatiques de collecte et les déploiements Vercel depuis le journal de statut.\n2. Traiter seulement les PDF marqués `review_required`: l'extraction compatible est désormais automatique sur les 48 tickers.\n3. Déclencher une alerte d'exploitation si la couverture descend sous 48 sociétés, si une valeur active manque à la séance ou si le contrôle exhaustif échoue.\n\n## Open Questions\n\n- L'accès à un flux de marché sous licence permettrait-il à terme une fréquence meilleure que le différé public de la BRVM?\n- Quelles métriques financières supplémentaires doivent être priorisées pour l'extraction structurée: capitaux propres, dividende proposé ou guidance?\n\n## Caveats\n\nLes cours publics ne sont pas des ticks temps réel. La rapidité de WARIBA correspond à la détection d'une nouvelle source officielle, au build Vercel, puis au rafraîchissement automatique des clients. Un PDF ambigu est visible immédiatement mais ne remplace jamais des chiffres validés; il passe en revue requise. Les ratios dépendant d'un bilan absent, comme le ROE CFAO 2025, sont masqués plutôt que calculés sur un exercice ancien."
+      }
+    ]
+  },
+  "snapshot": {
+    "version": 1,
+    "generatedAt": "2026-07-15T18:45:09Z",
+    "status": "ready",
+    "datasets": {
+      "coverage": [
+        { "layer": "Instantané", "covered": 48, "target": 48 },
+        { "layer": "Historiques", "covered": 48, "target": 48 },
+        { "layer": "Fondamentaux", "covered": 48, "target": 48 },
+        { "layer": "Publications", "covered": 48, "target": 48 }
+      ],
+      "controls": [
+        {
+          "surface": "Univers coté",
+          "coverage": "48/48 actions",
+          "rule": "Égalité exacte des tickers entre registre, cours, fondamentaux, séries et publications",
+          "status": "Conforme",
+          "limit": "1 valeur suspendue reste historique"
+        },
+        {
+          "surface": "Top hausses",
+          "coverage": "47 actives",
+          "rule": "Variation strictement positive, dernière clôture officielle, tri décroissant",
+          "status": "Conforme",
+          "limit": "Liste vide si aucune hausse"
+        },
+        {
+          "surface": "Top baisses",
+          "coverage": "47 actives",
+          "rule": "Variation strictement négative, dernière clôture officielle, tri croissant",
+          "status": "Conforme",
+          "limit": "Liste vide si aucune baisse"
+        },
+        {
+          "surface": "Largeur de marché",
+          "coverage": "47 actives",
+          "rule": "Hausses, baisses et stables calculées sur la même séance",
+          "status": "Conforme",
+          "limit": "La suspendue est exclue"
+        },
+        {
+          "surface": "Volumes",
+          "coverage": "47 actives",
+          "rule": "Volume officiel de clôture; anomalie si volume / moyenne 30 séances ≥ 1,5",
+          "status": "Conforme",
+          "limit": "Aucune extrapolation intrajournalière"
+        },
+        {
+          "surface": "Extrêmes 52 semaines",
+          "coverage": "48 historiques",
+          "rule": "Minimum et maximum des 252 derniers cours de clôture",
+          "status": "Conforme",
+          "limit": "Extrêmes de clôture, pas intrajournaliers"
+        },
+        {
+          "surface": "Carte de marché",
+          "coverage": "47 actives",
+          "rule": "Taille = cours × volume moyen 30 séances; couleur = variation de clôture",
+          "status": "Conforme",
+          "limit": "Mesure de liquidité, pas capitalisation"
+        },
+        {
+          "surface": "Secteurs",
+          "coverage": "47 actives",
+          "rule": "Moyenne équipondérée des variations des valeurs actives du secteur",
+          "status": "Conforme",
+          "limit": "Pas de pondération par capitalisation"
+        },
+        {
+          "surface": "Mouvements à surveiller",
+          "coverage": "48 historiques",
+          "rule": "Amplitude absolue de la variation sur une semaine",
+          "status": "Conforme",
+          "limit": "Descriptif, aucune recommandation"
+        },
+        {
+          "surface": "Fondamentaux",
+          "coverage": "48/48 actions",
+          "rule": "Dernier exercice extrait automatiquement si CA/PNB et RN N-1 recoupent la base validée",
+          "status": "Conforme",
+          "limit": "PDF ambigu bloqué et signalé, sans écrasement"
+        },
+        {
+          "surface": "Publications",
+          "coverage": "890 documents, 48/48",
+          "rule": "Découverte exhaustive par société; résultats, états financiers, rapports et communications",
+          "status": "Conforme",
+          "limit": "Fréquence cible: 5 minutes"
+        },
+        {
+          "surface": "Web et mobile",
+          "coverage": "Accueil, fiches, fondamentaux, alertes",
+          "rule": "Même version de données Vercel; détection client toutes les 60 secondes",
+          "status": "Conforme",
+          "limit": "Après fin du build Vercel"
+        }
+      ]
+    }
+  },
+  "sources": [
+    {
+      "id": "committed_quality_test",
+      "label": "Test exhaustif des données versionnées",
+      "path": "scripts/boc/test_committed_data_quality.py",
+      "query": {
+        "language": "python",
+        "description": "Vérifie la couverture exacte des 48 actions et recalcule chaque mesure affichée depuis les séries versionnées.",
+        "executed_at": "2026-07-15T18:45:09Z"
+      }
+    },
+    {
+      "id": "coverage_query",
+      "label": "Projection de couverture auditée",
+      "path": "scripts/boc/test_committed_data_quality.py",
+      "query": {
+        "engine": "artifact_snapshot",
+        "sql": "SELECT layer, covered, target FROM coverage",
+        "description": "Projection exacte des contrôles de couverture validés dans le snapshot borné du rapport.",
+        "executed_at": "2026-07-15T18:45:09Z"
+      }
+    },
+    {
+      "id": "control_query",
+      "label": "Projection des contrôles auditables",
+      "path": "scripts/boc/test_committed_data_quality.py",
+      "query": {
+        "engine": "artifact_snapshot",
+        "sql": "SELECT surface, coverage, rule, status, limit FROM controls",
+        "description": "Projection exacte des règles et résultats de contrôle présentés dans le tableau.",
+        "executed_at": "2026-07-15T18:45:09Z"
+      }
+    },
+    {
+      "id": "market_snapshot",
+      "label": "Instantané et historiques de marché WARIBA",
+      "path": "data/real/snapshot.json",
+      "query": {
+        "description": "Instantané produit depuis les bulletins officiels de cotation et contrôlé contre les séries historiques.",
+        "executed_at": "2026-07-15T18:45:09Z"
+      }
+    },
+    {
+      "id": "official_documents",
+      "label": "Registre des publications officielles",
+      "path": "data/real/documents.json",
+      "query": {
+        "description": "890 documents officiels découverts pour les 48 sociétés cotées.",
+        "executed_at": "2026-07-15T18:45:09Z"
+      }
+    },
+    {
+      "id": "brvm_reports",
+      "label": "Rapports des sociétés cotées BRVM",
+      "href": "https://www.brvm.org/fr/rapports-societes-cotees",
+      "query": {
+        "url": "https://www.brvm.org/fr/rapports-societes-cotees",
+        "description": "Source publique officielle des rapports et publications des émetteurs."
+      }
+    }
+  ],
+  "package_info": {
+    "root": "docs/audits/home-data-quality-2026-07-15",
+    "manifestPath": "docs/audits/home-data-quality-2026-07-15/artifact.json",
+    "snapshotPath": "docs/audits/home-data-quality-2026-07-15/artifact.json",
+    "originUrl": "https://wariba.app/status"
+  }
+}

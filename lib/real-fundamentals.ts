@@ -2,8 +2,9 @@ import fundamentalsJson from "@/data/real/fundamentals.json";
 
 /**
  * Fondamentaux réels extraits des états financiers publiés sur la fiche
- * BRVM de chaque société (pipeline scripts/boc/fundamentals.py — curé à
- * la main, société par société, unités vérifiées manuellement).
+ * BRVM de chaque société. Le registre vérifié sert de base et
+ * refresh_fundamentals.py intègre automatiquement un nouvel exercice quand
+ * les colonnes N/N-1 et l'unité recoupent les chiffres déjà validés.
  *
  * Tous les montants sont en MILLIONS de FCFA. Les champs à null n'ont
  * pas pu être extraits de façon fiable pour cette société — l'UI doit

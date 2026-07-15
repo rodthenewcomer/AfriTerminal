@@ -275,6 +275,18 @@
   "basis": "réel"
  },
  {
+  "id": "document-CFAC-2026-07-13-dd1aa6e4e8",
+  "type": "document",
+  "ticker": "CFAC",
+  "title": "CFAC : nouvelle publication financière",
+  "detail": "CFAO MOTORS CI a publié « Rapport annuel — exercice 2025 » le 2026-07-13. Source officielle à consulter avant toute décision.",
+  "time": "2026-07-13T09:05:00+00:00",
+  "severity": "critical",
+  "active": true,
+  "basis": "réel",
+  "sourceUrl": "https://www.brvm.org/sites/default/files/20260713_-_rapport_annuel_-_exercice_2025_-_cfao_motors_ci.pdf"
+ },
+ {
   "id": "document-UNXC-2026-07-13-2a40eb6ca7",
   "type": "document",
   "ticker": "UNXC",
@@ -297,6 +309,17 @@
   "active": true,
   "basis": "réel",
   "sourceUrl": "https://www.brvm.org/sites/default/files/20260713_-_rapport_dactivites_-_1er_semestre_2026_-_uniwax_ci.pdf"
+ },
+ {
+  "id": "fondamental-CFAC-2026-07-13-7101c6339d",
+  "type": "fondamental",
+  "ticker": "CFAC",
+  "title": "CFAC : états financiers 2025 publiés",
+  "detail": "CFAO MOTORS CI a publié ses états financiers 2025 le 2026-07-13. Résultat net : 8 416 000 000 FCFA contre 4 693 000 000 FCFA en 2024.",
+  "time": "2026-07-13T09:00:00+00:00",
+  "severity": "info",
+  "active": true,
+  "basis": "réel"
  },
  {
   "id": "fondamental-UNXC-2026-07-13-c62997b93b",

@@ -7,6 +7,7 @@ import { squarify, type TreemapRect } from "@wariba/core/treemap";
 import { fcfa, pct } from "@wariba/core/format";
 import type { RealQuote, StockSnapshot } from "@wariba/core/types";
 import { PillTabs } from "@/components/ui/tabs";
+import { currentSessionSnapshots } from "@/lib/dashboard-metrics";
 
 // Espacement et en-têtes plus compacts sous 480 px : chaque pixel
 // compte pour garder 48 tuiles lisibles sur un écran de téléphone.
@@ -131,7 +132,7 @@ export function MarketMap({ compact = false }: { compact?: boolean }) {
   const [hover, setHover] = useState<Hover | null>(null);
   const [horizonId, setHorizonId] = useState<HorizonId>("1J");
   const router = useRouter();
-  const snapshots = getSnapshots();
+  const snapshots = currentSessionSnapshots(getSnapshots());
   const horizon = HORIZONS.find((h) => h.id === horizonId) ?? HORIZONS[0];
 
   useEffect(() => {

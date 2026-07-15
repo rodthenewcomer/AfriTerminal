@@ -12,6 +12,7 @@ This is the release matrix for the Next.js web/API surface and the Expo iOS/Andr
 - Notifications implemented in code: consented profile preferences, Expo device registration, atomic server evaluation of synced price alerts, idempotent push/email outbox, Expo receipt handling, Resend signed webhooks, bounded retries and two protected Vercel cron routes.
 - Analytics implemented in code: explicit web/mobile consent, first-party pseudonymous events, HMAC identifiers, no raw IP storage, 90-day cleanup and protected aggregate operations metrics.
 - Active infrastructure: the production Supabase schema/RLS and the Vercel Next.js runtime on `wariba.app`.
+- Data delivery: 48/48 stock snapshots, fundamentals and publication pages are covered; documents/news/live quotes are checked every five minutes; new annual PDFs are parsed automatically with N-1 reconciliation and fail-closed OCR; Vercel publishes `/data`, and foreground web/mobile clients check for a new version every minute.
 - Not active until external configuration exists: verified Supabase Auth redirects, Stripe product/webhook, RevenueCat project/webhook, Apple/Google OAuth credentials, App Store/Play products and signed EAS builds.
 - Not delivered: broker/order routing, execution-grade real-time prices, SMS alerts, AI investment advice or official BRVM affiliation.
 
@@ -42,6 +43,7 @@ This is the release matrix for the Next.js web/API surface and the Expo iOS/Andr
 | Native subscriptions | RevenueCat purchase/restore/manage + server verification implemented | Blocked by RevenueCat/App Store/Play configuration and sandbox validation |
 | Server notifications | Expo/Resend outbox, receipts, webhook, cron and native registration implemented; local fallback retained | Blocked by provider keys, sending domain, EAS project and staging delivery proof |
 | Product analytics | Consent-gated first-party web/mobile collection and protected metrics implemented | Supabase server key and Vercel hashing secrets configured; legal review and retention proof remain |
+| Public market data | 48-stock BOC universe, 48 fundamentals, 48 publication pages, factual home rankings and freshness watchdog | Live on `wariba.app/data`; quotes remain BRVM-delayed by 15 minutes and official volumes arrive after close |
 
 ## Known external no-go items
 

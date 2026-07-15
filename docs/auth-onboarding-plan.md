@@ -37,8 +37,8 @@ application**. Il s'applique à l'app mobile (Expo) et au site web (Next.js).
 Le site utilise maintenant un runtime Next.js Node : les clients Supabase
 gèrent la session, tandis que les routes `/api/v1/*` centralisent validation,
 limites de forfait, suppression et synchronisation. RLS reste la barrière
-de propriété finale. GitHub Pages ne publie plus que les JSON publics pour
-l'app mobile.
+de propriété finale. Vercel publie le site, l'API et les JSON publics sous
+le domaine canonique `wariba.app`.
 
 - **Web** : `@supabase/supabase-js` + `@supabase/ssr`, clé publishable côté
   client, cookies rafraîchis par middleware et validation du Bearer token
@@ -210,7 +210,7 @@ B→C→D→E shippent *ensemble* (principe 3). F est un gate bloquant de E.
    Google déjà listés comme no-go dans ship-readiness — les débloquer
    d'abord.
 5. **RGPD/protection des données** : droit à l'effacement couvert (§2) ;
-   héberger la politique de confidentialité (GitHub Pages suffit) ;
+   héberger la politique de confidentialité sur `wariba.app` ;
    pas de données sensibles au sens strict, mais un portefeuille est une
    donnée financière personnelle — la page doit le dire clairement.
 6. **Le ruban de tickers sur l'écran d'auth** dépend des données publiques

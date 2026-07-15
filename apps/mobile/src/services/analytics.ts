@@ -2,8 +2,11 @@ import { Platform } from "react-native";
 import * as Crypto from "expo-crypto";
 import * as SecureStore from "expo-secure-store";
 import { useSettingsStore } from "../stores";
+import { legacyStorageKey } from "@wariba/core/legacy";
+import { migratedSecureValue } from "../lib/secure-migration";
 
-const ANONYMOUS_ID_KEY = "afriterminal-analytics-anonymous-id";
+const ANONYMOUS_ID_KEY = "wariba-analytics-anonymous-id";
+const PREVIOUS_ANONYMOUS_ID_KEY = legacyStorageKey("analytics-anonymous-id");
 let accessToken: string | null = null;
 
 export function setMobileAnalyticsSession(token: string | null) {
@@ -11,7 +14,7 @@ export function setMobileAnalyticsSession(token: string | null) {
 }
 
 async function anonymousId(): Promise<string> {
-  const existing = await SecureStore.getItemAsync(ANONYMOUS_ID_KEY);
+  const existing = await migratedSecureValue(ANONYMOUS_ID_KEY, PREVIOUS_ANONYMOUS_ID_KEY);
   if (existing) return existing;
   const created = Crypto.randomUUID();
   await SecureStore.setItemAsync(ANONYMOUS_ID_KEY, created, {

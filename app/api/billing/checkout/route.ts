@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     if (!customerId) {
       const customer = await stripe.customers.create({
         email: user.email,
-        metadata: { afriterminal_user_id: user.id },
+        metadata: { wariba_user_id: user.id },
       }, { idempotencyKey: `customer_${user.id}` });
       customerId = customer.id;
       const { error: saveError } = await admin.from("subscriptions").upsert({
@@ -54,8 +54,8 @@ export async function POST(request: Request) {
       allow_promotion_codes: true,
       success_url: `${SITE_URL}/account?checkout=success`,
       cancel_url: `${SITE_URL}/pricing?checkout=canceled`,
-      metadata: { afriterminal_user_id: user.id, plan: "pro" },
-      subscription_data: { metadata: { afriterminal_user_id: user.id, plan: "pro" } },
+      metadata: { wariba_user_id: user.id, plan: "pro" },
+      subscription_data: { metadata: { wariba_user_id: user.id, plan: "pro" } },
     }, { idempotencyKey: `checkout_${user.id}_${key}` });
 
     if (!session.url) throw new Error("Stripe did not return a Checkout URL");

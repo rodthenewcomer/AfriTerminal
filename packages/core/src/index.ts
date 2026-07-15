@@ -16,3 +16,4 @@ export * from "./company-profiles";
 export * from "./treemap";
 export * from "./utils";
 export * from "./sync";
+export * from "./legacy";

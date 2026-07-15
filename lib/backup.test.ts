@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildBackup, parseBackup } from "./backup";
+import { legacyProductLabel } from "@wariba/core/legacy";
 
 const VALID = buildBackup({
   portfolio: [
@@ -39,7 +40,7 @@ describe("parseBackup", () => {
   });
 
   it("importe une sauvegarde historique sans perdre les données", () => {
-    const res = parseBackup(JSON.stringify({ ...VALID, app: "AfriTerminal" }));
+    const res = parseBackup(JSON.stringify({ ...VALID, app: legacyProductLabel() }));
     expect(res.ok).toBe(true);
     if (res.ok) expect(res.backup.app).toBe("WARIBA");
   });

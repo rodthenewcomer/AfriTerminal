@@ -87,8 +87,8 @@ export default function MethodologiePage() {
           site sont ceux de la <strong className="text-ink">dernière séance
           officielle</strong>, pas du temps réel. Pendant la séance, les plus
           hauts/plus bas sont affinés par une collecte des cours différés de
-          15 minutes (toutes les 15 min). Les actualités sont rafraîchies
-          toutes les 15 min en journée, les documents toutes les 15 min, les
+          15 minutes (sondage toutes les 5 min). Les actualités sont rafraîchies
+          toutes les 5 min en journée, les documents des 48 actions toutes les 5 min, les
           opérations à chaque bulletin. Un chien de garde vérifie chaque matin
           qu&apos;aucun bulletin publié ne manque à nos données ; des
           garde-fous refusent tout bulletin aux valeurs aberrantes (variation
