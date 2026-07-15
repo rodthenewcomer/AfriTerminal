@@ -10,7 +10,8 @@ data/boc
 data/fundamentals-pdf-cache
 data/live
 docs
-scripts
+scripts/*
+!scripts/sync-public-data.mjs
 **/__pycache__
 **/*.pyc
 **/*.tsbuildinfo
