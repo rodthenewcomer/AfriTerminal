@@ -102,9 +102,12 @@ export default function MethodologiePage() {
 
       <Section icon={ShieldCheck} title="Fondamentaux — la règle des deux sources">
         <p>
-          Les états financiers sont extraits société par société et vérifiés à
-          la main — jamais en lot aveugle. Un chiffre n&apos;entre en base que
-          s&apos;il est recoupé : le résultat net doit apparaître identique sur
+          Les états financiers des <strong className="text-ink">48 actions de la
+          cote</strong> sont recherchés automatiquement société par société. Le
+          pipeline refuse une publication qui ne passe pas ses contrôles de
+          structure, d&apos;unité et de cohérence ; les documents difficiles sont
+          placés en contrôle humain, jamais acceptés en lot aveugle. Un chiffre
+          n&apos;entre en base que s&apos;il est recoupé : le résultat net doit apparaître identique sur
           plusieurs tableaux du même document ; le{" "}
           <strong className="text-ink">nombre d&apos;actions</strong>{" "}
           n&apos;est inscrit que si deux sources indépendantes convergent (PER
@@ -150,6 +153,74 @@ export default function MethodologiePage() {
         </p>
       </Section>
 
+      <div id="score-factuel" className="scroll-mt-20">
+        <Section icon={Activity} title="Score factuel — formule publiée">
+          <p>
+            L&apos;ancienne analyse était masquée sur les valeurs réelles parce
+            que ses scores provenaient encore d&apos;un petit jeu pédagogique. Les
+            afficher aurait mélangé cotations officielles et fondamentaux
+            fictifs. <strong className="text-ink">WARIBA Factuel v1.0</strong>
+            remplace ce blocage par un calcul déterministe commun au web et au
+            mobile, exécuté à nouveau dès que la cotation ou le registre des
+            fondamentaux est actualisé.
+          </p>
+          <p>
+            Chaque métrique est convertie en <strong className="text-ink">rang
+            centile dans son secteur</strong>. CD et ENE sont réunis dans
+            Distribution. Si une société est seule dans son secteur, le modèle
+            se replie explicitement sur le marché BRVM et baisse sa confiance.
+            Les comparaisons affichent la médiane — moins sensible aux valeurs
+            extrêmes que la moyenne. Une donnée absente est omise et les poids
+            disponibles sont renormalisés ; elle n&apos;est jamais remplacée par
+            zéro ou par une estimation.
+          </p>
+          <ul className="list-disc space-y-1 pl-4">
+            <li>
+              <strong className="text-ink">Qualité</strong> : ROE 25, marge
+              nette 20, croissance du résultat net 20, croissance CA/PNB 15,
+              marge ordinaire 10, croissance des capitaux propres 10 et, pour
+              les banques, amélioration du coefficient d&apos;exploitation 10.
+            </li>
+            <li>
+              <strong className="text-ink">Valorisation</strong> : PER inversé
+              50, P/B inversé 20 et rendement net 30. « Inversé » signifie
+              qu&apos;une valeur plus basse reçoit un meilleur rang ; aucun PER
+              négatif n&apos;est comparé.
+            </li>
+            <li>
+              <strong className="text-ink">Momentum</strong> : variations de
+              clôture réelles à 1 mois 20, 6 mois 35, 1 an 30 et 5 ans 15.
+            </li>
+            <li>
+              <strong className="text-ink">Risque</strong> — élevé = moins
+              favorable : illiquidité 35, amplitude 52 semaines 20, recul du
+              bénéfice 20, pertes/capitaux propres négatifs 15 et ancienneté
+              des comptes 10.
+            </li>
+          </ul>
+          <p>
+            Le score central vaut <strong className="text-ink">35 % Qualité +
+            20 % Valorisation + 25 % Momentum + 20 % (100 − Risque)</strong>.
+            Il décrit la position relative des données observées ; ce n&apos;est
+            ni une probabilité de hausse, ni une recommandation d&apos;achat ou de
+            vente. Les signaux sont eux aussi des règles publiées : croissance
+            ou baisse annuelle, retour aux bénéfices, résultat ordinaire
+            négatif, efficacité bancaire, volume ≥ 3×, proximité du plus haut
+            52 semaines, PER/ROE extrême dans le secteur et comptes anciens.
+          </p>
+          <p>
+            <strong className="text-ink">Confiance</strong> : la fiche expose
+            le pourcentage réel de pondérations renseignées, la taille de
+            l&apos;échantillon, l&apos;exercice et la date source. Le registre
+            actuel normalise N et N-1 : la confiance est donc volontairement
+            plafonnée à « moyenne ». Elle ne pourra devenir « élevée » qu&apos;avec
+            au moins trois exercices comparables. Les petites cohortes, les
+            données anciennes ou une couverture inférieure à 55 % passent en
+            confiance « limitée ».
+          </p>
+        </Section>
+      </div>
+
       <Section icon={FileSearch} title="Alertes — factuelles, jamais prescriptives">
         <p>
           Les alertes du marché sont générées par des règles déterministes sur
@@ -165,8 +236,10 @@ export default function MethodologiePage() {
       <Section icon={Activity} title="Limites assumées">
         <p>
           Pas de temps réel (bulletin quotidien + différé 15 min en séance) ;
-          pas de carnet d&apos;ordres ni bid/ask (non publics) ; fondamentaux
-          couverts société par société, pas encore toute la cote ; certains
+          pas de carnet d&apos;ordres ni bid/ask (non publics) ; les 48 sociétés ont
+          un registre fondamental, mais toutes les métriques ne sont pas
+          lisibles dans chaque publication et les historiques financiers sont
+          encore limités à N/N-1 ; certains
           PER officiels sont calculés par la BRVM sur un référentiel différent
           des comptes déposés (consolidé vs individuel) — signalé sur les
           fiches concernées ; les scénarios de l&apos;onglet « Apprendre »

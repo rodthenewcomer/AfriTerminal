@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { annualizedVolatility, maxDrawdown } from "@wariba/core/risk";
+import { analyzeRealEquity, type RealEquityAnalysis, type RealSectorComparison } from "@wariba/core/real-analysis";
 import { compactFcfa, compactVolume, dateFr, fcfa, millions, num, pct, ratio } from "@wariba/core/format";
 import { companyProfile } from "@wariba/core/company-profiles";
 import { GLOSSARY } from "@wariba/core/glossary";
@@ -70,6 +71,152 @@ function FactRow({ label, value, tone }: { label: string; value: string; tone?: 
   );
 }
 
+function AnalysisScore({
+  label,
+  value,
+  risk = false,
+}: {
+  label: string;
+  value: number;
+  risk?: boolean;
+}) {
+  const favorable = risk ? 100 - value : value;
+  const color = favorable >= 65 ? colors.up : favorable >= 40 ? colors.warn : colors.down;
+  return (
+    <View style={styles.analysisScore}>
+      <Text style={styles.analysisScoreLabel}>{label}</Text>
+      <Text style={[styles.analysisScoreValue, { color }]}>{value}</Text>
+      <View style={styles.analysisScoreTrack}>
+        <View style={[styles.analysisScoreFill, { width: `${value}%`, backgroundColor: color }]} />
+      </View>
+    </View>
+  );
+}
+
+function formatComparison(row: RealSectorComparison, value: number): string {
+  if (row.metric === "per" || row.metric === "pb") return ratio(value);
+  return pct(value, {
+    signed: row.metric === "revenueGrowth" || row.metric === "netIncomeGrowth",
+    digits: 1,
+  });
+}
+
+function QuantitativeAnalysis({
+  analysis,
+  sector,
+}: {
+  analysis: RealEquityAnalysis;
+  sector: string;
+}) {
+  const benchmark = analysis.benchmark.scope === "sector" ? sector : "marché BRVM";
+  return (
+    <Section
+      title="Analyse quantitative"
+      detail={`${analysis.methodologyVersion} · données réelles`}
+    >
+      <View style={styles.analysisHero}>
+        <View style={styles.analysisOverall}>
+          <Text style={styles.analysisOverallValue}>{analysis.overallScore}</Text>
+          <Text style={styles.analysisOverallLabel}>score factuel / 100</Text>
+        </View>
+        <View style={styles.analysisHeroCopy}>
+          <Text style={styles.analysisHeadline}>{analysis.insight.headline}</Text>
+          <Text style={styles.analysisMeta}>
+            {analysis.confidence.coveragePct} % des pondérations renseignées · comptes {analysis.fiscalYear} · benchmark {benchmark.toLowerCase()}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.analysisScores}>
+        <AnalysisScore label="Qualité" value={analysis.scores.quality} />
+        <AnalysisScore label="Valorisation" value={analysis.scores.valuation} />
+        <AnalysisScore label="Momentum" value={analysis.scores.momentum} />
+        <AnalysisScore label="Risque" value={analysis.scores.risk} risk />
+      </View>
+
+      <Text style={styles.analysisSummary}>{analysis.insight.summary}</Text>
+
+      {analysis.signals.length ? (
+        <View style={styles.analysisSignals}>
+          <Text style={styles.analysisBlockTitle}>Signaux factuels</Text>
+          {analysis.signals.slice(0, 6).map((signal) => {
+            const color = signal.tone === "positive"
+              ? colors.up
+              : signal.tone === "negative"
+                ? colors.down
+                : signal.tone === "warning"
+                  ? colors.warn
+                  : colors.ink3;
+            return (
+              <View key={signal.id} style={styles.analysisSignal}>
+                <View style={[styles.analysisSignalDot, { backgroundColor: color }]} />
+                <View style={styles.analysisSignalCopy}>
+                  <Text style={[styles.analysisSignalTitle, { color }]}>{signal.label}</Text>
+                  <Text style={styles.analysisSignalDetail}>{signal.detail}</Text>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      ) : null}
+
+      <View style={styles.analysisComparisons}>
+        <Text style={styles.analysisBlockTitle}>
+          Comparaison {benchmark} · médianes
+        </Text>
+        {analysis.comparisons.slice(0, 6).map((row) => {
+          const favorable = row.higherIsBetter ? row.value >= row.median : row.value <= row.median;
+          const favorableRank = row.higherIsBetter ? row.percentile : 100 - row.percentile;
+          return (
+            <View key={row.metric} style={styles.analysisComparison}>
+              <View style={styles.analysisComparisonHeader}>
+                <View style={styles.analysisComparisonCopy}>
+                  <Text style={styles.analysisComparisonLabel}>{row.label}</Text>
+                  <Text style={styles.analysisComparisonSample}>médiane · n={row.sampleSize}</Text>
+                </View>
+                <View style={styles.analysisComparisonValues}>
+                  <Text style={[styles.analysisComparisonValue, { color: favorable ? colors.up : colors.warn }]}>
+                    {formatComparison(row, row.value)}
+                  </Text>
+                  <Text style={styles.analysisComparisonMedian}>vs {formatComparison(row, row.median)}</Text>
+                </View>
+              </View>
+              <View style={styles.analysisComparisonTrack}>
+                <View
+                  style={[
+                    styles.analysisComparisonFill,
+                    { width: `${Math.max(3, favorableRank)}%`, backgroundColor: favorable ? colors.up : colors.warn },
+                  ]}
+                />
+              </View>
+            </View>
+          );
+        })}
+      </View>
+
+      <View style={styles.analysisConfidence}>
+        <Ionicons name="shield-checkmark-outline" size={17} color={colors.accent} />
+        <View style={styles.analysisConfidenceCopy}>
+          <Text style={styles.analysisConfidenceTitle}>Confiance {analysis.confidence.label.toLowerCase()}</Text>
+          <Text style={styles.analysisConfidenceText}>{analysis.confidence.reasons.join(" ")}</Text>
+        </View>
+      </View>
+
+      <Pressable
+        accessibilityRole="link"
+        accessibilityLabel="Voir la formule, les pondérations et les limites"
+        onPress={() => void openTrustedExternalUrl("https://wariba.app/methodologie#score-factuel")}
+        style={({ pressed }) => [styles.analysisMethodLink, pressed && { opacity: 0.7 }]}
+      >
+        <Ionicons name="calculator-outline" size={16} color={colors.accent} />
+        <Text style={styles.analysisMethodText}>Formule, pondérations et limites publiées</Text>
+        <Ionicons name="open-outline" size={14} color={colors.ink3} />
+      </Pressable>
+      <Text style={styles.disclaimer}>Score descriptif, pas une prévision ni un conseil d&apos;achat ou de vente.</Text>
+    </Section>
+  );
+}
+
 export default function StockScreen() {
   const params = useLocalSearchParams<{ ticker: string }>();
   const router = useRouter();
@@ -119,6 +266,10 @@ export default function StockScreen() {
   );
   const operations = useMemo(() => documents.filter((item) => /capital|split|fusion/i.test(item.title)), [documents]);
   const news = useMemo(() => market.news.filter((item) => item.tickers.includes(ticker)).slice(0, 10), [market.news, ticker]);
+  const realAnalysis = useMemo(
+    () => analyzeRealEquity({ ticker, quotes: market.quotes, fundamentals: market.fundamentals }),
+    [market.fundamentals, market.quotes, ticker]
+  );
   const events = useMemo<WebChartMarker[]>(() => [
     ...(market.dividends[ticker] ?? []).map((item) => ({ time: item.date, kind: "dividend" as const, label: `D ${num(item.net)}` })),
     ...operations.map((item) => ({ time: item.date, kind: "operation" as const, label: "S" })),
@@ -322,6 +473,9 @@ export default function StockScreen() {
             <EmptyState title="Fondamentaux détaillés indisponibles" detail="Aucun état financier vérifié n'est encore curé pour cette société." />
           )}
         </Section>
+        {realAnalysis ? (
+          <QuantitativeAnalysis analysis={realAnalysis} sector={sectorLabel(quote.sectorCode)} />
+        ) : null}
         <Section title="Historique des dividendes" detail="Montants nets par action, bulletins officiels">
           {(market.dividends[ticker] ?? []).length
             ? [...(market.dividends[ticker] ?? [])].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8).map((item, index) => (
@@ -473,6 +627,59 @@ const styles = StyleSheet.create({
   rangeFill: { height: 6, borderRadius: 3, backgroundColor: colors.up, opacity: 0.65 },
   rangeCaption: { ...type.caption },
   disclaimer: { ...type.caption, marginTop: 10 },
+  analysisHero: {
+    flexDirection: "row", alignItems: "stretch", gap: 12, padding: 13,
+    backgroundColor: colors.accentSoft, borderColor: "rgba(32,201,130,0.35)", borderWidth: 1, borderRadius: radius.lg,
+  },
+  analysisOverall: {
+    width: 92, alignItems: "center", justifyContent: "center", padding: 9,
+    backgroundColor: colors.surface, borderColor: "rgba(32,201,130,0.35)", borderWidth: 1, borderRadius: radius.md,
+  },
+  analysisOverallValue: { color: colors.accent, fontSize: 30, fontWeight: "900", letterSpacing: -0.8, fontVariant: tabular },
+  analysisOverallLabel: { ...type.caption, fontSize: 9.5, textAlign: "center", marginTop: 1 },
+  analysisHeroCopy: { flex: 1, justifyContent: "center", gap: 5 },
+  analysisHeadline: { ...type.body, fontSize: 13.5 },
+  analysisMeta: { ...type.caption, lineHeight: 16 },
+  analysisScores: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 },
+  analysisScore: {
+    flexGrow: 1, flexBasis: "44%", gap: 5, padding: 11,
+    backgroundColor: colors.surface, borderColor: colors.line, borderWidth: 1, borderRadius: radius.md,
+  },
+  analysisScoreLabel: { ...type.label, fontSize: 9.5 },
+  analysisScoreValue: { fontSize: 20, fontWeight: "800", fontVariant: tabular },
+  analysisScoreTrack: { height: 4, overflow: "hidden", backgroundColor: colors.surface2, borderRadius: radius.full },
+  analysisScoreFill: { height: 4, borderRadius: radius.full },
+  analysisSummary: { ...type.sub, marginTop: 10, lineHeight: 19 },
+  analysisSignals: { gap: 10, marginTop: 10, padding: 13, backgroundColor: colors.surface, borderColor: colors.line, borderWidth: 1, borderRadius: radius.lg },
+  analysisBlockTitle: { ...type.label, color: colors.ink2 },
+  analysisSignal: { flexDirection: "row", alignItems: "flex-start", gap: 9 },
+  analysisSignalDot: { width: 7, height: 7, borderRadius: 4, marginTop: 5 },
+  analysisSignalCopy: { flex: 1, gap: 2 },
+  analysisSignalTitle: { fontSize: 12, fontWeight: "700" },
+  analysisSignalDetail: { ...type.caption, lineHeight: 16 },
+  analysisComparisons: { gap: 9, marginTop: 10 },
+  analysisComparison: { padding: 11, gap: 8, backgroundColor: colors.surface, borderColor: colors.line, borderWidth: 1, borderRadius: radius.md },
+  analysisComparisonHeader: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 10 },
+  analysisComparisonCopy: { flex: 1 },
+  analysisComparisonLabel: { color: colors.ink, fontSize: 12.5, fontWeight: "700" },
+  analysisComparisonSample: { ...type.caption, fontSize: 10, marginTop: 2 },
+  analysisComparisonValues: { alignItems: "flex-end" },
+  analysisComparisonValue: { fontSize: 13, fontWeight: "800", fontVariant: tabular },
+  analysisComparisonMedian: { ...type.caption, fontSize: 10, fontVariant: tabular },
+  analysisComparisonTrack: { height: 4, overflow: "hidden", backgroundColor: colors.surface2, borderRadius: radius.full },
+  analysisComparisonFill: { height: 4, borderRadius: radius.full },
+  analysisConfidence: {
+    flexDirection: "row", alignItems: "flex-start", gap: 10, marginTop: 10, padding: 12,
+    backgroundColor: colors.surface2, borderRadius: radius.lg,
+  },
+  analysisConfidenceCopy: { flex: 1, gap: 3 },
+  analysisConfidenceTitle: { color: colors.ink, fontSize: 12.5, fontWeight: "700" },
+  analysisConfidenceText: { ...type.caption, lineHeight: 16 },
+  analysisMethodLink: {
+    minHeight: 48, flexDirection: "row", alignItems: "center", gap: 9, marginTop: 8, paddingHorizontal: 12,
+    borderColor: colors.lineStrong, borderWidth: 1, borderRadius: radius.lg,
+  },
+  analysisMethodText: { flex: 1, color: colors.accent, fontSize: 12.5, fontWeight: "700" },
   beginnerBanner: {
     flexDirection: "row", alignItems: "center", gap: 10, padding: 13,
     backgroundColor: colors.accentSoft, borderColor: "rgba(32,201,130,0.35)", borderWidth: 1, borderRadius: radius.lg,

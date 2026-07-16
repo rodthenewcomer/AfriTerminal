@@ -255,9 +255,10 @@ export default function ScreenerPage() {
           ))}
         </div>
         <p className="text-[11px] text-ink-3">
-          P/B, ROE, croissance et scores qualité/risque ne sont pas
-          filtrables : ces fondamentaux ne sont pas publiés dans le bulletin
-          BRVM (voir la page action de chaque valeur pour le détail).
+          PER, rendement et variations sont filtrables ici. P/B, ROE,
+          croissance et scores factuels sont calculés et expliqués sur chaque
+          fiche ; leurs filtres avancés seront ajoutés sans remplacer les
+          données manquantes par des estimations.
         </p>
       </div>
 

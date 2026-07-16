@@ -119,9 +119,7 @@ export default function WatchlistPage() {
                     height={30}
                   />
                 </div>
-                {/* Recherche en un coup d'œil : métriques réelles (les
-                    anciens scores qualité/risque ne se rendaient jamais,
-                    tout l'univers étant réel) */}
+                {/* Recherche en un coup d'œil : métriques et signaux réels. */}
                 <div className="hidden md:flex items-center gap-4 text-right">
                   <div>
                     <p className="text-[10px] uppercase tracking-wide text-ink-3">PER</p>
@@ -152,7 +150,7 @@ export default function WatchlistPage() {
                   <Star className="h-4 w-4 fill-current" />
                 </button>
               </div>
-              {!s.real && s.signals.length > 0 ? (
+              {s.signals.length > 0 ? (
                 <div className="mt-2 pl-12">
                   <SignalBadges signals={s.signals} max={4} />
                 </div>

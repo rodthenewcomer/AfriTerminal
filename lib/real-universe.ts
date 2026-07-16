@@ -47,11 +47,9 @@ export function countryFromTicker(ticker: string): Country {
  * StockSnapshot construit uniquement depuis la cotation réelle, pour les
  * tickers de l'univers BRVM sans fiche curée dans lib/mock/stocks.ts.
  *
- * Fondamentaux, scores, signaux et insight sont des coquilles neutres qui
- * ne sont jamais rendues : `real` étant présent, tous les composants les
- * masquent (voir stock-table.tsx, stock-view.tsx…). Elles n'existent que
- * pour satisfaire la forme de StockSnapshot sans truffer l'app de champs
- * optionnels.
+ * Les champs pédagogiques sont initialisés à une valeur neutre pour satisfaire
+ * la forme de StockSnapshot. getSnapshots() les remplace immédiatement par les
+ * scores, signaux et lecture issus du registre réel partagé.
  */
 export function realOnlySnapshot(q: RealQuote): StockSnapshot {
   const sector = sectorFromCode(q.sectorCode);

@@ -14,6 +14,7 @@ import { getAllRealQuotes, getRealQuote, REAL_INDICES } from "./real-data";
 import { realOnlySnapshot } from "./real-universe";
 import { companyProfile } from "@wariba/core/company-profiles";
 import { currentSessionSnapshots } from "./dashboard-metrics";
+import { getRealAnalysis } from "./real-analysis";
 
 function pctChange(from: number, to: number): number {
   if (from === 0) return 0;
@@ -59,13 +60,26 @@ function computeDerived(stock: Stock): Derived {
 
 let snapshots: StockSnapshot[] | null = null;
 
+function withRealAnalysis(snapshot: StockSnapshot): StockSnapshot {
+  if (!snapshot.real) return snapshot;
+  const analysis = getRealAnalysis(snapshot.ticker);
+  return analysis
+    ? {
+        ...snapshot,
+        scores: analysis.scores,
+        signals: analysis.signals,
+        insight: analysis.insight,
+      }
+    : snapshot;
+}
+
 export function getSnapshots(): StockSnapshot[] {
   if (snapshots) return snapshots;
   // Tout l'univers coté au-delà des 15 fiches curées : snapshot construit
   // uniquement depuis la cotation réelle (fondamentaux masqués).
   const realOnly = getAllRealQuotes()
     .filter((q) => !STOCK_MAP.has(q.ticker))
-    .map(realOnlySnapshot);
+    .map((quote) => withRealAnalysis(realOnlySnapshot(quote)));
   const curated = STOCKS.map((stock) => {
     const derived = computeDerived(stock);
     const signals = detectSignals(stock, derived);
@@ -86,12 +100,10 @@ export function getSnapshots(): StockSnapshot[] {
 
     if (!real) return base;
 
-    // Prix/volume/PER/dividende réels remplacent les valeurs mockées partout
-    // où ce snapshot est consommé (dashboard, marchés, screener, watchlist,
-    // recherche). scores/signals/insight restent calculés sur les
-    // fondamentaux fictifs — les composants doivent vérifier `real` avant
-    // de les afficher (voir stock-view.tsx pour le pattern).
-    return {
+    // Prix/volume/PER/dividende réels remplacent les valeurs mockées partout.
+    // Les quatre scores, signaux et la lecture sont ensuite remplacés, eux
+    // aussi, par le moteur factuel commun — jamais par le calcul pédagogique.
+    return withRealAnalysis({
       ...base,
       lastPrice: real.lastClose,
       avgVolume30d: real.avgVolume30d,
@@ -105,7 +117,7 @@ export function getSnapshots(): StockSnapshot[] {
       per: real.per ?? base.per,
       yieldNet: real.netYieldPct ?? base.yieldNet,
       netDividend: real.lastDividendNet ?? base.netDividend,
-    };
+    });
   });
   snapshots = [...curated, ...realOnly].sort((a, b) =>
     a.ticker.localeCompare(b.ticker)

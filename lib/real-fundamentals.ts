@@ -52,11 +52,15 @@ export function getRealFundamentals(
   return FUNDAMENTALS[ticker];
 }
 
+export function getAllRealFundamentals(): RealFundamentals[] {
+  return Object.values(FUNDAMENTALS);
+}
+
 /** Croissance en %, ou null si la base est absente ou nulle. */
 export function growthPct(
   current: number,
   previous: number | null
 ): number | null {
-  if (!previous) return null;
-  return (current / previous - 1) * 100;
+  if (previous === null || previous === 0) return null;
+  return ((current - previous) / Math.abs(previous)) * 100;
 }

@@ -212,7 +212,7 @@ export function StockTable({ stocks }: { stocks: StockSnapshot[] }) {
               </div>
               <WatchlistStar ticker={s.ticker} />
             </div>
-            {!s.real && s.signals.length > 0 ? (
+            {s.signals.length > 0 ? (
               <div className="mt-2.5">
                 <SignalBadges signals={s.signals} max={3} />
               </div>

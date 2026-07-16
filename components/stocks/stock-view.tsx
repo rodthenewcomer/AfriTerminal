@@ -7,6 +7,7 @@ import { Bell, FileText, Sparkles } from "lucide-react";
 import { getSectorStats, getSnapshot, getSnapshots } from "@/lib/data";
 import { getRealQuote, LATEST_TRADING_DATE } from "@/lib/real-data";
 import { getRealFundamentals, growthPct } from "@/lib/real-fundamentals";
+import { getRealAnalysis } from "@/lib/real-analysis";
 import { newsDate, newsForTicker } from "@/lib/news";
 import { realDocsForTicker } from "@/lib/real-documents";
 import { DIVIDEND_MAP } from "@/lib/mock/dividends";
@@ -28,7 +29,7 @@ import { PriceChange, ScoreBadge, SignalBadges } from "./badges";
 import { DividendPanel } from "./dividend-panel";
 import { MetricCard } from "./metric-card";
 import { FinancialYearComparison } from "./financial-year-comparison";
-import { SectorComparison } from "./sector-comparison";
+import { RealSectorComparisonCard, SectorComparison } from "./sector-comparison";
 import { DividendHistory } from "./dividend-history";
 import { RiskStats } from "./risk-stats";
 import { operationsForTicker } from "@/lib/real-operations";
@@ -72,6 +73,7 @@ export function StockView({ ticker }: { ticker: string }) {
   const stock = useMemo(() => getSnapshot(ticker), [ticker]);
   const real = useMemo(() => getRealQuote(ticker), [ticker]);
   const realFund = useMemo(() => getRealFundamentals(ticker), [ticker]);
+  const realAnalysis = useMemo(() => getRealAnalysis(ticker), [ticker]);
   const news = useMemo(() => newsForTicker(ticker), [ticker]);
 
   if (!stock) return null;
@@ -82,6 +84,7 @@ export function StockView({ ticker }: { ticker: string }) {
   );
   const dividend = DIVIDEND_MAP.get(ticker);
   const sectorStats = getSectorStats().find((s) => s.sector === stock.sector);
+  const realPerComparison = realAnalysis?.comparisons.find((item) => item.metric === "per");
   const f = stock.fundamentals;
 
   const lastPrice = real?.lastClose ?? stock.lastPrice;
@@ -179,7 +182,14 @@ export function StockView({ ticker }: { ticker: string }) {
           <Card>
             <CardHeader title="Résumé" />
             <CardBody className="space-y-3">
-              {!real ? (
+              {realAnalysis ? (
+                <div className="grid grid-cols-2 gap-2">
+                  <ScoreBadge kind="quality" value={realAnalysis.scores.quality} />
+                  <ScoreBadge kind="valuation" value={realAnalysis.scores.valuation} />
+                  <ScoreBadge kind="momentum" value={realAnalysis.scores.momentum} />
+                  <ScoreBadge kind="risk" value={realAnalysis.scores.risk} />
+                </div>
+              ) : !real ? (
                 <div className="grid grid-cols-2 gap-2">
                   <ScoreBadge kind="quality" value={stock.scores.quality} />
                   <ScoreBadge kind="valuation" value={stock.scores.valuation} />
@@ -235,12 +245,12 @@ export function StockView({ ticker }: { ticker: string }) {
                   </dd>
                 </div>
               </dl>
-              {!real && stock.signals.length > 0 ? (
+              {(realAnalysis?.signals.length ?? (!real ? stock.signals.length : 0)) > 0 ? (
                 <div className="border-t border-line pt-3">
                   <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-ink-3">
                     Signaux détectés
                   </p>
-                  <SignalBadges signals={stock.signals} />
+                  <SignalBadges signals={realAnalysis?.signals ?? stock.signals} />
                 </div>
               ) : null}
             </CardBody>
@@ -504,7 +514,11 @@ export function StockView({ ticker }: { ticker: string }) {
               label="PER"
               term="per"
               value={stock.per > 0 ? ratio(stock.per) : "—"}
-              hint={sectorStats ? `Secteur : ${ratio(sectorStats.avgPer)}` : undefined}
+              hint={realPerComparison
+                ? `Médiane ${realAnalysis?.benchmark.scope === "sector" ? "secteur" : "marché"} : ${ratio(realPerComparison.median)}`
+                : sectorStats
+                  ? `Secteur : ${ratio(sectorStats.avgPer)}`
+                  : undefined}
             />
             <MetricCard label="P/B" term="pb" value={ratio(f.pb)} />
             <MetricCard label="ROE" term="roe" value={pct(f.roe, { signed: false, digits: 1 })} />
@@ -555,16 +569,21 @@ export function StockView({ ticker }: { ticker: string }) {
 
       {/* Analyse IA + dividendes */}
       {real ? (
-        <Card>
-          <CardBody className="flex items-start gap-3 py-4">
-            <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-ink-3" />
-            <p className="text-xs leading-relaxed text-ink-2">
-              {realFund
-                ? `L'analyse IA, les signaux et la comparaison sectorielle ne sont pas encore calculés sur données réelles — les états financiers ${realFund.fiscalYear} de cette société sont intégrés (voir Fondamentaux), mais un score robuste exige encore un historique pluriannuel normalisé, un benchmark sectoriel et une méthodologie publiée.`
-                : "L'analyse IA, les signaux et la comparaison sectorielle restent indisponibles tant qu'aucune publication financière vérifiée n'est intégrée pour cette valeur. Les cours, volumes, PER et dividendes affichés restent issus des sources BRVM."}
-            </p>
-          </CardBody>
-        </Card>
+        realAnalysis ? (
+          <div className="grid gap-4 lg:grid-cols-2">
+            <AIInsightCard insight={realAnalysis.insight} analysis={realAnalysis} />
+            <RealSectorComparisonCard analysis={realAnalysis} sector={stock.sector} />
+          </div>
+        ) : (
+          <Card>
+            <CardBody className="flex items-start gap-3 py-4">
+              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-ink-3" />
+              <p className="text-xs leading-relaxed text-ink-2">
+                Aucune analyse n&apos;est calculée sans cotation et publication financière vérifiées. Aucun score de remplacement n&apos;est estimé.
+              </p>
+            </CardBody>
+          </Card>
+        )
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
           <AIInsightCard insight={stock.insight} />

@@ -1,8 +1,18 @@
 import { AlertTriangle, Eye, Sparkles, ThumbsUp } from "lucide-react";
 import type { AIInsight } from "@wariba/core/types";
+import type { RealEquityAnalysis } from "@wariba/core/real-analysis";
+import { dateFr } from "@wariba/core/format";
+import Link from "next/link";
+import { ScoreBadge } from "./badges";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 
-export function AIInsightCard({ insight }: { insight: AIInsight }) {
+export function AIInsightCard({
+  insight,
+  analysis,
+}: {
+  insight: AIInsight;
+  analysis?: RealEquityAnalysis;
+}) {
   return (
     <Card className="relative overflow-hidden">
       <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-accent/10 blur-3xl" />
@@ -10,12 +20,34 @@ export function AIInsightCard({ insight }: { insight: AIInsight }) {
         title={
           <span className="inline-flex items-center gap-1.5">
             <Sparkles className="h-3.5 w-3.5 text-accent" />
-            Lecture intelligente
+            {analysis ? "Analyse quantitative" : "Lecture intelligente"}
           </span>
         }
         subtitle={insight.headline}
       />
       <CardBody className="space-y-4">
+        {analysis ? (
+          <div className="grid grid-cols-[88px_1fr] gap-3 rounded-xl border border-accent/20 bg-accent/5 p-3">
+            <div className="flex flex-col items-center justify-center rounded-lg border border-accent/25 bg-surface px-2 py-2">
+              <span className="num text-2xl font-black text-accent">{analysis.overallScore}</span>
+              <span className="text-[10px] text-ink-3">sur 100</span>
+            </div>
+            <div className="min-w-0 space-y-2">
+              <div className="flex flex-wrap gap-1.5">
+                <ScoreBadge kind="quality" value={analysis.scores.quality} />
+                <ScoreBadge kind="valuation" value={analysis.scores.valuation} />
+                <ScoreBadge kind="momentum" value={analysis.scores.momentum} />
+                <ScoreBadge kind="risk" value={analysis.scores.risk} />
+              </div>
+              <p className="text-[11px] leading-relaxed text-ink-3">
+                Confiance <strong className="text-ink-2">{analysis.confidence.label.toLowerCase()}</strong>
+                {" · "}{analysis.confidence.coveragePct} % des pondérations renseignées
+                {" · "}cours du {dateFr(analysis.asOfDate)}
+                {" · "}comptes {analysis.fiscalYear}
+              </p>
+            </div>
+          </div>
+        ) : null}
         <p className="text-sm leading-relaxed text-ink-2">{insight.summary}</p>
 
         <div className="grid gap-3 sm:grid-cols-2">
@@ -61,10 +93,26 @@ export function AIInsightCard({ insight }: { insight: AIInsight }) {
           </ul>
         </div>
 
-        <p className="border-t border-line pt-3 text-[10px] text-ink-3">
-          Analyse illustrative générée à partir de données non vérifiées par
-          le pipeline réel. Ceci n&apos;est pas un conseil en investissement.
-        </p>
+        {analysis ? (
+          <div className="space-y-1.5 border-t border-line pt-3 text-[10px] leading-relaxed text-ink-3">
+            <p>
+              {analysis.methodologyVersion} · calcul déterministe sur données réelles, médianes et rangs sectoriels.
+              Les valeurs manquantes sont omises et les poids restants renormalisés.
+            </p>
+            <p>{analysis.confidence.reasons.join(" ")}</p>
+            <p>
+              <Link href="/methodologie#score-factuel" className="text-accent underline hover:no-underline">
+                Formule, pondérations et limites
+              </Link>
+              {" · "}Ce score n&apos;est ni une prévision ni un conseil en investissement.
+            </p>
+          </div>
+        ) : (
+          <p className="border-t border-line pt-3 text-[10px] text-ink-3">
+            Analyse illustrative générée à partir de données non vérifiées par
+            le pipeline réel. Ceci n&apos;est pas un conseil en investissement.
+          </p>
+        )}
       </CardBody>
     </Card>
   );

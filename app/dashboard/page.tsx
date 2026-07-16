@@ -362,12 +362,15 @@ export default function DashboardPage() {
                   </span>
                 </div>
                 {s.real ? (
-                  <p className="text-[11px] text-ink-3">
-                    Variation 1 sem. {pct(s.weekChange)}
-                    {s.real.quoteStatus === "delayed-live"
-                      ? " · volume officiel après clôture"
-                      : ` · volume ${s.volumeRatio.toFixed(1)}× la moyenne`}
-                  </p>
+                  <>
+                    <p className="text-[11px] text-ink-3">
+                      Variation 1 sem. {pct(s.weekChange)}
+                      {s.real.quoteStatus === "delayed-live"
+                        ? " · volume officiel après clôture"
+                        : ` · volume ${s.volumeRatio.toFixed(1)}× la moyenne`}
+                    </p>
+                    {s.signals.length ? <SignalBadges signals={s.signals} max={3} /> : null}
+                  </>
                 ) : (
                   <SignalBadges signals={s.signals} max={3} />
                 )}

@@ -140,9 +140,9 @@ export interface StockSnapshot extends Stock, Derived {
   /**
    * Présent si un vrai historique BRVM existe pour ce ticker (voir
    * lib/real-data.ts). Quand présent, les champs de prix/volume/PER/
-   * dividende ci-dessus ont déjà été remplacés par les vraies valeurs —
-   * scores/signals/insight restent calculés sur les fondamentaux fictifs
-   * et NE DOIVENT PAS être affichés pour ce ticker (voir stock-view.tsx).
+   * dividende ci-dessus ont déjà été remplacés par les vraies valeurs.
+   * L'analyse réelle est calculée séparément par real-analysis.ts afin de
+   * ne jamais mélanger ces cotations aux anciennes données pédagogiques.
    */
   real?: RealQuote;
 }
@@ -245,11 +245,9 @@ export interface SectorStats {
 }
 
 /**
- * Cotation réelle BRVM (pipeline scripts/boc/), pour les tickers où on a
- * un historique réel. Volontairement plus pauvre qu'un StockSnapshot mocké :
- * pas de fondamentaux (revenu, résultat net, ROE...) — la BRVM ne les publie
- * pas dans le bulletin quotidien. Donc pas de scores/signaux/analyse IA pour
- * ces tickers tant qu'un pipeline fondamentaux séparé n'existe pas.
+ * Cotation réelle BRVM (pipeline scripts/boc/). Les fondamentaux viennent
+ * d'un registre séparé, extrait des publications financières officielles ;
+ * real-analysis.ts rapproche les deux jeux sans inventer de valeur manquante.
  */
 export interface RealQuote {
   ticker: string;
