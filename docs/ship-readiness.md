@@ -4,6 +4,9 @@ Last reviewed: 2026-07-15
 
 This is the release matrix for the Next.js web/API surface and the Expo iOS/Android app. WARIBA remains local-first and usable without an account; cloud sync and billing are optional capabilities.
 
+The remaining account, store, EAS and RevenueCat configuration is documented
+step by step in [Lancement natif WARIBA — Côte d’Ivoire](./native-release-cote-ivoire.md).
+
 ## Product truth
 
 - Public and real: sourced BRVM prices, indices, dividends, official documents, operations, news, factual alerts, verified fundamentals, risk statistics and local research tools.

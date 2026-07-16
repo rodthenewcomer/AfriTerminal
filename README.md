@@ -6,6 +6,7 @@ dividendes, portefeuille, documents, alertes et synchronisation privée.
 
 - Web production : [wariba.app](https://wariba.app)
 - Application native : Expo SDK 54, prête pour les builds iOS/Android signés
+- Lancement stores Côte d’Ivoire : [comptes Apple/Google, EAS, RevenueCat et checklist](docs/native-release-cote-ivoire.md)
 - Compte : e-mail/mot de passe, Apple et Google via Supabase Auth
 - Monétisation : Stripe sur le web, RevenueCat pour App Store / Google Play
 - Données : pipeline BRVM officiel, aucune valeur inventée

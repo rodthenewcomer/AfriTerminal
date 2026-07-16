@@ -17,6 +17,10 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
+credentials.json
+*service-account*.json
+revenuecat-key.json
+play-store-key.json
 
 # Metro
 .metro-health-check*

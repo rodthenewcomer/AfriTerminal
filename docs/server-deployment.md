@@ -55,6 +55,10 @@ L'analytics est strictement first-party et ne démarre qu'après acceptation. Il
 
 ## iOS et Android
 
+La procédure complète, dans l’ordre exact des comptes et validations pour la
+Côte d’Ivoire, est disponible dans
+[Lancement natif WARIBA — Côte d’Ivoire](./native-release-cote-ivoire.md).
+
 Les builds natifs utilisent `EXPO_PUBLIC_API_URL` pour l'API Node et les variables Supabase publiques. Apple et Google imposent leurs achats intégrés pour les fonctions numériques vendues dans les apps : aucun lien Stripe n'est affiché dans les builds natifs.
 
 Créer les produits Pro dans App Store Connect et Play Console, les relier à l'entitlement RevenueCat `pro`, publier une offering courante, puis configurer les clés publiques Apple/Google dans le build. Le SDK charge les offres, achète, restaure et ouvre la gestion d'abonnement. Le serveur revalide le subscriber auprès de RevenueCat avant d'écrire les droits et le webhook utilise `REVENUECAT_WEBHOOK_AUTH` comme valeur exacte de l'en-tête `Authorization`.
