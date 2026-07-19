@@ -125,7 +125,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
         {!configured ? (
           <div className="mt-6 rounded-xl border border-warn/30 bg-warn/10 p-4 text-sm text-ink-2">
-            Le service de compte attend la configuration Supabase du déploiement.
+            La connexion est temporairement indisponible. Les données publiques de marché restent accessibles.
           </div>
         ) : null}
 

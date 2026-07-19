@@ -112,15 +112,13 @@ export default function StatusPage() {
             Si un cours, un dividende ou un chiffre vous semble faux,
             signalez-le :{" "}
             <a
-              href="https://github.com/rodthenewcomer/WARIBA/issues/new"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="mailto:support@wariba.app?subject=Signalement%20donnée%20WARIBA"
               className="text-accent underline hover:no-underline"
             >
-              ouvrir un signalement
+              contacter le support
             </a>{" "}
-            en précisant la valeur, la date et la source attendue. Toutes les
-            données brutes et le code de collecte sont publics.
+            en précisant la valeur, la date et la source attendue. Tous les
+            signalements sont recoupés avec le document officiel avant correction.
           </p>
         </CardBody>
       </Card>

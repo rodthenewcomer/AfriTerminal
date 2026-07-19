@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { annualizedVolatility, maxDrawdown } from "@wariba/core/risk";
-import { analyzeRealEquity, type RealEquityAnalysis, type RealSectorComparison } from "@wariba/core/real-analysis";
+import { analyzeRealEquity, describeNetIncomeTrend, type RealEquityAnalysis, type RealSectorComparison } from "@wariba/core/real-analysis";
 import { compactFcfa, compactVolume, dateFr, fcfa, millions, num, pct, ratio } from "@wariba/core/format";
 import { companyProfile } from "@wariba/core/company-profiles";
 import { GLOSSARY } from "@wariba/core/glossary";
@@ -434,7 +434,16 @@ export default function StockScreen() {
           ) : null}
           <Text style={styles.metricHelp}>Touchez une carte marquée ⓘ pour afficher sa définition et sa formule.</Text>
           <View style={styles.metrics}>
-            <Metric label="PER" value={quote.per !== null ? ratio(quote.per) : "—"} explanation={GLOSSARY.per.def} />
+            <Metric
+              label="PER BRVM"
+              value={quote.per !== null && (!fundamental || fundamental.netIncomeM > 0) ? ratio(quote.per) : "—"}
+              detail={
+                fundamental?.netIncomeM && fundamental.netIncomeM < 0
+                  ? `Non significatif : résultat net ${fundamental.fiscalYear} négatif`
+                  : `Bulletin BRVM du ${dateFr(quote.asOfDate)}`
+              }
+              explanation={GLOSSARY.per.def}
+            />
             <Metric label="Rendement net" value={quote.netYieldPct !== null ? pct(quote.netYieldPct, { signed: false, digits: 2 }) : "—"} tone={quote.netYieldPct !== null && quote.netYieldPct >= 6 ? "up" : "default"} explanation={GLOSSARY["rendement-net"].def} />
             <Metric label="Vol. moyen 30 j" value={compactVolume(quote.avgVolume30d)} explanation={GLOSSARY["vol-moyen"].def} />
             <Metric label="Dernier dividende net" value={quote.lastDividendNet !== null ? fcfa(quote.lastDividendNet) : "—"} detail={quote.lastDividendDate ? `Payé le ${dateFr(quote.lastDividendDate)}` : undefined} explanation={GLOSSARY["dividende-net"].def} />
@@ -450,8 +459,13 @@ export default function StockScreen() {
                 return growth !== null ? `${pct(growth, { digits: 1 })} vs ${fundamental.fiscalYear - 1}` : undefined;
               })()} explanation={GLOSSARY[fundamental.revenueLabel === "PNB" ? "pnb" : "chiffre-affaires"].def} />
               <Metric label={`Résultat net ${fundamental.fiscalYear}`} value={millions(fundamental.netIncomeM)} tone={fundamental.netIncomeM >= 0 ? "up" : "down"} detail={(() => {
-                const growth = growthPct(fundamental.netIncomeM, fundamental.netIncomePrevM);
-                return growth !== null ? `${pct(growth, { digits: 1 })} vs ${fundamental.fiscalYear - 1}` : undefined;
+                const trend = describeNetIncomeTrend(
+                  fundamental.netIncomeM,
+                  fundamental.netIncomePrevM
+                );
+                return trend?.changePct !== null && trend?.changePct !== undefined
+                  ? `${trend.label} de ${pct(Math.abs(trend.changePct), { signed: false, digits: 1 })} vs ${fundamental.fiscalYear - 1}`
+                  : trend?.label;
               })()} explanation={GLOSSARY["resultat-net"].def} />
               <Metric label="Marge nette" value={pct((fundamental.netIncomeM / fundamental.revenueM) * 100, { signed: false, digits: 1 })} explanation={GLOSSARY["marge-nette"].def} />
               {fundamental.ordinaryIncomeM !== null ? <Metric label="Résultat ordinaire" value={millions(fundamental.ordinaryIncomeM)} tone={fundamental.ordinaryIncomeM < 0 ? "down" : "default"} explanation={GLOSSARY["resultat-ordinaire"].def} /> : null}

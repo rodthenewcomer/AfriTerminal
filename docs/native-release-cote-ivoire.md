@@ -1,12 +1,12 @@
 # Lancement natif WARIBA — Côte d’Ivoire
 
-Dernière vérification : 16 juillet 2026
+Dernière vérification : 19 juillet 2026
 
 Ce document est la procédure de référence pour publier WARIBA sur iPhone et
-Android en Côte d'Ivoire. La première version est gratuite : WARIBA Pro reste
-entièrement ouvert, sans compte, entitlement ou paywall. Stripe, les produits
-stores et RevenueCat sont conservés comme phase de monétisation après le
-lancement ; ils ne bloquent plus la première soumission.
+Android en Côte d'Ivoire. Les faits de marché restent gratuits et publics ;
+WARIBA Pro exige désormais un compte et un entitlement commun au web, à iOS et
+à Android. Stripe reste web-only. Les produits stores et RevenueCat doivent être
+validés avant d'activer l'achat natif, sans bloquer l'usage public de l'app.
 
 ## État réel du projet
 
@@ -17,7 +17,7 @@ lancement ; ils ne bloquent plus la première soumission.
 | Compte Expo/EAS | Non connecté sur ce poste | `eas whoami` retourne le compte de l’organisation et `eas project:info` retourne le projet WARIBA |
 | Apple Developer/App Store Connect | Accès non fourni | Lancement gratuit : organisation active, app créée et fiche complète ; accords/taxe/banque après lancement |
 | Google Play Console | Accès non fourni | Lancement gratuit : organisation vérifiée, app créée et déclarations complètes ; paiements après lancement |
-| RevenueCat | Code intégré, activation différée | Après lancement : deux apps connectées, entitlement `pro`, offering courante et webhook validés |
+| RevenueCat | Code et gate intégrés, achat non activé | Deux apps connectées, entitlement `pro`, offering courante et webhook validés avant toute CTA d'achat |
 | Builds signés | À produire | Build EAS preview sur appareils physiques puis builds production `.ipa`/`.aab` |
 | Publication gratuite | Bloquée par comptes propriétaires, builds signés et QA physique | TestFlight et Play Internal Testing validés, puis review stores acceptée |
 
@@ -37,7 +37,7 @@ RevenueCat unifie leurs abonnements. Aucun de ces services ne remplace Vercel.
 7. Remplir confidentialité, Data safety, finance et notes de review, puis
     soumettre.
 
-Après la sortie gratuite seulement : accepter les accords payants, valider
+Avant d'activer l'achat Pro natif : accepter les accords payants, valider
 taxe/banque, créer les produits Apple/Google, puis connecter RevenueCat et
 tester les achats. RevenueCat importe des produits qui doivent déjà exister
 dans les stores et Google exige un `.aab` signé avant certains tests d'achat.
@@ -233,9 +233,10 @@ Console ; les suivantes peuvent passer par `eas submit`.
 
 ## 5. Catalogue d’abonnements stores
 
-> **Phase après lancement.** Ne crée aucun gate et n'est pas requise pour la
-> première version gratuite. Les identifiants restent documentés pour éviter
-> une future divergence entre le code, Apple, Google et RevenueCat.
+> **Activation commerciale séparée.** Le gate Pro est déjà actif, mais aucune
+> offre d'achat native ne doit être affichée avant validation des produits et
+> des parcours sandbox. Les identifiants restent documentés pour éviter une
+> divergence entre le code, Apple, Google et RevenueCat.
 
 Le code ne dépend pas d’un product ID : il affiche les packages de l’offering
 RevenueCat courante. Les identifiants ci-dessous sont la convention recommandée
@@ -243,8 +244,8 @@ et doivent être approuvés avant création, car les IDs stores sont durables.
 
 | Offre | Apple product ID | Google subscription ID | RevenueCat package | Prix cible CI |
 | --- | --- | --- | --- | --- |
-| Pro mensuel — lancement | `app.wariba.pro.monthly` | `wariba_pro_monthly` | `$rc_monthly` | 4 900 FCFA/mois ou palier local le plus proche |
-| Pro annuel — option après validation | `app.wariba.pro.annual` | `wariba_pro_annual` | `$rc_annual` | À approuver avant création |
+| Pro mensuel — lancement | `app.wariba.pro.monthly` | `wariba_pro_monthly` | `$rc_monthly` | 3 000 FCFA/mois ou palier local le plus proche |
+| Pro annuel — option après validation | `app.wariba.pro.annual` | `wariba_pro_annual` | `$rc_annual` | 30 000 FCFA/an ou palier local le plus proche |
 
 ### Apple
 
@@ -461,7 +462,7 @@ La release reste **NO-GO** tant qu’une seule case manque :
 - [ ] Notes de review, captures et compte reviewer prêts.
 - [ ] Validation juridique/droits de données obtenue avant monétisation.
 
-### Gate séparé — activation payante après lancement
+### Gate séparé — activation des achats natifs
 
 - [ ] Paid Apps/taxe/banque Apple et profil Google Payments validés.
 - [ ] Produit mensuel actif dans les deux stores.

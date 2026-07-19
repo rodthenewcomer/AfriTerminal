@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { millions, pct } from "@wariba/core/format";
+import { describeNetIncomeTrend } from "@wariba/core/real-analysis";
 import type { FundamentalRecord } from "../data/types";
 import { ChangePill, SegmentedTabs } from "./ui";
 import { colors, radius, tabular, type } from "../theme";
@@ -41,6 +42,11 @@ export function YearComparison({ fundamental }: { fundamental: FundamentalRecord
   if (!selected) return null;
 
   const growth = ((selected.current - selected.previous) / Math.abs(selected.previous)) * 100;
+  const isProfitMetric = selected.id === "net" || selected.id === "ordinary";
+  const financialTrend = isProfitMetric
+    ? describeNetIncomeTrend(selected.current, selected.previous)
+    : null;
+  const needsSemanticTrend = Boolean(financialTrend && (selected.current <= 0 || selected.previous <= 0));
   const maxValue = Math.max(Math.abs(selected.previous), Math.abs(selected.current), 1);
   const heightFor = (value: number) => Math.max(6, (Math.abs(value) / maxValue) * BAR_MAX_HEIGHT);
 
@@ -59,12 +65,35 @@ export function YearComparison({ fundamental }: { fundamental: FundamentalRecord
         </View>
         <View style={styles.barGroup}>
           <Text style={[styles.barValue, { color: colors.ink }]}>{millions(selected.current)}</Text>
-          <View style={[styles.bar, styles.barCurrent, { height: heightFor(selected.current) }]} />
+          <View style={[
+            styles.bar,
+            styles.barCurrent,
+            selected.current < 0 && styles.barNegative,
+            { height: heightFor(selected.current) },
+          ]} />
           <Text style={styles.barLabel}>{fundamental.fiscalYear}</Text>
         </View>
         <View style={styles.growth}>
           <Text style={styles.growthLabel}>Évolution</Text>
-          <ChangePill value={growth} label={pct(growth, { signed: true, digits: 1 })} />
+          {needsSemanticTrend && financialTrend ? (
+            <Text style={[
+              styles.lossTrend,
+              {
+                color: financialTrend.tone === "positive"
+                  ? colors.up
+                  : financialTrend.tone === "warning"
+                    ? colors.warn
+                    : colors.down,
+              },
+            ]}>
+              {financialTrend.label}
+              {financialTrend.id === "loss-reduction" || financialTrend.id === "loss-widening"
+                ? ` · ${pct(Math.abs(growth), { signed: false, digits: 1 })}`
+                : ""}
+            </Text>
+          ) : (
+            <ChangePill value={growth} label={pct(growth, { signed: true, digits: 1 })} />
+          )}
         </View>
       </View>
     </View>
@@ -81,8 +110,10 @@ const styles = StyleSheet.create({
   bar: { width: 44, borderTopLeftRadius: 5, borderTopRightRadius: 5 },
   barPrevious: { backgroundColor: colors.surface2, borderColor: colors.lineStrong, borderWidth: 1 },
   barCurrent: { backgroundColor: colors.accent },
+  barNegative: { backgroundColor: colors.down },
   barValue: { ...type.caption, fontWeight: "700", fontVariant: tabular },
   barLabel: { ...type.label, fontSize: 9.5 },
   growth: { alignItems: "center", gap: 7, paddingBottom: 18 },
   growthLabel: { ...type.label, fontSize: 9.5 },
+  lossTrend: { ...type.caption, fontWeight: "800", fontVariant: tabular },
 });

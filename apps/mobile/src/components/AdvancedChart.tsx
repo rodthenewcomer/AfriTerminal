@@ -17,6 +17,8 @@ import { colors, type } from "../theme";
 const EMPTY_LEVELS: number[] = [];
 
 const RANGES: { id: string; label: string; bars: number }[] = [
+  { id: "1d", label: "1D", bars: 1 },
+  { id: "1w", label: "1W", bars: 6 },
   { id: "1m", label: "1M", bars: 22 },
   { id: "3m", label: "3M", bars: 66 },
   { id: "6m", label: "6M", bars: 132 },

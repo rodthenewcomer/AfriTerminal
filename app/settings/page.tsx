@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { ArrowRight, Database, Eraser, Keyboard, Monitor, Moon, Rocket, Sun, User } from "lucide-react";
+import { Database, Eraser, Keyboard, Monitor, Moon, Sun, User } from "lucide-react";
 import { cn } from "@wariba/core/utils";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Select } from "@/components/ui/input";
@@ -178,19 +178,6 @@ export default function SettingsPage() {
 
       <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
       <div className="space-y-4">
-      <Card className="border-accent/30 bg-accent/5">
-        <CardHeader
-          title={<span className="inline-flex items-center gap-1.5"><Rocket className="h-4 w-4 text-accent" /> Lancement iOS & Android</span>}
-          subtitle="Comptes Apple/Google, Expo/EAS, RevenueCat et checklist Côte d’Ivoire."
-          action={<Badge tone="warning">Externe restant</Badge>}
-        />
-        <CardBody>
-          <Link href="/launch" className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg border border-accent/35 bg-surface text-xs font-semibold text-accent hover:bg-accent/8">
-            Ouvrir les instructions <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </CardBody>
-      </Card>
-
       <Card>
         <CardHeader title="Profil" />
         <CardBody className="flex items-center gap-3">

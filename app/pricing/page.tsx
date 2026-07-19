@@ -19,8 +19,8 @@ export default function PricingPage() {
         </div>
         <Link href="/pro" className="group rounded-2xl border border-accent/30 bg-accent/7 p-5 transition-colors hover:bg-accent/10">
           <div className="flex items-center justify-between"><Crown className="h-5 w-5 text-accent" /><ArrowRight className="h-4 w-4 text-ink-3 transition-transform group-hover:translate-x-1" /></div>
-          <p className="mt-6 text-lg font-semibold text-ink">Voir le Laboratoire 48</p>
-          <p className="mt-1 text-xs leading-5 text-ink-3">Classement factuel, filtres, export et comparaison de 3 actions.</p>
+          <p className="mt-6 text-lg font-semibold text-ink">Accéder au Laboratoire 48</p>
+          <p className="mt-1 text-xs leading-5 text-ink-3">Compte Pro requis pour le classement, les filtres, l’export et la comparaison.</p>
         </Link>
       </div>
 
@@ -35,11 +35,11 @@ export default function PricingPage() {
 
         <section className="relative overflow-hidden rounded-2xl border border-accent/45 bg-surface p-6 shadow-xl shadow-accent/5 sm:p-7">
           <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-accent via-up to-gold" />
-          <div className="flex flex-wrap items-center justify-between gap-2"><p className="inline-flex items-center gap-2 text-sm font-semibold text-ink"><Crown className="h-4 w-4 text-accent" /> WARIBA Pro</p><Badge tone="positive">Accès ouvert</Badge></div>
-          <p className="mt-3 text-3xl font-bold tracking-tight text-ink">0 FCFA en prélancement</p>
-          <p className="mt-1 text-xs text-ink-3">Aucun abonnement, paywall ni carte bancaire pour le moment</p>
+          <div className="flex flex-wrap items-center justify-between gap-2"><p className="inline-flex items-center gap-2 text-sm font-semibold text-ink"><Crown className="h-4 w-4 text-accent" /> WARIBA Pro</p><Badge tone="accent">Pro</Badge></div>
+          <p className="num mt-3 text-3xl font-bold tracking-tight text-ink">3 000 FCFA <span className="text-sm font-medium text-ink-3">/ mois</span></p>
+          <p className="mt-1 text-xs text-ink-3">30 000 FCFA / an lorsque le forfait annuel sera ouvert</p>
           <ul className="mt-7 space-y-3 text-sm text-ink-2">{pro.map((item) => <li key={item} className="flex gap-2.5"><Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />{item}</li>)}</ul>
-          <div className="mt-8"><Link href="/pro" className="flex h-11 items-center justify-center gap-1.5 rounded-lg bg-accent text-sm font-semibold text-background hover:brightness-110">Ouvrir WARIBA Pro <ArrowRight className="h-4 w-4" /></Link></div>
+          <div className="mt-8"><Link href="/pro" className="flex h-11 items-center justify-center gap-1.5 rounded-lg bg-accent text-sm font-semibold text-background hover:brightness-110">Activer WARIBA Pro <ArrowRight className="h-4 w-4" /></Link></div>
         </section>
       </div>
 
@@ -48,7 +48,7 @@ export default function PricingPage() {
         <div><ShieldCheck className="h-4 w-4 text-accent" /><p className="mt-2 font-semibold text-ink">Aucune recommandation</p><p className="mt-1">Le score décrit une position relative ; il ne prédit pas le marché.</p></div>
         <div><Crown className="h-4 w-4 text-accent" /><p className="mt-2 font-semibold text-ink">Pensé Côte d’Ivoire</p><p className="mt-1">FCFA, français, paiements stores et exigences locales documentées.</p></div>
       </section>
-      <p className="mt-5 text-[11px] leading-5 text-ink-3">La cible tarifaire Côte d’Ivoire et les achats Apple/Google/Stripe seront réévalués après le lancement. Tant que cette décision n’est pas prise, toutes les fonctions affichées dans WARIBA Pro restent accessibles.</p>
+      <p className="mt-5 text-[11px] leading-5 text-ink-3">Un même droit Pro est reconnu sur le web, iOS et Android lorsqu’il est rattaché au même compte. Les achats mobiles passent par l’App Store ou Google Play ; le web utilise Stripe.</p>
     </main>
   );
 }

@@ -8,7 +8,7 @@ dividendes, portefeuille, documents, alertes et synchronisation privée.
 - Application native : Expo SDK 54, prête pour les builds iOS/Android signés
 - Lancement stores Côte d’Ivoire : [comptes Apple/Google, EAS et checklist](docs/native-release-cote-ivoire.md)
 - Compte : e-mail/mot de passe, Apple et Google via Supabase Auth
-- WARIBA Pro : Laboratoire 48 ouvert sans paywall pendant le prélancement
+- WARIBA Pro : Laboratoire 48 réservé aux comptes disposant d'un abonnement Pro actif
 - Monétisation : code Stripe/RevenueCat conservé, activation différée après le lancement
 - Données : pipeline BRVM officiel, aucune valeur inventée
 - Décision Pro et audit du classeur : [Laboratoire 48 et revue 22 rôles](docs/pro-research-workspace.md)
@@ -215,10 +215,10 @@ description longue inventée.
 
 La couche produit server-backed est maintenant présente : comptes Supabase,
 API de synchronisation privée, entitlements multi-provider et adaptateurs
-Stripe/RevenueCat. Aucun paywall n'est actif pendant le prélancement : la
-monétisation sera réévaluée après la sortie gratuite. L'activation production
-et les blockers externes sont suivis dans
-`docs/ship-readiness.md`.
+Stripe/RevenueCat. Les faits de marché restent publics ; la synchronisation
+privée exige un compte et le Laboratoire 48, ses comparaisons et exports exigent
+un droit Pro. La matrice Public / Compte / Pro et les blockers externes sont
+suivis dans `docs/ship-readiness.md`.
 
 ## Avertissement
 

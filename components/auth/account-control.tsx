@@ -11,7 +11,7 @@ export function AccountControl() {
       <div className="flex items-center gap-1.5">
         <Link
           href="/connexion"
-          aria-label={configured ? "Se connecter" : "Connexion — configuration en cours"}
+          aria-label={configured ? "Se connecter" : "Connexion temporairement indisponible"}
           className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-surface/60 px-2.5 text-[11px] font-semibold text-ink transition-colors hover:border-accent/45 sm:px-3 sm:text-xs"
         >
           <LogIn className="h-3.5 w-3.5" />

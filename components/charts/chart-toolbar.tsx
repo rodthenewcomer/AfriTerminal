@@ -182,6 +182,7 @@ export function ChartToolbar(props: ChartToolbarProps) {
           options={TIMEFRAMES.map((t) => ({ value: t, label: t }))}
           value={props.tf}
           onChange={props.onTf}
+          label="Période du graphique"
           className="min-w-0 flex-1 sm:flex-none"
         />
         <button
@@ -193,21 +194,23 @@ export function ChartToolbar(props: ChartToolbarProps) {
           {props.fullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
         </button>
       </div>
-      <div className="flex min-w-0 items-center gap-2">
+      <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start">
         {/* Scroll horizontal isolé du groupe de droite : overflow-x-auto
             force overflow-y à auto (spec CSS), ce qui coupait net les
             menus déroulants Indicateurs/Comparer s'ils partageaient ce
             conteneur — leur panneau de ~270px se retrouvait rogné à la
             hauteur de la rangée (34px), invisible bien qu'ouvert. */}
-        <div className="min-w-0 overflow-x-auto pb-0.5">
+        <div className="relative min-w-0 w-full sm:flex-1">
           <PillTabs
             options={CHART_TYPES.map((t) => ({ value: t.value, label: t.label }))}
             value={props.chartType}
             onChange={props.onChartType}
-            className="shrink-0"
+            label="Type de graphique"
+            className="min-w-0 snap-x"
           />
+          <span className="pointer-events-none absolute inset-y-0 right-0 w-5 rounded-r-lg bg-gradient-to-l from-surface-2/90 to-transparent sm:hidden" aria-hidden="true" />
         </div>
-        <div className="ml-auto flex shrink-0 items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-2 sm:ml-auto sm:shrink-0 sm:flex-nowrap">
         <button
           onClick={() => props.onShowVolume(!props.showVolume)}
           className={cn(

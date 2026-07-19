@@ -11,7 +11,7 @@ export interface GlossaryEntry {
 export const GLOSSARY: Record<string, GlossaryEntry> = {
   per: {
     label: "PER",
-    def: "Price/Earnings Ratio : le cours divisé par le bénéfice net par action — grossièrement, le nombre d'années de bénéfices que « coûte » l'action au cours actuel. Publié par la BRVM dans le bulletin officiel.",
+    def: "Price/Earnings Ratio : cours divisé par le bénéfice net par action. WARIBA affiche la valeur du bulletin BRVM avec sa date ; elle peut reposer sur une période bénéficiaire différente des derniers comptes intégrés. Si ces derniers sont déficitaires, le PER est masqué car il n'est pas économiquement interprétable.",
   },
   "rendement-net": {
     label: "Rendement net",

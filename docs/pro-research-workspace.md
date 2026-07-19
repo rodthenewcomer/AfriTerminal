@@ -111,7 +111,7 @@ référence affichée.
 | 17. Performance | 48 lignes seulement ; pas de série OHLC chargée dans le laboratoire ; calcul natif mémorisé. |
 | 18. SEO | Titre dashboard corrigé ; Pro possède un titre et une description dédiés. |
 | 19. Analytics | Mesure uniquement après consentement ; aucun tracking nécessaire au fonctionnement. |
-| 20. Revenue / Pricing | Accès ouvert pendant le prélancement ; prix et providers après validation du lancement. |
+| 20. Revenue / Pricing | Données factuelles publiques ; compte requis pour la synchronisation ; Laboratoire 48 réservé aux abonnés Pro à 3 000 FCFA/mois ou 30 000 FCFA/an. |
 | 21. QA / Release | TypeScript, lint, tests, build Next, Expo Doctor et exports iOS/Android sont les gates. |
 | 22. Operations Côte d'Ivoire | FCFA, français, Vercel/wariba.app et checklist Apple/Google/EAS restent la référence. |
 

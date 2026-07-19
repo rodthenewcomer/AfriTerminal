@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -9,8 +9,9 @@ import {
 } from "@wariba/core/real-analysis";
 import { dateFr, fcfa, pct } from "@wariba/core/format";
 import type { RealQuote } from "@wariba/core/types";
-import { ActionButton, EmptyState, Page, Section } from "../src/components/ui";
+import { ActionButton, EmptyState, LoadingState, Page, Section } from "../src/components/ui";
 import { useMarketData } from "../src/providers/MarketDataProvider";
+import { useMobileAuth } from "../src/providers/AuthProvider";
 import { openTrustedExternalUrl } from "../src/lib/external-links";
 import { sectorLabel } from "../src/lib/sectors";
 import { colors, radius, tabular, type } from "../src/theme";
@@ -150,9 +151,43 @@ function ResearchCard({
 export default function ProScreen() {
   const router = useRouter();
   const market = useMarketData();
+  const auth = useMobileAuth();
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("overall");
   const [selected, setSelected] = useState<string[]>([]);
+  const [access, setAccess] = useState<"checking" | "guest" | "free" | "pro" | "error">("checking");
+
+  useEffect(() => {
+    if (auth.loading) return;
+    if (!auth.session?.access_token) {
+      setAccess("guest");
+      return;
+    }
+    const baseUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "");
+    if (!baseUrl) {
+      setAccess("error");
+      return;
+    }
+    let active = true;
+    setAccess("checking");
+    void fetch(`${baseUrl}/api/v1/me`, {
+      headers: { Authorization: `Bearer ${auth.session.access_token}` },
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("entitlement");
+        const account = await response.json() as {
+          subscription?: { plan?: string; status?: string };
+          entitlements?: { key: string; enabled: boolean }[];
+        };
+        const pro =
+          (account.subscription?.plan === "pro" &&
+            ["active", "trialing"].includes(account.subscription?.status ?? "")) ||
+          account.entitlements?.some((item) => item.key === "research_exports" && item.enabled) === true;
+        if (active) setAccess(pro ? "pro" : "free");
+      })
+      .catch(() => { if (active) setAccess("error"); });
+    return () => { active = false; };
+  }, [auth.loading, auth.session?.access_token]);
 
   const allRows = useMemo<ResearchRow[]>(
     () => Object.values(market.quotes).flatMap((quote) => {
@@ -193,12 +228,58 @@ export default function ProScreen() {
     return current.length >= 2 ? [current[1], ticker] : [...current, ticker];
   });
 
+  if (access === "checking") {
+    return <Page><LoadingState label="Vérification de l’accès Pro…" /></Page>;
+  }
+
+  if (access !== "pro") {
+    const guest = access === "guest";
+    return (
+      <Page>
+        <View style={styles.gate}>
+          <View style={styles.proBadge}>
+            <Ionicons name="lock-closed" size={13} color={colors.accent} />
+            <Text style={styles.proBadgeText}>WARIBA PRO · ACCÈS PROTÉGÉ</Text>
+          </View>
+          <Text style={styles.heroTitle}>Les faits restent publics. La recherche avancée devient Pro.</Text>
+          <Text style={styles.heroDetail}>
+            Cours, fondamentaux, documents, actualités et graphiques essentiels restent accessibles. Laboratoire 48, comparaisons et alertes avancées nécessitent un compte Pro.
+          </Text>
+          <View style={styles.gateFeatures}>
+            {["Laboratoire 48", "Comparaison multi-facteurs", "Exports et filtres illimités", "Alertes avancées"].map((feature) => (
+              <View key={feature} style={styles.gateFeature}>
+                <Ionicons name="checkmark-circle" size={16} color={colors.accent} />
+                <Text style={styles.gateFeatureText}>{feature}</Text>
+              </View>
+            ))}
+          </View>
+          <Text style={styles.gatePrice}>3 000 FCFA / mois</Text>
+          <Text style={styles.sourceLine}>Un même droit sur le web, iOS et Android.</Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.push(guest ? "/(auth)/sign-in" : "/account")}
+            style={styles.gatePrimary}
+          >
+            <Text style={styles.gatePrimaryText}>
+              {guest ? "Se connecter" : access === "error" ? "Vérifier mon compte" : "Activer Pro"}
+            </Text>
+          </Pressable>
+          {guest ? (
+            <Pressable accessibilityRole="button" onPress={() => router.push("/(auth)/sign-up")} style={styles.gateSecondary}>
+              <Text style={styles.gateSecondaryText}>Créer un compte</Text>
+            </Pressable>
+          ) : null}
+        </View>
+      </Page>
+    );
+  }
+
   return (
     <Page refreshing={market.refreshing} onRefresh={() => void market.refresh()}>
       <View style={styles.hero}>
         <View style={styles.proBadge}>
           <Ionicons name="sparkles" size={13} color={colors.accent} />
-          <Text style={styles.proBadgeText}>WARIBA PRO · ACCÈS OUVERT</Text>
+          <Text style={styles.proBadgeText}>WARIBA PRO · COMPTE ACTIF</Text>
         </View>
         <Text style={styles.heroTitle}>Laboratoire 48</Text>
         <Text style={styles.heroDetail}>Même méthode pour toute la cote : scores, signaux, confiance et fraîcheur. Aucun verdict d’achat ou de vente.</Text>
@@ -267,6 +348,15 @@ export default function ProScreen() {
 }
 
 const styles = StyleSheet.create({
+  gate: { gap: 14, padding: 20, borderRadius: 20, borderWidth: 1, borderColor: "rgba(32,201,130,0.30)", backgroundColor: colors.surface },
+  gateFeatures: { gap: 9, paddingVertical: 4 },
+  gateFeature: { flexDirection: "row", alignItems: "center", gap: 9 },
+  gateFeatureText: { ...type.body, color: colors.ink2 },
+  gatePrice: { color: colors.ink, fontSize: 24, fontWeight: "900", fontVariant: tabular },
+  gatePrimary: { minHeight: 48, alignItems: "center", justifyContent: "center", borderRadius: radius.md, backgroundColor: colors.accent },
+  gatePrimaryText: { color: colors.onAccent, fontSize: 14, fontWeight: "800" },
+  gateSecondary: { minHeight: 48, alignItems: "center", justifyContent: "center", borderRadius: radius.md, borderWidth: 1, borderColor: colors.line },
+  gateSecondaryText: { color: colors.ink, fontSize: 14, fontWeight: "700" },
   hero: { gap: 10, padding: 18, borderRadius: 20, borderWidth: 1, borderColor: "rgba(32,201,130,0.30)", backgroundColor: colors.surface },
   proBadge: { alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 9, paddingVertical: 5, borderRadius: 999, backgroundColor: colors.accentSoft },
   proBadgeText: { ...type.label, color: colors.accent, fontSize: 9.5 },

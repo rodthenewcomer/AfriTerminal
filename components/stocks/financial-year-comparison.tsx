@@ -1,6 +1,7 @@
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import { millions, pct } from "@wariba/core/format";
 import { cn } from "@wariba/core/utils";
+import { describeNetIncomeTrend } from "@wariba/core/real-analysis";
 import type { RealFundamentals } from "@/lib/real-fundamentals";
 
 interface MetricPair {
@@ -29,13 +30,36 @@ function ComparisonCard({ pair, year }: { pair: MetricPair; year: number }) {
   const max = Math.max(Math.abs(pair.current), Math.abs(pair.previous), 1);
   const previousWidth = Math.max(5, (Math.abs(pair.previous) / max) * 100);
   const currentWidth = Math.max(5, (Math.abs(pair.current) / max) * 100);
-  const Icon = growth > 0 ? ArrowUpRight : growth < 0 ? ArrowDownRight : Minus;
+  const isProfitMetric = pair.id === "net" || pair.id === "ordinary";
+  const financialTrend = isProfitMetric
+    ? describeNetIncomeTrend(pair.current, pair.previous)
+    : null;
+  const needsSemanticTrend = Boolean(financialTrend && (pair.current <= 0 || pair.previous <= 0));
+  const Icon = pair.current > pair.previous ? ArrowUpRight : pair.current < pair.previous ? ArrowDownRight : Minus;
+  const changeTone = needsSemanticTrend
+    ? financialTrend?.tone === "positive"
+      ? "bg-up/10 text-up"
+      : financialTrend?.tone === "warning"
+        ? "bg-warn/10 text-warn"
+        : financialTrend?.tone === "negative"
+          ? "bg-down/10 text-down"
+          : "bg-surface-2 text-ink-3"
+    : growth > 0
+      ? "bg-up/10 text-up"
+      : growth < 0
+        ? "bg-down/10 text-down"
+        : "bg-surface-2 text-ink-3";
+  const changeLabel = needsSemanticTrend && financialTrend
+    ? financialTrend.id === "loss-reduction" || financialTrend.id === "loss-widening"
+      ? `${financialTrend.label} · ${pct(Math.abs(growth), { signed: false, digits: 1 })}`
+      : financialTrend.label
+    : pct(growth, { digits: 1 });
 
   return (
     <article
       className="rounded-xl border border-line bg-surface/70 p-4"
       role="img"
-      aria-label={`${pair.label} : ${millions(pair.previous)} en ${year - 1}, ${millions(pair.current)} en ${year}, évolution ${pct(growth, { digits: 1 })}`}
+      aria-label={`${pair.label} : ${millions(pair.previous)} en ${year - 1}, ${millions(pair.current)} en ${year}, ${changeLabel}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -44,9 +68,9 @@ function ComparisonCard({ pair, year }: { pair: MetricPair; year: number }) {
         </div>
         <span className={cn(
           "num inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] font-extrabold",
-          growth > 0 ? "bg-up/10 text-up" : growth < 0 ? "bg-down/10 text-down" : "bg-surface-2 text-ink-3",
+          changeTone,
         )}>
-          <Icon className="h-3 w-3" /> {pct(growth, { digits: 1 })}
+          <Icon className="h-3 w-3" /> {changeLabel}
         </span>
       </div>
 

@@ -2,6 +2,21 @@ import type { AIInsight, RealQuote, Scores, Signal } from "./types";
 
 export const REAL_ANALYSIS_VERSION = "WARIBA Factuel v1.0";
 
+export interface NetIncomeTrend {
+  id:
+    | "profit-turnaround"
+    | "profit-loss"
+    | "profit-growth"
+    | "profit-decline"
+    | "loss-reduction"
+    | "loss-widening"
+    | "profit-stable";
+  label: string;
+  detail: string;
+  changePct: number | null;
+  tone: Signal["tone"];
+}
+
 /**
  * Sous-ensemble commun des états financiers réels utilisé par le web et le
  * mobile. Tous les montants sont en millions de FCFA.
@@ -184,10 +199,15 @@ function normalize(
     fundamental.sharesOutstanding && fundamental.equityM && fundamental.equityM > 0
       ? (fundamental.equityM * 1e6) / fundamental.sharesOutstanding
       : null;
-  const netIncomeGrowth = signedGrowthPct(
-    fundamental.netIncomeM,
-    fundamental.netIncomePrevM
-  );
+  // Une perte réduite reste une perte : elle est décrite séparément, mais ne
+  // doit ni améliorer le score qualité ni être classée comme croissance du
+  // bénéfice dans les comparaisons sectorielles.
+  const netIncomeGrowth =
+    fundamental.netIncomeM > 0 &&
+    fundamental.netIncomePrevM !== null &&
+    fundamental.netIncomePrevM > 0
+      ? signedGrowthPct(fundamental.netIncomeM, fundamental.netIncomePrevM)
+      : null;
   let balanceStress = 0;
   if (fundamental.netIncomeM < 0) balanceStress += 40;
   if (fundamental.ordinaryIncomeM !== null && fundamental.ordinaryIncomeM < 0) balanceStress += 25;
@@ -197,7 +217,12 @@ function normalize(
     quote,
     fundamental,
     sectorKey: analysisSectorKey(quote.sectorCode),
-    per: quote.per !== null && quote.per > 0 ? quote.per : null,
+    // Un PER positif n'est pas économiquement interprétable si les derniers
+    // comptes intégrés affichent une perte.
+    per:
+      fundamental.netIncomeM > 0 && quote.per !== null && quote.per > 0
+        ? quote.per
+        : null,
     pb: equityPerShare && equityPerShare > 0 ? quote.lastClose / equityPerShare : null,
     roe:
       fundamental.equityM !== null && fundamental.equityM > 0
@@ -225,7 +250,12 @@ function normalize(
       quote.week52High > 0
         ? ((quote.week52High - quote.week52Low) / quote.week52High) * 100
         : 0,
-    earningsStress: netIncomeGrowth === null ? null : -netIncomeGrowth,
+    earningsStress:
+      fundamental.netIncomeM < 0
+        ? 100
+        : netIncomeGrowth === null
+          ? null
+          : -netIncomeGrowth,
     balanceStress: Math.min(100, balanceStress),
   };
 }
@@ -244,6 +274,103 @@ function pctFr(value: number, digits = 1): string {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   })} %`;
+}
+
+function amountM(value: number): string {
+  return `${value.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} M FCFA`;
+}
+
+function pctAbsFr(value: number): string {
+  return `${Math.abs(value).toLocaleString("fr-FR", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  })} %`;
+}
+
+/**
+ * Décrit le résultat net sans transformer une perte moins forte en bénéfice.
+ * Cette règle est partagée par les signaux, le web et les apps natives.
+ */
+export function describeNetIncomeTrend(
+  current: number,
+  previous: number | null
+): NetIncomeTrend | null {
+  if (previous === null) return null;
+  const changePct = signedGrowthPct(current, previous);
+
+  if (previous < 0 && current >= 0) {
+    return {
+      id: "profit-turnaround",
+      label: "Retour aux bénéfices",
+      detail: `Le résultat net passe de ${amountM(previous)} à ${amountM(current)}.`,
+      changePct,
+      tone: "positive",
+    };
+  }
+  if (previous >= 0 && current < 0) {
+    return {
+      id: "profit-loss",
+      label: "Passage en perte",
+      detail: `Le résultat net passe de ${amountM(previous)} à une perte de ${amountM(current)}.`,
+      changePct,
+      tone: "negative",
+    };
+  }
+  if (previous < 0 && current < 0) {
+    const reductionPct = changePct ?? 0;
+    if (current > previous) {
+      return {
+        id: "loss-reduction",
+        label: "Perte réduite",
+        detail: `La perte nette est ramenée de ${amountM(previous)} à ${amountM(current)}, soit une réduction de ${pctAbsFr(reductionPct)}.`,
+        changePct,
+        tone: "warning",
+      };
+    }
+    if (current < previous) {
+      return {
+        id: "loss-widening",
+        label: "Perte aggravée",
+        detail: `La perte nette se creuse de ${amountM(previous)} à ${amountM(current)}, soit une dégradation de ${pctAbsFr(reductionPct)}.`,
+        changePct,
+        tone: "negative",
+      };
+    }
+    return {
+      id: "profit-stable",
+      label: "Perte stable",
+      detail: `La perte nette reste à ${amountM(current)}.`,
+      changePct,
+      tone: "warning",
+    };
+  }
+  if (changePct !== null && changePct >= 8) {
+    return {
+      id: "profit-growth",
+      label: "Bénéfice en hausse",
+      detail: `Le bénéfice net progresse de ${pctFr(changePct)} sur un an.`,
+      changePct,
+      tone: "positive",
+    };
+  }
+  if (changePct !== null && changePct <= -8) {
+    return {
+      id: "profit-decline",
+      label: "Bénéfice en baisse",
+      detail: `Le bénéfice net recule de ${pctFr(changePct)} sur un an.`,
+      changePct,
+      tone: "warning",
+    };
+  }
+  return {
+    id: "profit-stable",
+    label: "Bénéfice stable",
+    detail: changePct === null
+      ? `Le bénéfice net s'établit à ${amountM(current)} ; la variation n'est pas calculable.`
+      : `Le bénéfice net varie de ${pctFr(changePct)} sur un an.`,
+    changePct,
+    tone: "neutral",
+  };
 }
 
 function addSignal(
@@ -463,16 +590,18 @@ export function analyzeRealEquity(args: {
       addSignal(signals, "revenue-decline", `${fundamental.revenueLabel} en baisse`, "warning", `${fundamental.revenueLabel} ${fundamental.fiscalYear} en recul de ${pctFr(company.revenueGrowth)} sur un an.`);
     }
   }
-  if (fundamental.netIncomePrevM !== null) {
-    if (fundamental.netIncomePrevM < 0 && fundamental.netIncomeM > 0) {
-      addSignal(signals, "profit-turnaround", "Retour aux bénéfices", "positive", `Le résultat net passe de ${fundamental.netIncomePrevM.toLocaleString("fr-FR")} à ${fundamental.netIncomeM.toLocaleString("fr-FR")} M FCFA.`);
-    } else if (fundamental.netIncomePrevM > 0 && fundamental.netIncomeM < 0) {
-      addSignal(signals, "profit-loss", "Passage en perte", "negative", `Le résultat net devient négatif à ${fundamental.netIncomeM.toLocaleString("fr-FR")} M FCFA.`);
-    } else if (company.netIncomeGrowth !== null && company.netIncomeGrowth >= 8) {
-      addSignal(signals, "profit-growth", "Bénéfice en hausse", "positive", `Le résultat net progresse de ${pctFr(company.netIncomeGrowth)} sur un an.`);
-    } else if (company.netIncomeGrowth !== null && company.netIncomeGrowth <= -8) {
-      addSignal(signals, "profit-decline", "Bénéfice en baisse", "warning", `Le résultat net recule de ${pctFr(company.netIncomeGrowth)} sur un an.`);
-    }
+  const netIncomeTrend = describeNetIncomeTrend(
+    fundamental.netIncomeM,
+    fundamental.netIncomePrevM
+  );
+  if (netIncomeTrend && netIncomeTrend.id !== "profit-stable") {
+    addSignal(
+      signals,
+      netIncomeTrend.id,
+      netIncomeTrend.label,
+      netIncomeTrend.tone,
+      netIncomeTrend.detail
+    );
   }
   if (fundamental.ordinaryIncomeM !== null && fundamental.ordinaryIncomeM < 0) {
     addSignal(signals, "ordinary-loss", "Activité ordinaire déficitaire", "negative", `Le résultat des activités ordinaires est négatif (${fundamental.ordinaryIncomeM.toLocaleString("fr-FR")} M FCFA).`);

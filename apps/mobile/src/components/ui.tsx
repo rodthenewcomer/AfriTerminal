@@ -165,7 +165,13 @@ export function SegmentedTabs<T extends string>({ tabs, active, onChange }: {
   onChange: (id: T) => void;
 }) {
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator
+      indicatorStyle="white"
+      fadingEdgeLength={18}
+      contentContainerStyle={styles.segmentedScroll}
+    >
       <View style={styles.segmented}>
         {tabs.map((tab) => (
           <Pressable
@@ -216,6 +222,7 @@ export function EmptyState({ icon = "file-tray-outline", title, detail }: { icon
 }
 
 const styles = StyleSheet.create({
+  segmentedScroll: { paddingBottom: 3 },
   page: { flex: 1, backgroundColor: colors.background },
   content: { paddingHorizontal: 18, gap: 26 },
   header: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 },

@@ -8,6 +8,7 @@ import { getSectorStats, getSnapshot, getSnapshots } from "@/lib/data";
 import { getRealQuote, LATEST_TRADING_DATE } from "@/lib/real-data";
 import { getRealFundamentals, growthPct } from "@/lib/real-fundamentals";
 import { getRealAnalysis } from "@/lib/real-analysis";
+import { describeNetIncomeTrend } from "@wariba/core/real-analysis";
 import { newsDate, newsForTicker } from "@/lib/news";
 import { realDocsForTicker } from "@/lib/real-documents";
 import { DIVIDEND_MAP } from "@/lib/mock/dividends";
@@ -344,7 +345,16 @@ export function StockView({ ticker }: { ticker: string }) {
               Survolez ou touchez <span className="font-semibold text-accent">ⓘ</span> pour comprendre chaque métrique et sa formule.
             </p>
             <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-              <MetricCard label="PER" term="per" value={real.per ? ratio(real.per) : "—"} />
+              <MetricCard
+                label="PER BRVM"
+                term="per"
+                value={real.per && (!realFund || realFund.netIncomeM > 0) ? ratio(real.per) : "—"}
+                hint={
+                  realFund?.netIncomeM && realFund.netIncomeM < 0
+                    ? `Non significatif : résultat net ${realFund.fiscalYear} négatif`
+                    : `Bulletin BRVM au ${dateFr(real.asOfDate)} · base bénéficiaire officielle`
+                }
+              />
               <MetricCard
                 label="Rendement net"
                 term="rendement-net"
@@ -407,9 +417,15 @@ export function StockView({ ticker }: { ticker: string }) {
                     label={`Résultat net ${realFund.fiscalYear}`}
                     term="resultat-net"
                     value={millions(realFund.netIncomeM)}
+                    tone={realFund.netIncomeM < 0 ? "down" : undefined}
                     hint={(() => {
-                      const g = growthPct(realFund.netIncomeM, realFund.netIncomePrevM);
-                      return g !== null ? `${pct(g, { digits: 1 })} vs ${realFund.fiscalYear - 1}` : undefined;
+                      const trend = describeNetIncomeTrend(
+                        realFund.netIncomeM,
+                        realFund.netIncomePrevM
+                      );
+                      return trend?.changePct !== null && trend?.changePct !== undefined
+                        ? `${trend.label} de ${pct(Math.abs(trend.changePct), { signed: false, digits: 1 })} vs ${realFund.fiscalYear - 1}`
+                        : trend?.label;
                     })()}
                   />
                   <MetricCard

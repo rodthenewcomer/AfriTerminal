@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { RealQuote } from "./types";
 import {
   analyzeRealEquity,
+  describeNetIncomeTrend,
   percentileRank,
   signedGrowthPct,
   type RealFundamentalInput,
@@ -91,6 +92,37 @@ describe("real-analysis", () => {
     expect(signedGrowthPct(-5, -10)).toBe(50);
     expect(signedGrowthPct(5, -10)).toBe(150);
     expect(signedGrowthPct(5, 0)).toBeNull();
+  });
+
+  it("ne transforme jamais une perte réduite en bénéfice en hausse", () => {
+    const trend = describeNetIncomeTrend(-624, -2_189);
+    expect(trend).toMatchObject({
+      id: "loss-reduction",
+      label: "Perte réduite",
+      tone: "warning",
+    });
+    expect(trend?.detail).toContain("réduction de 71,5 %");
+
+    const result = analyzeRealEquity({
+      ticker: "LOSS",
+      quotes: [
+        quote("LOSS", "IND", { per: 12 }),
+        quote("PEER", "IND", { per: 10 }),
+      ],
+      fundamentals: [
+        fundamental("LOSS", {
+          netIncomeM: -624,
+          netIncomePrevM: -2_189,
+          ordinaryIncomeM: -436,
+        }),
+        fundamental("PEER"),
+      ],
+    });
+
+    expect(result?.signals.some((signal) => signal.id === "loss-reduction")).toBe(true);
+    expect(result?.signals.some((signal) => signal.id === "profit-growth")).toBe(false);
+    expect(result?.comparisons.some((item) => item.metric === "per")).toBe(false);
+    expect(result?.comparisons.some((item) => item.metric === "netIncomeGrowth")).toBe(false);
   });
 
   it("compare uniquement au secteur et favorise un PER sectoriel plus bas", () => {

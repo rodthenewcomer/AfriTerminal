@@ -121,7 +121,7 @@ export default function AccountScreen() {
   };
 
   if (loading) return <View style={styles.center}><ActivityIndicator color={colors.accent} /><Text style={styles.caption}>Chargement du compte…</Text></View>;
-  if (!configured) return <Page><Text style={styles.notice}>Le service de compte attend les variables Supabase et API du build.</Text></Page>;
+  if (!configured) return <Page><Text style={styles.notice}>La connexion est temporairement indisponible. Les données publiques de marché restent accessibles.</Text></Page>;
   if (!user) return <Page><View style={styles.hero}><Text style={styles.eyebrow}>ESPACE PRIVÉ</Text><Text style={styles.title}>Synchronisez sans fermer le terminal public.</Text><Text style={styles.caption}>Le compte est optionnel. Vos données ne quittent pas cet appareil sans votre action.</Text><Pressable accessibilityRole="button" onPress={() => router.push("/(auth)/sign-in")} style={styles.primary}><Text style={styles.primaryText}>Se connecter</Text></Pressable><Pressable accessibilityRole="button" onPress={() => router.push("/(auth)/sign-up")} style={styles.secondary}><Text style={styles.secondaryText}>Créer un espace</Text></Pressable></View></Page>;
 
   return (
@@ -147,7 +147,7 @@ export default function AccountScreen() {
           {busy === "offerings" ? <ActivityIndicator color={colors.accent} /> : packages.map((item) => <Pressable key={item.identifier} accessibilityRole="button" disabled={Boolean(busy)} onPress={() => void purchase(item)} style={({ pressed }) => [styles.offer, pressed && { opacity: 0.75 }]}><View style={styles.offerCopy}><Text style={styles.offerTitle}>{item.product.title}</Text><Text style={styles.caption}>{item.product.description}</Text></View><Text style={styles.offerPrice}>{item.product.priceString}</Text></Pressable>)}
           <Pressable accessibilityRole="button" disabled={Boolean(busy)} onPress={() => void restore()} style={styles.secondary}><Text style={styles.secondaryText}>{busy === "restore" ? "Restauration…" : "Restaurer mes achats"}</Text></Pressable>
         </View> : null}
-        {!isNativeBillingConfigured() ? <Text style={styles.storeNote}>La couche App Store / Google Play est installée. Ajoutez les clés publiques RevenueCat au build pour charger les produits store.</Text> : packages.length === 0 && busy !== "offerings" && account?.subscription.plan !== "pro" ? <Text style={styles.storeNote}>Aucune offre store n'est publiée pour ce build.</Text> : null}
+      {!isNativeBillingConfigured() ? <Text style={styles.storeNote}>L’activation Pro n’est pas encore disponible sur ce canal.</Text> : packages.length === 0 && busy !== "offerings" && account?.subscription.plan !== "pro" ? <Text style={styles.storeNote}>L’offre Pro est temporairement indisponible.</Text> : null}
         {billingError ? <Text accessibilityRole="alert" style={styles.billingError}>{billingError}</Text> : null}
       </Section>
       <Section title="Suppression">

@@ -2,6 +2,7 @@
 
 Baseline audit: 2026-07-14  
 Implementation update: 2026-07-16
+Access/fundamentals update: 2026-07-19
 Scope: product, code, data, auth, API, billing, native UX, security,
 operations, release and commercial readiness.
 
@@ -14,8 +15,8 @@ operations, release and commercial readiness.
 | Shared Expo app | **Release-candidate code** | Native iOS/Android routes, local-first data, auth, sync, billing adapter, notifications, analytics and exports |
 | iOS store release | **External no-go** | Signed EAS build, physical-device QA, Apple/OAuth/store setup and declarations remain |
 | Android store release | **External no-go** | Signed EAS build, physical-device QA, Play organization/app setup and declarations remain; RevenueCat is post-launch |
-| WARIBA Pro | **Open pre-launch** | Laboratory 48 is implemented on responsive web and native with no paywall, account or entitlement gate |
-| Monetization | **Deferred by product decision** | Stripe/RevenueCat layers remain in code; provider activation comes after the free launch |
+| WARIBA Pro | **Entitlement-gated** | Laboratory 48 is protected on responsive web and native; public facts remain open |
+| Monetization | **Layered activation** | Stripe checkout is conditional on production variables; native purchases wait for store/RevenueCat proof |
 
 ## Product identity delivered
 
@@ -58,7 +59,7 @@ The previous discoverability failure is fixed:
 | Role | Current state / next gate |
 | --- | --- |
 | Founder / CEO | Clear WARIBA identity and `wariba.app`; store release still needs owner accounts |
-| Product Manager | Guest-first funnel and open Pro pre-launch decision implemented |
+| Product Manager | Public / Compte / Pro boundary implemented without reducing the homepage |
 | Technical PM | Web/API/mobile boundaries, env matrix and release gates documented |
 | Full-Stack Engineer | Next.js, Expo and shared core integrated |
 | Senior Backend Engineer | Supabase schema, RLS, sync API, deletion and operations routes implemented |
@@ -75,7 +76,7 @@ The previous discoverability failure is fixed:
 | Content / Social | Product language is consistent; launch kit is separate work |
 | Paid Ads | Hold until activation measurement and native releases |
 | BD / Sales | B2B/team entitlement foundation exists; commercial collateral remains |
-| Revenue / Pricing | Pro remains free and ungated for launch; products/prices intentionally deferred |
+| Revenue / Pricing | Pro target set at 3,000 FCFA/month; annual target 30,000 FCFA; provider activation remains gated by QA |
 | Customer Success | Support, privacy, terms and account deletion routes exist |
 | Operations / PM | `docs/ship-readiness.md` is the source of truth |
 | Legal Advisor | Financial-services boundaries and distribution rights need counsel sign-off |

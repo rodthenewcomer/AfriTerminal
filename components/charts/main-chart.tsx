@@ -117,6 +117,7 @@ export function MainChart({ ticker }: { ticker: string }) {
   const [compare, setCompare] = useState<string[]>([]);
   const [ready, setReady] = useState(false);
   const [noIntraday, setNoIntraday] = useState(false);
+  const [chartError, setChartError] = useState<string | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
   const [epoch, setEpoch] = useState(0);
   const [levelsMode, setLevelsMode] = useState(false);
@@ -140,6 +141,7 @@ export function MainChart({ ticker }: { ticker: string }) {
   const markersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
   const barsRef = useRef<OHLCV[]>([]);
   const fitKeyRef = useRef<string>("");
+  const sourceKeyRef = useRef<string>("");
   const mainSeriesRef = useRef<ISeriesApi<SeriesType> | null>(null);
   const levelsModeRef = useRef(false);
   levelsModeRef.current = levelsMode;
@@ -300,19 +302,35 @@ export function MainChart({ ticker }: { ticker: string }) {
     if (!chart) return;
     let cancelled = false;
     setNoIntraday(false);
-
-    (async () => {
-      const raw = isReal
-        ? (await realSeriesForTimeframe(ticker, tf)).data
-        : seriesForTimeframe(ticker, tf).data;
-      if (cancelled || chartRef.current !== chart) return;
-
-      // purge des séries précédentes (les price lines et marqueurs
-      // attachés meurent avec elles)
+    setChartError(null);
+    const sourceKey = `${ticker}|${tf}`;
+    const sourceChanged = sourceKeyRef.current !== sourceKey;
+    sourceKeyRef.current = sourceKey;
+    if (sourceChanged) {
+      setReady(false);
+      setRangeStats(null);
+      barsRef.current = [];
       markersRef.current?.detach();
       markersRef.current = null;
-      for (const s of seriesRef.current) chart.removeSeries(s);
+      for (const series of seriesRef.current) chart.removeSeries(series);
       seriesRef.current = [];
+    }
+
+    (async () => {
+      try {
+        const raw = isReal
+          ? (await realSeriesForTimeframe(ticker, tf)).data
+          : seriesForTimeframe(ticker, tf).data;
+        if (cancelled || chartRef.current !== chart) return;
+
+        // purge des séries précédentes (les price lines et marqueurs
+        // attachés meurent avec elles). Sur changement de ticker/période,
+        // cette purge a déjà lieu avant le chargement pour ne jamais laisser
+        // les données du titre précédent visibles.
+        markersRef.current?.detach();
+        markersRef.current = null;
+        for (const s of seriesRef.current) chart.removeSeries(s);
+        seriesRef.current = [];
 
       if (raw.length === 0) {
         barsRef.current = [];
@@ -697,7 +715,16 @@ export function MainChart({ ticker }: { ticker: string }) {
         chart.timeScale().fitContent();
         fitKeyRef.current = fitKey;
       }
-      setReady(true);
+        setReady(true);
+      } catch {
+        if (cancelled || chartRef.current !== chart) return;
+        barsRef.current = [];
+        setRangeStats(null);
+        setChartError(
+          `Historique ${ticker} indisponible pour ${tf}. Réessayez ou choisissez une autre période.`
+        );
+        setReady(true);
+      }
     })();
 
     return () => {
@@ -838,7 +865,21 @@ export function MainChart({ ticker }: { ticker: string }) {
         style={fullscreen ? undefined : { height: hasPanes ? 560 : 440 }}
       >
         {!ready ? <Skeleton className="absolute inset-2" /> : null}
-        {ready && noIntraday ? (
+        {ready && chartError ? (
+          <div className="absolute inset-0 z-10 flex items-center justify-center px-6 text-center">
+            <div className="max-w-sm rounded-xl border border-warn/30 bg-surface/95 p-4">
+              <p className="text-sm font-semibold text-ink">Graphique indisponible</p>
+              <p className="mt-1 text-xs leading-5 text-ink-3">{chartError}</p>
+              <button
+                type="button"
+                onClick={() => setEpoch((value) => value + 1)}
+                className="mt-3 rounded-lg border border-line px-3 py-1.5 text-xs font-semibold text-accent hover:border-accent/40"
+              >
+                Réessayer
+              </button>
+            </div>
+          </div>
+        ) : ready && noIntraday ? (
           <div className="absolute inset-0 flex items-center justify-center px-6 text-center">
             <p className="text-sm text-ink-3">
               Historique intraday non disponible sur les données réelles BRVM
