@@ -913,7 +913,7 @@ export function MainChart({ ticker }: { ticker: string }) {
             {" · "}{rangeStats.sessions.toLocaleString("fr-FR")} séances
             {" · "}{rangeStats.sessionsWithoutTrade.toLocaleString("fr-FR")} sans transaction
             {rangeStats.bestSessionPct === null ? "" : ` · meilleure séance ${pct(rangeStats.bestSessionPct)}`}
-            {rangeStats.worstSessionPct === null ? "" : ` · plus forte baisse ${pct(rangeStats.worstSessionPct)}`}
+            {rangeStats.worstSessionPct === null ? "" : ` · pire séance ${pct(rangeStats.worstSessionPct)}`}
             {" · "}volume cumulé {compactVolume(rangeStats.totalVolume)}
           </p>
         </div>

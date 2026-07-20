@@ -148,8 +148,14 @@ export function summarizePeriod(
     low = Math.min(low, bar.low);
     totalVolume += bar.volume;
     if (bar.volume === 0) sessionsWithoutTrade += 1;
-    const previous = data[index - 1]?.close;
-    if (previous && previous > 0) {
+    const previousBar = data[index - 1];
+    const previous = previousBar?.close;
+    const currentTime = isoDate(bar.time);
+    const previousTime = previousBar ? isoDate(previousBar.time) : null;
+    const gapDays = currentTime && previousTime
+      ? (parseIsoDate(currentTime).getTime() - parseIsoDate(previousTime).getTime()) / 86_400_000
+      : Number.POSITIVE_INFINITY;
+    if (previous && previous > 0 && gapDays <= 7) {
       const change = ((bar.close - previous) / previous) * 100;
       bestSessionPct = bestSessionPct === null ? change : Math.max(bestSessionPct, change);
       worstSessionPct = worstSessionPct === null ? change : Math.min(worstSessionPct, change);

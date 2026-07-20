@@ -37,6 +37,17 @@ describe("market series", () => {
     expect(summary?.annualizedReturnPct).not.toBeNull();
   });
 
+  it("does not call a multi-week data gap a single trading session", () => {
+    const sparse: OHLCV[] = [
+      { time: "2026-01-02", open: 100, high: 100, low: 100, close: 100, volume: 10 },
+      { time: "2026-02-02", open: 500, high: 500, low: 500, close: 500, volume: 10 },
+      { time: "2026-02-03", open: 450, high: 450, low: 450, close: 450, volume: 10 },
+    ];
+    const summary = summarizePeriod(sparse, "MAX");
+    expect(summary?.bestSessionPct).toBeCloseTo(-10);
+    expect(summary?.worstSessionPct).toBeCloseTo(-10);
+  });
+
   it("rejects mixed or contradictory OHLC data", () => {
     const invalid: OHLCV[] = [
       { time: "2026-07-17", open: 100, high: 90, low: 0, close: 95, volume: -1 },
