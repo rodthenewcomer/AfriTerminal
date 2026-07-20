@@ -6,9 +6,10 @@ import { usePathname } from "next/navigation";
 import {
   Bell,
   Eye,
-  FileText,
   Filter,
   Grid3X3,
+  Landmark,
+  Handshake,
   LayoutDashboard,
   Briefcase,
   CalendarClock,
@@ -19,7 +20,6 @@ import {
   Search as SearchIcon,
   ShieldCheck,
   X,
-  Rocket,
   Settings,
 } from "lucide-react";
 import { cn } from "@wariba/core/utils";
@@ -35,14 +35,14 @@ const NAV = [
   { href: "/map", label: "Carte du marché", icon: Grid3X3 },
   { href: "/screener", label: "Screener", icon: Filter },
   { href: "/pro", label: "WARIBA Pro", icon: Crown },
+  { href: "/sgi", label: "Choisir une SGI", icon: Handshake },
   { href: "/charts", label: "Graphiques", icon: CandlestickChart },
   { href: "/news", label: "Actualités", icon: Newspaper },
-  { href: "/documents", label: "Documents", icon: FileText },
+  { href: "/operations", label: "Opérations & documents", icon: Landmark },
   { href: "/watchlist", label: "Watchlist", icon: Eye },
   { href: "/portfolio", label: "Portefeuille", icon: Briefcase },
   { href: "/alerts", label: "Alertes", icon: Bell },
   { href: "/dividendes", label: "Dividendes", icon: CalendarClock },
-  { href: "/ipo", label: "IPO & Opérations", icon: Rocket },
   { href: "/settings", label: "Réglages", icon: Settings },
 ] as const;
 
@@ -61,14 +61,14 @@ const MOBILE_NAV = [
  * doigt (le 5e onglet menait directement aux Réglages). */
 const MOBILE_MORE = [
   { href: "/pro", label: "WARIBA Pro", icon: Crown },
+  { href: "/sgi", label: "Choisir une SGI", icon: Handshake },
   { href: "/alerts", label: "Alertes", icon: Bell },
   { href: "/portfolio", label: "Portefeuille", icon: Briefcase },
   { href: "/map", label: "Carte du marché", icon: Grid3X3 },
   { href: "/screener", label: "Screener", icon: Filter },
   { href: "/charts", label: "Graphiques", icon: CandlestickChart },
   { href: "/dividendes", label: "Dividendes", icon: CalendarClock },
-  { href: "/ipo", label: "IPO & Opérations", icon: Rocket },
-  { href: "/documents", label: "Documents", icon: FileText },
+  { href: "/operations", label: "Opérations & documents", icon: Landmark },
   { href: "/status", label: "Statut des données", icon: ShieldCheck },
   { href: "/settings", label: "Réglages", icon: Settings },
 ] as const;

@@ -1,8 +1,8 @@
 # WARIBA senior audit — web, iOS and Android
 
 Baseline audit: 2026-07-14  
-Implementation update: 2026-07-16
-Access/fundamentals update: 2026-07-19
+Implementation update: 2026-07-20
+Access/fundamentals update: 2026-07-20
 Scope: product, code, data, auth, API, billing, native UX, security,
 operations, release and commercial readiness.
 
@@ -12,7 +12,7 @@ operations, release and commercial readiness.
 | --- | --- | --- |
 | Public web | **Live** | Next.js runtime and sourced BRVM terminal available on `wariba.app` and `www.wariba.app` |
 | Web account | **Implemented; callback QA pending** | Visible login/register entry points, Supabase password flow, OTP, OAuth callback, RLS sync, account deletion |
-| Shared Expo app | **Release-candidate code** | Native iOS/Android routes, local-first data, auth, sync, billing adapter, notifications, analytics and exports |
+| Shared Expo app | **Release-candidate code** | Native iOS/Android routes, public data cache, cloud-authoritative private data, auth, sync, billing adapter, notifications, analytics and exports |
 | iOS store release | **External no-go** | Signed EAS build, physical-device QA, Apple/OAuth/store setup and declarations remain |
 | Android store release | **External no-go** | Signed EAS build, physical-device QA, Play organization/app setup and declarations remain; RevenueCat is post-launch |
 | WARIBA Pro | **Entitlement-gated** | Laboratory 48 is protected on responsive web and native; public facts remain open |

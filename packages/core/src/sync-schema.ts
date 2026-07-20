@@ -47,5 +47,5 @@ export const cloudSyncSchema = z.object({
     key: z.enum(["chart", "chart_levels", "chart_layouts", "settings"]),
     value: z.union([z.record(z.string(), z.unknown()), z.array(z.unknown())]),
     updatedAt: timestamp,
-  })).max(4),
+  })).max(5),
 }).strict();

@@ -40,7 +40,7 @@ const SLIDES = [
     icon: "shield-checkmark-outline" as const,
     eyebrow: "PRIVÉ PAR DÉFAUT",
     title: "Votre espace reste le vôtre.",
-    body: "Explorez librement sans compte. Connectez-vous seulement pour chiffrer, sauvegarder et synchroniser vos données entre appareils.",
+    body: "Explorez librement sans compte. Créez un compte gratuit pour suivre des actions, construire un portefeuille et synchroniser vos alertes.",
   },
 ] as const;
 
@@ -152,9 +152,9 @@ export default function OnboardingScreen() {
               ) : (
                 <View style={styles.privacyCard}>
                   <View style={styles.shield}><Ionicons name="lock-closed" size={24} color={colors.accent} /></View>
-                  <Text style={styles.privacyTitle}>Données locales en mode invité</Text>
-                  <Text style={styles.privacyDetail}>Synchronisation chiffrée uniquement après votre connexion.</Text>
-                  <View style={styles.privacyLine}><Ionicons name="checkmark-circle" size={16} color={colors.accent} /><Text style={styles.privacyLineText}>Export et suppression à tout moment</Text></View>
+                  <Text style={styles.privacyTitle}>Aucune donnée personnelle en mode invité</Text>
+                  <Text style={styles.privacyDetail}>Le cache public accélère la cote ; watchlist, portefeuille et alertes exigent un compte cloud.</Text>
+                  <View style={styles.privacyLine}><Ionicons name="checkmark-circle" size={16} color={colors.accent} /><Text style={styles.privacyLineText}>Export et suppression depuis votre compte</Text></View>
                 </View>
               )}
             </Animated.View>

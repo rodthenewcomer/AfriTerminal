@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { ArrowDown, ArrowUp, Trash2 } from "lucide-react";
 import {
   isTriggered,
@@ -43,27 +44,65 @@ export function PriceAlertDialog({
   const [saving, setSaving] = useState(false);
 
   const submit = async () => {
+    if (!session) {
+      setError("Connectez-vous pour créer une alerte synchronisée.");
+      return;
+    }
     const v = parseFloat(threshold.replace(/\s/g, "").replace(",", "."));
     if (!Number.isFinite(v) || v <= 0) return setError("Seuil invalide.");
     const channels: ("in_app" | "push" | "email")[] = ["in_app"];
     if (push) channels.push("push");
     if (email) channels.push("email");
     setSaving(true);
-    add({ ticker, direction, threshold: v, channels });
-    if (session?.access_token) {
-      try {
-        await syncNow();
-      } catch {
-        setError("Alerte créée localement, mais sa synchronisation a échoué. Relancez-la depuis Compte.");
-        setSaving(false);
-        return;
-      }
+    const createdId = add({ ticker, direction, threshold: v, channels });
+    try {
+      await syncNow();
+    } catch {
+      remove(createdId);
+      setError("La synchronisation a échoué. Aucune alerte incomplète n'a été conservée.");
+      setSaving(false);
+      return;
     }
     trackProductEvent("alert_create", { ticker, email, push }, `/stocks/${ticker}`);
     setThreshold("");
     setError(null);
     setSaving(false);
   };
+
+  if (!session) {
+    return (
+      <Dialog open={open} onClose={onClose}>
+        <div className="space-y-4 p-6">
+          <header className="pr-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">
+              Alerte personnelle
+            </p>
+            <h2 className="mt-2 text-lg font-semibold text-ink">
+              Ne manquez plus un mouvement sur {ticker}
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-ink-3">
+              Un compte gratuit protège votre seuil, le synchronise sur web et mobile
+              et permet les notifications e-mail ou push.
+            </p>
+          </header>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href={`/inscription?next=${encodeURIComponent(`/stocks/${ticker}`)}`}
+              className="inline-flex h-10 items-center rounded-xl bg-accent px-4 text-sm font-semibold text-white"
+            >
+              Créer mon compte gratuit
+            </Link>
+            <Link
+              href={`/connexion?next=${encodeURIComponent(`/stocks/${ticker}`)}`}
+              className="inline-flex h-10 items-center rounded-xl border border-line px-4 text-sm font-semibold text-ink"
+            >
+              Se connecter
+            </Link>
+          </div>
+        </div>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onClose={onClose}>
@@ -74,8 +113,8 @@ export function PriceAlertDialog({
           </h2>
           <p className="mt-0.5 text-xs text-ink-3">
             Cours actuel : <span className="num font-medium text-ink-2">{fcfa(lastPrice)}</span>.
-            Sans compte, elle reste dans ce navigateur. Avec un compte, elle est
-            synchronisée et peut être envoyée par e-mail ou push selon vos préférences.
+            Elle est synchronisée avec votre compte et peut être envoyée par e-mail
+            ou push selon vos préférences.
           </p>
         </header>
 
@@ -109,12 +148,11 @@ export function PriceAlertDialog({
             <input type="checkbox" checked disabled className="accent-accent" /> Dans WARIBA
           </label>
           <label className="flex items-center gap-2 text-xs text-ink-2">
-            <input type="checkbox" checked={email} disabled={!session} onChange={(event) => setEmail(event.target.checked)} className="accent-accent" /> E-mail
+            <input type="checkbox" checked={email} onChange={(event) => setEmail(event.target.checked)} className="accent-accent" /> E-mail
           </label>
           <label className="flex items-center gap-2 text-xs text-ink-2">
-            <input type="checkbox" checked={push} disabled={!session} onChange={(event) => setPush(event.target.checked)} className="accent-accent" /> Push mobile
+            <input type="checkbox" checked={push} onChange={(event) => setPush(event.target.checked)} className="accent-accent" /> Push mobile
           </label>
-          {!session ? <p className="text-[10px] text-ink-3">Connectez-vous pour activer e-mail ou push.</p> : null}
         </fieldset>
 
         <div className="flex items-end gap-2">

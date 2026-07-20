@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { CloudSyncPayload } from "@wariba/core/sync";
 import { EMPTY_CLOUD_SYNC, isTicker } from "@wariba/core/sync";
 import { cloudSyncSchema } from "@wariba/core/sync-schema";
@@ -7,6 +6,7 @@ import type { ChartType, IndicatorId } from "@wariba/core/types";
 import {
   useChartLevelStore,
   useChartStore,
+  useAlertPreferencesStore,
   usePortfolioStore,
   usePriceAlertStore,
   useScreenerStore,
@@ -14,9 +14,9 @@ import {
   useWatchlistStore,
 } from "../stores";
 
-const LEDGER_PREFIX = "wariba-cloud-sync-ledger-v1";
-const OWNER_KEY = "wariba-cloud-sync-owner-v1";
 let applyingCloudPayload = false;
+let activeCloudUserId: string | null = null;
+const cloudLedger = new Map<string, CloudSyncPayload>();
 const CHART_TYPES = new Set<ChartType>(["candlestick", "line", "area", "baseline", "bars", "heikin-ashi"]);
 const INDICATORS = new Set<IndicatorId>(["sma20", "sma50", "sma100", "sma200", "ema20", "vwap", "bollinger", "rsi", "macd", "atr", "stoch"]);
 const MOBILE_SCOPE = {
@@ -25,7 +25,14 @@ const MOBILE_SCOPE = {
   preferenceKeys: ["chart", "chart_levels", "settings"] as ("chart" | "chart_levels" | "settings")[],
   preferencePatchKeys: {
     chart: ["type", "indicators", "logarithmic", "percentMode"],
-    settings: ["notifications", "dataSaver", "experienceLevel"],
+    settings: [
+      "notifications",
+      "dataSaver",
+      "experienceLevel",
+      "alertScope",
+      "alertImportantOnly",
+      "hiddenAlertTypes",
+    ],
   },
 };
 
@@ -39,6 +46,7 @@ export function buildMobileCloudPayload(): CloudSyncPayload {
   const updatedAt = new Date().toISOString();
   const screener = useScreenerStore.getState();
   const settings = useSettingsStore.getState();
+  const alertPreferences = useAlertPreferencesStore.getState();
   return {
     watchlists: [{ id: "default", name: "Ma watchlist", isActive: true, tickers: useWatchlistStore.getState().tickers, updatedAt }],
     transactions: usePortfolioStore.getState().transactions.map((item) => ({ ...item, updatedAt })),
@@ -71,6 +79,9 @@ export function buildMobileCloudPayload(): CloudSyncPayload {
           notifications: settings.notifications,
           dataSaver: settings.dataSaver,
           experienceLevel: settings.experienceLevel,
+          alertScope: alertPreferences.scope,
+          alertImportantOnly: alertPreferences.importantOnly,
+          hiddenAlertTypes: alertPreferences.hiddenTypes,
         },
         updatedAt,
       },
@@ -88,21 +99,6 @@ async function requestCloud(token: string, init?: RequestInit): Promise<CloudSyn
   const parsed = cloudSyncSchema.safeParse(body);
   if (!parsed.success) throw new Error("Réponse de synchronisation invalide");
   return parsed.data as CloudSyncPayload;
-}
-
-function ledgerKey(userId: string): string {
-  return `${LEDGER_PREFIX}:${userId}`;
-}
-
-async function readLedger(userId: string): Promise<CloudSyncPayload | null> {
-  try {
-    const raw = await AsyncStorage.getItem(ledgerKey(userId));
-    if (!raw) return null;
-    const parsed = cloudSyncSchema.safeParse(JSON.parse(raw));
-    return parsed.success ? parsed.data as CloudSyncPayload : null;
-  } catch {
-    return null;
-  }
 }
 
 function validLevels(value: unknown): Record<string, number[]> {
@@ -159,6 +155,17 @@ export function applyMobileCloudPayload(payload: CloudSyncPayload): void {
           patch.experienceLevel = value.experienceLevel;
         }
         useSettingsStore.setState(patch);
+        const validScopes = new Set(["personal", "watchlist", "portfolio", "market"]);
+        const validTypes = new Set(["prix", "volume", "dividende", "document", "fondamental", "ia"]);
+        useAlertPreferencesStore.getState().replaceAll({
+          ...(typeof value.alertScope === "string" && validScopes.has(value.alertScope)
+            ? { scope: value.alertScope as "personal" | "watchlist" | "portfolio" | "market" }
+            : {}),
+          ...(typeof value.alertImportantOnly === "boolean" ? { importantOnly: value.alertImportantOnly } : {}),
+          ...(Array.isArray(value.hiddenAlertTypes)
+            ? { hiddenTypes: value.hiddenAlertTypes.filter((item): item is "prix" | "volume" | "dividende" | "document" | "fondamental" | "ia" => typeof item === "string" && validTypes.has(item)) }
+            : {}),
+        });
       }
     }
   } finally {
@@ -171,6 +178,7 @@ export function subscribeMobileCloudChanges(onChange: () => void): () => void {
     useWatchlistStore,
     usePortfolioStore,
     usePriceAlertStore,
+    useAlertPreferencesStore,
     useChartStore,
     useChartLevelStore,
     useScreenerStore,
@@ -182,18 +190,28 @@ export function subscribeMobileCloudChanges(onChange: () => void): () => void {
   return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
 }
 
+export function clearMobileCloudPersonalState(): void {
+  applyingCloudPayload = true;
+  try {
+    useWatchlistStore.getState().replaceAll([]);
+    usePortfolioStore.getState().replaceAll([]);
+    usePriceAlertStore.getState().replaceAll([]);
+    useAlertPreferencesStore.getState().replaceAll({});
+    useScreenerStore.setState({ saved: [] });
+    activeCloudUserId = null;
+    cloudLedger.clear();
+  } finally {
+    applyingCloudPayload = false;
+  }
+}
+
 export async function syncMobileData(token: string, userId: string): Promise<CloudSyncPayload> {
-  const [remote, previous, localOwner] = await Promise.all([
-    requestCloud(token),
-    readLedger(userId),
-    AsyncStorage.getItem(OWNER_KEY),
-  ]);
-  if (localOwner && localOwner !== userId) {
+  const remote = await requestCloud(token);
+  const previous = cloudLedger.get(userId) ?? null;
+  if (activeCloudUserId !== userId) {
     applyMobileCloudPayload(remote);
-    await AsyncStorage.multiSet([
-      [ledgerKey(userId), JSON.stringify(remote)],
-      [OWNER_KEY, userId],
-    ]);
+    activeCloudUserId = userId;
+    cloudLedger.set(userId, remote);
     return remote;
   }
   const baseline = previous ?? EMPTY_CLOUD_SYNC;
@@ -213,10 +231,7 @@ export async function syncMobileData(token: string, userId: string): Promise<Clo
     scope: MOBILE_SCOPE,
   });
   applyMobileCloudPayload(localProjection);
-  await AsyncStorage.multiSet([
-    [ledgerKey(userId), JSON.stringify(canonical)],
-    [OWNER_KEY, userId],
-  ]);
+  cloudLedger.set(userId, canonical);
   return canonical;
 }
 

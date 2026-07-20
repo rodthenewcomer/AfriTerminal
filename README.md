@@ -9,7 +9,7 @@ dividendes, portefeuille, documents, alertes et synchronisation privée.
 - Lancement stores Côte d’Ivoire : [comptes Apple/Google, EAS et checklist](docs/native-release-cote-ivoire.md)
 - Compte : e-mail/mot de passe, Apple et Google via Supabase Auth
 - WARIBA Pro : Laboratoire 48 réservé aux comptes disposant d'un abonnement Pro actif
-- Monétisation : code Stripe/RevenueCat conservé, activation différée après le lancement
+- Monétisation : frontière Public / Compte / Pro visible ; Stripe/RevenueCat restent désactivés tant que les produits stores ne sont pas validés
 - Données : pipeline BRVM officiel, aucune valeur inventée
 - Décision Pro et audit du classeur : [Laboratoire 48 et revue 22 rôles](docs/pro-research-workspace.md)
 
@@ -29,8 +29,8 @@ dashboard, le screener, la watchlist, le portefeuille, la recherche et
   Pour tout champ non prouvé : masqué (« — »), jamais inventé. Les documents officiels sont
 référencés depuis brvm.org, les alertes sont factuelles et dérivées des
 dernières séances. Les avis et opérations sur capital viennent de la
-BRVM ; seul l'onglet « Apprendre » de la page IPO contient des scénarios
-pédagogiques explicitement simulés. 15 sociétés gardent une fiche curée
+  BRVM ; le hub « Opérations & documents » réunit publications, avis, opérations
+  sur capital et explications pédagogiques sans inventer d'opération. 15 sociétés gardent une fiche curée
 (`lib/mock/stocks.ts` : description, secteur vérifié) ; les autres sont
 dérivées du bulletin
 (`lib/real-universe.ts` : secteur via code BOC, pays via suffixe du
@@ -63,12 +63,12 @@ scénarios pédagogiques explicitement signalés.
 - Next.js 15.5 (App Router) · React 19 · TypeScript strict · Tailwind CSS v4
 - lightweight-charts v5 (TradingView) pour le chart principal
 - Sparklines SVG et anneaux de répartition maison · next-themes
-- Zustand persisté en localStorage : watchlists, portefeuille
-  (transactions, PRU, dividendes perçus), filtres screener, préférences
-  chart — avec sauvegarde/restauration JSON (Réglages)
+- Supabase + Zustand en mémoire : watchlists, portefeuille, alertes et filtres
+  appartiennent au compte cloud ; aucune donnée métier d'invité n'est persistée.
+  Seuls thème, préférences chart et cache public restent sur l'appareil.
 - Expo SDK 54 · React Native 0.81 · Expo Router · Skia · Reanimated pour
-  l'app iOS/Android dans `apps/mobile`, avec Zustand + AsyncStorage — les
-  sauvegardes JSON sont interchangeables entre le site et l'app
+  l'app iOS/Android dans `apps/mobile`, avec le même contrat de synchronisation
+  et une sauvegarde JSON portable pour les comptes
 
 ## Système de marque et assets
 
@@ -96,7 +96,7 @@ iOS/Android et l'audit des dépendances de production.
 ```
 app/                pages (dashboard/accueil, map, screener, charts —
                     multi-graphiques, stocks/[ticker], portfolio,
-                    documents, watchlist, alerts, ipo, news, pro, launch,
+                     operations, sgi, watchlist, alerts, news, pro,
                     status, settings) + opengraph-image par ticker (build)
 components/
   charts/           MainChart (bougies, ligne, aire, OHLC, Heikin Ashi,
@@ -105,18 +105,18 @@ components/
   stocks/           table, badges, historique dividendes, profil de
                     risque (volatilité/bêta/perte max), comparables
   portfolio/        transactions, courbe de patrimoine, revenus passifs
-  documents/        liste des publications officielles référencées BRVM
+  operations/       publications, avis et opérations officielles réunis
   layout/           shell, sidebar, bottom nav + feuille « + » mobile,
                     recherche ⌘K, statut BRVM
 lib/
   portfolio.ts      moteur PRU/P&L/dividendes/projections (pur, testé)
   risk.ts           volatilité annualisée, bêta, drawdown max (pur, testé)
-  backup.ts         export/import validé des données locales (pur, testé)
+  backup.ts         export/import portable des données de compte (pur, testé)
   real-*.ts         accès aux artefacts réels (cours, fondamentaux,
                     dividendes, documents, opérations, actualités)
   company-profiles  48 descriptions factuelles curées
   indicators.ts     SMA, EMA, RSI, MACD, Bollinger, Heikin Ashi, VWAP
-  mock/             scénarios pédagogiques (IPO) + méta héritées
+  mock/             métadonnées historiques de repli, jamais cotations publiques
 ```
 
 ## Couverture des actions BRVM
@@ -191,12 +191,11 @@ donnée réelle manque ; le screener privilégie des critères réels (PER,
 rendement, YTD, volume).
 
 Documents et alertes sont aussi audités contre les vraies données :
-les documents listent les PDF officiels référencés depuis les fiches
-sociétés BRVM, et les alertes factuelles (prix, volumes, dividendes,
-extrêmes 52 semaines) sont générées depuis les séries réelles. Les seuls
-cas synthétiques exposés à l'utilisateur sont les scénarios pédagogiques
-de l'onglet « Apprendre » sur la page IPO — rien ne se présente comme
-vérifié sans l'être.
+le hub Opérations & documents liste les PDF, avis et opérations sourcés,
+et les alertes factuelles (prix, volumes, dividendes, fondamentaux,
+publications, extrêmes 52 semaines) sont générées depuis les séries réelles.
+La pédagogie explique des mécanismes généraux ; aucun événement fictif ne se
+présente comme vérifié.
 
 **Limite connue à ne pas oublier** : le BOC ne publie que l'ouverture et
 la clôture par action, jamais de plus haut/bas intraday. `live_poll.py`
@@ -216,8 +215,8 @@ description longue inventée.
 La couche produit server-backed est maintenant présente : comptes Supabase,
 API de synchronisation privée, entitlements multi-provider et adaptateurs
 Stripe/RevenueCat. Les faits de marché restent publics ; la synchronisation
-privée exige un compte et le Laboratoire 48, ses comparaisons et exports exigent
-un droit Pro. La matrice Public / Compte / Pro et les blockers externes sont
+privée exige un compte et les outils de recherche avancés de Pro exigent
+un droit actif. La matrice Public / Compte / Pro et les blocages externes sont
 suivis dans `docs/ship-readiness.md`.
 
 ## Avertissement
@@ -276,9 +275,10 @@ Implémentée dans `apps/mobile` : app Expo/React Native, chart motorisé
 par le build lightweight-charts du site dans une WebView hors-ligne
 (décision 2026-07-12), navigation Router, données réseau/cache,
 portefeuille (transactions rétrodatables, saisies validées et testées),
-watchlist, screener, documents, alertes locales réarmables avec push/e-mail
-serveur optionnel pour les comptes synchronisés, et
-sauvegarde/restauration JSON compatible avec le site. La logique de
+watchlist, screener public, hub Opérations & documents, comparateur SGI
+Côte d'Ivoire et alertes personnalisées avec push/e-mail serveur.
+Watchlist, portefeuille, seuils et filtres exigent un compte et ne sont plus
+persistés comme sessions locales. La logique de
 calcul reste partagée dans `packages/core` et le site conserve son
 comportement. La revue 22 rôles du 2026-07-13 est intégrée (voir
 `docs/ship-readiness.md`). L'identité WARIBA, l'ouverture animée,

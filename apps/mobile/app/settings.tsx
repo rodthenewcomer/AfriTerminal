@@ -118,6 +118,10 @@ export default function SettingsScreen() {
   };
 
   const exportBackup = async () => {
+    if (!session) {
+      router.push("/(auth)/sign-up");
+      return;
+    }
     const payload = {
       app: "WARIBA",
       version: 1,
@@ -132,6 +136,10 @@ export default function SettingsScreen() {
   };
 
   const importBackup = async () => {
+    if (!session) {
+      router.push("/(auth)/sign-up");
+      return;
+    }
     try {
       const picked = await DocumentPicker.getDocumentAsync({ type: ["application/json", "text/plain"], copyToCacheDirectory: true });
       if (picked.canceled || !picked.assets[0]) return;
@@ -153,7 +161,7 @@ export default function SettingsScreen() {
       ].join(", ");
       Alert.alert(
         "Restaurer cette sauvegarde ?",
-        `${summary}.${skipped ? `\n${skipped} entrée(s) invalide(s) ignorée(s).` : ""}\nLes données actuelles de cet appareil seront remplacées.`,
+        `${summary}.${skipped ? `\n${skipped} entrée(s) invalide(s) ignorée(s).` : ""}\nLes données actuelles de votre compte seront remplacées puis synchronisées.`,
         [
           { text: "Annuler", style: "cancel" },
           {
@@ -172,14 +180,18 @@ export default function SettingsScreen() {
   };
 
   const confirmClear = () => {
-    Alert.alert("Effacer le portefeuille ?", "Toutes les transactions locales seront supprimées. Action irréversible.", [
+    if (!session) {
+      router.push("/(auth)/sign-up");
+      return;
+    }
+    Alert.alert("Effacer le portefeuille ?", "Toutes les transactions de votre compte seront supprimées sur vos appareils. Action irréversible.", [
       { text: "Annuler", style: "cancel" },
       { text: "Effacer", style: "destructive", onPress: () => usePortfolioStore.getState().clear() },
     ]);
   };
 
   return (
-    <Page subtitle="Préférences locales, compte, notifications et confidentialité">
+    <Page subtitle="Préférences de cet appareil, compte cloud, notifications et confidentialité">
       <View style={styles.identity}>
         <View style={styles.monogram}>
           <Text style={styles.monogramText}>W</Text>
@@ -230,9 +242,9 @@ export default function SettingsScreen() {
         <Group>
           <Setting
             label="Alertes de prix push"
-            detail={session ? "Envoi serveur après franchissement, avec vérification locale de secours hors connexion" : "Mode local sans compte : vérification à l'ouverture et lors des fenêtres système"}
+            detail={session ? "Envoi serveur après franchissement, avec vérification sur l’appareil lorsque l’application est ouverte" : "Compte gratuit requis pour créer et synchroniser des alertes"}
             value={notifications}
-            disabled={savingPreferences}
+            disabled={!session || savingPreferences}
             onChange={(value) => {
               setSavingPreferences(true);
               void (value ? enableNotifications(session?.access_token) : disableNotifications(session?.access_token))
@@ -305,18 +317,18 @@ export default function SettingsScreen() {
         </Group>
       </Section>
 
-      <Section title="Sauvegarde locale">
+      <Section title="Sauvegarde portable">
         <Group>
-          <Row icon="share-outline" title="Exporter une sauvegarde" detail="Watchlist, portefeuille et seuils au format JSON" onPress={() => void exportBackup()} />
-          <Row icon="download-outline" title="Importer une sauvegarde" detail="Restaure un fichier JSON exporté depuis l'app ou le site" onPress={() => void importBackup()} />
-          <Row icon="trash-outline" title="Effacer le portefeuille" detail="Supprime toutes les transactions de cet appareil" onPress={confirmClear} />
+          <Row icon="share-outline" title="Exporter une sauvegarde" detail={session ? "Copie JSON de vos données cloud" : "Compte gratuit requis"} onPress={() => void exportBackup()} />
+          <Row icon="download-outline" title="Importer une sauvegarde" detail={session ? "Restaure puis synchronise un export WARIBA" : "Compte gratuit requis"} onPress={() => void importBackup()} />
+          <Row icon="trash-outline" title="Effacer le portefeuille" detail={session ? "Supprime les transactions synchronisées du compte" : "Compte gratuit requis"} onPress={confirmClear} />
         </Group>
       </Section>
 
       <Section title="À propos">
         <Group>
           <Row icon="globe-outline" title="Site web WARIBA" detail="Mêmes données, même pipeline officiel BOC" onPress={() => void openTrustedUrl("/")} />
-          <Row icon="shield-checkmark-outline" title="Confidentialité" detail="Données locales, compte et synchronisation" onPress={() => void openTrustedUrl("/privacy")} />
+          <Row icon="shield-checkmark-outline" title="Confidentialité" detail="Données de compte, préférences appareil et synchronisation" onPress={() => void openTrustedUrl("/privacy")} />
           <Row icon="document-text-outline" title="Conditions d'utilisation" detail="Cadre du service et abonnement" onPress={() => void openTrustedUrl("/terms")} />
           <Row icon="help-circle-outline" title="Support" detail="Aide et signalement d'un problème" onPress={() => void openTrustedUrl("/support")} />
         </Group>

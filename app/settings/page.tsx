@@ -185,7 +185,7 @@ export default function SettingsPage() {
             <User className="h-5 w-5" />
           </span>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-ink">{user?.email ?? "Session locale"}</p>
+            <p className="text-sm font-semibold text-ink">{user?.email ?? "Mode public"}</p>
             <p className="text-xs text-ink-3">
               {user ? "Compte connecté : synchronisation et préférences privées disponibles." : "Connectez-vous pour synchroniser vos données et activer les notifications."}
             </p>
@@ -351,7 +351,7 @@ export default function SettingsPage() {
         </CardBody>
       </Card>
 
-      <BackupCard />
+      {user ? <BackupCard /> : null}
 
       <Card>
         <CardHeader
@@ -360,13 +360,15 @@ export default function SettingsPage() {
               <Eraser className="h-3.5 w-3.5 text-down" /> Réinitialiser
             </span>
           }
-          subtitle="Efface définitivement les données choisies, dans ce navigateur. Téléchargez une sauvegarde avant si besoin."
+          subtitle={user
+            ? "Retire les données choisies de votre compte synchronisé. Une exportation portable reste disponible avant suppression."
+            : "Les données personnelles nécessitent un compte. Seules les préférences d'affichage de cet appareil peuvent être réinitialisées."}
         />
         <CardBody className="divide-y divide-line/60">
           <ResetRow
             label="Watchlists"
             hint="Revient à une liste unique vide."
-            disabled={!watchlistHydrated}
+            disabled={!user || !watchlistHydrated}
             onReset={() =>
               confirmAndRun("Effacer toutes vos watchlists ?", () =>
                 resetWatchlists([{ id: "default", name: "Ma watchlist", tickers: [] }], "default")
@@ -376,7 +378,7 @@ export default function SettingsPage() {
           <ResetRow
             label="Portefeuille"
             hint="Supprime toutes les transactions enregistrées."
-            disabled={!portfolioHydrated}
+            disabled={!user || !portfolioHydrated}
             onReset={() =>
               confirmAndRun("Effacer tout votre portefeuille ?", () => clearPortfolio([]))
             }
@@ -384,7 +386,7 @@ export default function SettingsPage() {
           <ResetRow
             label="Filtres enregistrés (Screener)"
             hint="Supprime vos combinaisons de filtres sauvegardées."
-            disabled={!filtersHydrated}
+            disabled={!user || !filtersHydrated}
             onReset={() =>
               confirmAndRun("Effacer tous vos filtres enregistrés ?", () => clearFilters([]))
             }
@@ -392,7 +394,7 @@ export default function SettingsPage() {
           <ResetRow
             label="Alertes de prix"
             hint="Supprime toutes vos alertes de seuil."
-            disabled={!alertsHydrated}
+            disabled={!user || !alertsHydrated}
             onReset={() =>
               confirmAndRun("Effacer toutes vos alertes de prix ?", clearAlerts)
             }

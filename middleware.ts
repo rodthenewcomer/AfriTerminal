@@ -2,6 +2,14 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
+  if (request.nextUrl.hostname === "www.wariba.app") {
+    const canonical = request.nextUrl.clone();
+    canonical.hostname = "wariba.app";
+    canonical.protocol = "https:";
+    canonical.port = "";
+    return NextResponse.redirect(canonical, 308);
+  }
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !publishableKey) return NextResponse.next({ request });

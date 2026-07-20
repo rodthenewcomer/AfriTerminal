@@ -11,7 +11,11 @@ import {
   type ReactNode,
 } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
-import { subscribeWebCloudChanges, syncWebData } from "@/lib/web-cloud-sync";
+import {
+  clearWebCloudPersonalState,
+  subscribeWebCloudChanges,
+  syncWebData,
+} from "@/lib/web-cloud-sync";
 
 export type CloudSyncStatus = "idle" | "syncing" | "synced" | "offline" | "error";
 
@@ -37,6 +41,7 @@ export function CloudSyncProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!token || !userId) {
+      clearWebCloudPersonalState();
       setStatus("idle");
       setLastSyncedAt(null);
       setError(null);
@@ -68,7 +73,7 @@ export function CloudSyncProvider({ children }: { children: ReactNode }) {
       }
       if (typeof navigator !== "undefined" && !navigator.onLine) {
         if (active) setStatus("offline");
-        throw new Error("Connexion indisponible. Les changements restent enregistrés sur cet appareil.");
+        throw new Error("Connexion indisponible. Gardez cette page ouverte : la synchronisation reprendra au retour du réseau.");
       }
       running = true;
       queued = false;

@@ -3,16 +3,17 @@
 import { useDeferredValue, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Building2, Clock3, Newspaper, Search } from "lucide-react";
-import type { NewsItem } from "@/lib/news";
+import { classifyNewsRegion, type NewsItem, type NewsRegion } from "@/lib/news";
 import { cn } from "@wariba/core/utils";
 
-type NewsFilter = "all" | "results" | "listed" | "regional";
+type NewsFilter = "all" | "results" | NewsRegion;
 
 const FILTERS: { id: NewsFilter; label: string }[] = [
   { id: "all", label: "Tout le fil" },
+  { id: "brvm", label: "BRVM" },
+  { id: "uemoa", label: "UEMOA" },
+  { id: "international", label: "International / hors UEMOA" },
   { id: "results", label: "Résultats & dividendes" },
-  { id: "listed", label: "Sociétés cotées" },
-  { id: "regional", label: "Économie régionale" },
 ];
 
 const DATE_FORMAT = new Intl.DateTimeFormat("fr-FR", {
@@ -31,8 +32,9 @@ function matchesFilter(item: NewsItem, filter: NewsFilter) {
   if (filter === "results") {
     return /résultat|rapport annuel|chiffre d.affaires|bénéfice|dividende|publication financière/i.test(`${item.title} ${item.summary}`);
   }
-  if (filter === "listed") return item.tickers.length > 0;
-  if (filter === "regional") return item.tickers.length === 0;
+  if (filter === "brvm" || filter === "uemoa" || filter === "international") {
+    return classifyNewsRegion(item) === filter;
+  }
   return true;
 }
 
@@ -76,7 +78,7 @@ export function NewsDesk({ news }: { news: NewsItem[] }) {
     return haystack.includes(deferredQuery);
   }), [deferredQuery, filter, news, source]);
 
-  const linkedLeadIndex = filter === "regional" ? 0 : filtered.findIndex((item) => item.tickers.length > 0);
+  const linkedLeadIndex = filter === "international" || filter === "uemoa" ? 0 : filtered.findIndex((item) => item.tickers.length > 0);
   const lead = filtered[Math.max(0, linkedLeadIndex)];
   const stream = filtered.filter((item) => item.link !== lead?.link).slice(0, Math.max(0, limit - 1));
 
@@ -100,7 +102,7 @@ export function NewsDesk({ news }: { news: NewsItem[] }) {
             </p>
           </div>
           <Link
-            href="/documents"
+            href="/operations"
             className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-line px-3 text-xs font-semibold text-ink-2 transition-colors hover:border-accent/35 hover:text-ink"
           >
             Publications officielles <ArrowUpRight className="h-3.5 w-3.5" />
@@ -178,6 +180,8 @@ export function NewsDesk({ news }: { news: NewsItem[] }) {
                 <span>·</span>
                 <span>{lead.source}</span>
                 <span>·</span>
+                <span>{classifyNewsRegion(lead) === "brvm" ? "BRVM" : classifyNewsRegion(lead) === "uemoa" ? "UEMOA" : "International"}</span>
+                <span>·</span>
                 <time dateTime={lead.publishedAt}>{formatDate(lead.publishedAt)}</time>
               </div>
               <a href={lead.link} target="_blank" rel="noopener noreferrer" className="group mt-3 block">
@@ -199,6 +203,7 @@ export function NewsDesk({ news }: { news: NewsItem[] }) {
                   <div>
                     <div className="mb-1.5 flex flex-wrap items-center gap-1.5 text-[10px] uppercase tracking-wide text-ink-3">
                       <span className="font-bold text-ink-2">{item.source}</span><span>·</span>
+                      <span className="font-semibold text-accent">{classifyNewsRegion(item) === "brvm" ? "BRVM" : classifyNewsRegion(item) === "uemoa" ? "UEMOA" : "International"}</span><span>·</span>
                       <time dateTime={item.publishedAt}>{formatDate(item.publishedAt)}</time>
                       {item.tickers.length ? <><span>·</span><span className="text-accent">{item.tickers.length} valeur{item.tickers.length > 1 ? "s" : ""}</span></> : null}
                     </div>

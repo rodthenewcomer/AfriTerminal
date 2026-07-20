@@ -5,6 +5,10 @@ import Animated, { cancelAnimation, FadeInDown, useAnimatedStyle, useReducedMoti
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { colors, radius, tabular, type } from "../theme";
+import {
+  metricDisclosureLabel,
+  type MetricDisclosure,
+} from "@wariba/core/financial-language";
 
 /**
  * Conteneur d'écran. Les onglets n'ont pas d'en-tête natif : le titre est
@@ -63,7 +67,7 @@ export function Section({ title, detail, children }: { title: string; detail?: s
 }
 
 /** Tuile de métrique — carte pleine, valeur qui se réduit plutôt que déborder. */
-export function Metric({ label, value, tone = "default", detail, explanation }: { label: string; value: string; tone?: "default" | "up" | "down" | "accent"; detail?: string; explanation?: string }) {
+export function Metric({ label, value, tone = "default", detail, explanation, disclosure }: { label: string; value: string; tone?: "default" | "up" | "down" | "accent"; detail?: string; explanation?: string; disclosure?: MetricDisclosure }) {
   const [expanded, setExpanded] = useState(false);
   const content = (
     <>
@@ -80,6 +84,7 @@ export function Metric({ label, value, tone = "default", detail, explanation }: 
         {value}
       </Text>
       {detail ? <Text numberOfLines={1} style={styles.metricDetail}>{detail}</Text> : null}
+      {disclosure ? <Text numberOfLines={3} style={styles.metricDisclosure}>{metricDisclosureLabel(disclosure)}{disclosure.basisNote ? ` · ${disclosure.basisNote}` : ""}</Text> : null}
       {expanded && explanation ? <Text style={styles.metricExplanation}>{explanation}</Text> : null}
     </>
   );
@@ -242,6 +247,7 @@ const styles = StyleSheet.create({
   metricLabel: { ...type.label, flexShrink: 1 },
   metricValue: { color: colors.ink, fontSize: 21, fontWeight: "800", letterSpacing: -0.4, marginTop: 7, fontVariant: tabular },
   metricDetail: { ...type.caption, marginTop: 3 },
+  metricDisclosure: { color: colors.ink3, fontSize: 9, lineHeight: 13, marginTop: 8, paddingTop: 7, borderTopWidth: 1, borderTopColor: colors.line },
   metricExplanation: { ...type.caption, color: colors.ink2, marginTop: 10, paddingTop: 9, borderTopWidth: 1, borderTopColor: colors.line, lineHeight: 17 },
   pill: { paddingHorizontal: 8, paddingVertical: 3.5, borderRadius: radius.full },
   pillText: { fontSize: 12, fontWeight: "700", fontVariant: tabular },

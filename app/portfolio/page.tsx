@@ -34,6 +34,8 @@ import { PriceChange } from "@/components/stocks/badges";
 import { TransactionDialog } from "@/components/portfolio/transaction-dialog";
 import { PerformanceChart } from "@/components/portfolio/performance-chart";
 import { HoldingsFeed } from "@/components/portfolio/holdings-feed";
+import { useAuth } from "@/components/auth/auth-provider";
+import { AccountValueGate } from "@/components/auth/account-value-gate";
 
 const PITCH: { icon: typeof BarChart3; text: string }[] = [
   {
@@ -50,7 +52,7 @@ const PITCH: { icon: typeof BarChart3; text: string }[] = [
   },
   {
     icon: Sparkles,
-    text: "À venir : analyses IA de votre portefeuille, alertes personnalisées et comparaison à l'indice BRVM Composite.",
+    text: "Recevez les alertes et publications des sociétés détenues, puis comparez votre patrimoine à l'indice BRVM Composite.",
   },
 ];
 
@@ -84,6 +86,7 @@ function StatTile({
 }
 
 export default function PortfolioPage() {
+  const { user, loading } = useAuth();
   const hydrated = usePortfolioHydrated();
   const transactions = usePortfolio((s) => s.transactions);
   const remove = usePortfolio((s) => s.remove);
@@ -108,6 +111,30 @@ export default function PortfolioPage() {
       }))
       .sort((a, b) => b.weightPct - a.weightPct);
   }, [summary]);
+  const portfolioHealth = useMemo(() => {
+    const topPosition = summary.positions[0];
+    const topSector = sectorAllocation[0];
+    const issues = [
+      topPosition && topPosition.weightPct > 35
+        ? `${topPosition.ticker} représente ${topPosition.weightPct.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} % du portefeuille.`
+        : null,
+      topSector && topSector.weightPct > 50
+        ? `Le secteur ${topSector.sector} concentre ${topSector.weightPct.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} % de la valeur.`
+        : null,
+      summary.positions.length < 3
+        ? `Le portefeuille ne compte que ${summary.positions.length} position${summary.positions.length > 1 ? "s" : ""}.`
+        : null,
+      summary.positions.some((position) => position.oversold)
+        ? "Au moins une vente dépasse la quantité détenue : saisie à vérifier."
+        : null,
+    ].filter((item): item is string => Boolean(item));
+    return {
+      issues,
+      level: issues.length >= 3 ? "Élevé" : issues.length ? "À surveiller" : "Équilibré",
+      topPosition,
+      topSector,
+    };
+  }, [sectorAllocation, summary]);
 
   const dividends = useMemo(
     () => dividendIncome(transactions, dividendHistoryFor),
@@ -151,6 +178,21 @@ export default function PortfolioPage() {
 
   const empty = hydrated && transactions.length === 0;
 
+  if (!loading && !user) {
+    return (
+      <AccountValueGate
+        title="Transformez vos transactions en tableau de bord personnel"
+        description="WARIBA calcule votre prix de revient avec frais, vos dividendes, votre performance, votre concentration et les événements importants des sociétés détenues."
+        next="/portfolio"
+        benefits={[
+          "Performance totale : cours, dividendes reçus et revenus futurs estimés.",
+          "Concentration par valeur, secteur et pays avec points de vigilance.",
+          "Alertes et publications limitées aux entreprises réellement détenues.",
+        ]}
+      />
+    );
+  }
+
   return (
     <div className="stagger space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -160,8 +202,7 @@ export default function PortfolioPage() {
           </h1>
           <p className="mt-1 max-w-3xl text-sm text-ink-3">
             Vos transactions, votre prix de revient, votre performance réelle —
-            valorisés au dernier cours officiel BRVM. Tout reste dans ce
-            navigateur : rien n&apos;est envoyé nulle part.
+            valorisés au dernier cours officiel BRVM et synchronisés avec votre compte.
           </p>
         </div>
         {!empty ? (
@@ -231,6 +272,58 @@ export default function PortfolioPage() {
               tone={dividends.total > 0 ? "up" : undefined}
             />
           </div>
+
+          <Card>
+            <CardHeader
+              title="Santé du portefeuille"
+              subtitle="Concentration et diversification calculées sur vos positions actuelles"
+            />
+            <CardBody className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-xl border border-line bg-surface-2/40 p-3">
+                <p className="text-[10px] uppercase tracking-wide text-ink-3">Niveau de vigilance</p>
+                <p className={cn("mt-1 text-base font-bold", portfolioHealth.issues.length ? "text-warn" : "text-up")}>
+                  {portfolioHealth.level}
+                </p>
+                <p className="mt-1 text-[11px] text-ink-3">
+                  {portfolioHealth.issues.length
+                    ? `${portfolioHealth.issues.length} point${portfolioHealth.issues.length > 1 ? "s" : ""} à examiner`
+                    : "Aucun seuil de concentration dépassé"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-line bg-surface-2/40 p-3">
+                <p className="text-[10px] uppercase tracking-wide text-ink-3">Première position</p>
+                <p className="mt-1 text-base font-bold text-ink">
+                  {portfolioHealth.topPosition?.ticker ?? "—"}
+                </p>
+                <p className="mt-1 text-[11px] text-ink-3">
+                  {portfolioHealth.topPosition
+                    ? pct(portfolioHealth.topPosition.weightPct, { signed: false, digits: 1 })
+                    : "Aucune position"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-line bg-surface-2/40 p-3">
+                <p className="text-[10px] uppercase tracking-wide text-ink-3">Premier secteur</p>
+                <p className="mt-1 truncate text-base font-bold text-ink">
+                  {portfolioHealth.topSector?.sector ?? "—"}
+                </p>
+                <p className="mt-1 text-[11px] text-ink-3">
+                  {portfolioHealth.topSector
+                    ? pct(portfolioHealth.topSector.weightPct, { signed: false, digits: 1 })
+                    : "Aucun secteur"}
+                </p>
+              </div>
+              {portfolioHealth.issues.length ? (
+                <ul className="space-y-1.5 rounded-xl border border-warn/25 bg-warn/5 p-3 text-xs text-ink-2 sm:col-span-3">
+                  {portfolioHealth.issues.map((issue) => (
+                    <li key={issue} className="flex gap-2">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-warn" />
+                      {issue}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </CardBody>
+          </Card>
 
           {/* Courbe du patrimoine */}
           <Card>
@@ -555,12 +648,8 @@ export default function PortfolioPage() {
       <p className="text-[10px] text-ink-3">
         Le portefeuille est un outil de suivi personnel valorisé sur les cours
         officiels BRVM (différé : bulletin quotidien). Il ne constitue ni un
-        compte-titres ni un conseil en investissement. Vos données vivent dans
-        ce navigateur :{" "}
-        <Link href="/settings" className="text-accent underline hover:no-underline">
-          pensez à les sauvegarder
-        </Link>
-        .
+        compte-titres ni un conseil en investissement. Vos données personnelles
+        sont synchronisées avec votre compte WARIBA.
       </p>
 
       <TransactionDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />

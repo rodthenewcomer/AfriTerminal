@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { BookmarkPlus, Briefcase, Grid3X3, RotateCcw, X } from "lucide-react";
 import { useSavedFilters, useSavedFiltersHydrated } from "@/hooks/use-saved-filters";
 import { usePortfolio, usePortfolioHydrated } from "@/hooks/use-portfolio";
@@ -12,6 +13,7 @@ import { cn } from "@wariba/core/utils";
 import { Input, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { StockTable } from "@/components/stocks/stock-table";
+import { useAuth } from "@/components/auth/auth-provider";
 
 interface Filters {
   sector: Sector | "";
@@ -70,6 +72,8 @@ const FIELDS: { key: keyof Filters; label: string; placeholder: string }[] = [
 ];
 
 export default function ScreenerPage() {
+  const router = useRouter();
+  const { user } = useAuth();
   const [filters, setFilters] = useState<Filters>(EMPTY);
   const [preset, setPreset] = useState<string | null>(null);
   const [portfolioOnly, setPortfolioOnly] = useState(false);
@@ -130,11 +134,16 @@ export default function ScreenerPage() {
             size="sm"
             disabled={!hasActiveFilters || !savedHydrated}
             onClick={() => {
+              if (!user) {
+                router.push(`/inscription?next=${encodeURIComponent("/screener")}`);
+                return;
+              }
               const name = window.prompt("Nom de ce filtre :");
               if (name?.trim()) save(name.trim(), filters as unknown as Record<string, string>);
             }}
+            title={user ? "Enregistrer ce filtre dans votre compte" : "Créez un compte pour retrouver ce filtre partout"}
           >
-            <BookmarkPlus className="h-3.5 w-3.5" /> Enregistrer
+            <BookmarkPlus className="h-3.5 w-3.5" /> {user ? "Enregistrer" : "Enregistrer avec un compte"}
           </Button>
           <Button
             variant="ghost"
@@ -165,10 +174,18 @@ export default function ScreenerPage() {
           </button>
         ))}
         <button
-          onClick={() => setPortfolioOnly((v) => !v)}
-          disabled={!portfolioHydrated || heldTickers.size === 0}
+          onClick={() => {
+            if (!user) {
+              router.push(`/inscription?next=${encodeURIComponent("/screener")}`);
+              return;
+            }
+            setPortfolioOnly((value) => !value);
+          }}
+          disabled={Boolean(user) && (!portfolioHydrated || heldTickers.size === 0)}
           title={
-            heldTickers.size === 0
+            !user
+              ? "Connectez-vous pour filtrer les actions de votre portefeuille"
+              : heldTickers.size === 0
               ? "Ajoutez d'abord des transactions dans votre portefeuille"
               : "Restreindre aux valeurs de votre portefeuille"
           }

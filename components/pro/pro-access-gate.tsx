@@ -10,6 +10,24 @@ const PRO_FEATURES = [
   "Alertes avancées et seuils étendus",
 ] as const;
 
+const ACCESS_LAYERS = [
+  {
+    layer: "Public",
+    price: "Sans compte",
+    items: "Accueil marché, 48 fiches actions, graphiques, fondamentaux sourcés, actualités, documents, dividendes et screener.",
+  },
+  {
+    layer: "Compte gratuit",
+    price: "0 FCFA",
+    items: "Watchlists, portefeuille, alertes personnelles, filtres enregistrés, questionnaire SGI et synchronisation web / iOS / Android.",
+  },
+  {
+    layer: "WARIBA Pro",
+    price: "3 000 FCFA / mois",
+    items: "Laboratoire 48, comparaison multi-facteurs, filtres avancés, exports de recherche et quotas d'alertes étendus.",
+  },
+] as const;
+
 export function ProAccessGate({
   authenticated,
   checkoutAvailable,
@@ -69,6 +87,24 @@ export function ProAccessGate({
             {feature}
           </div>
         ))}
+      </section>
+
+      <section className="overflow-hidden rounded-2xl border border-line bg-surface">
+        <div className="border-b border-line px-5 py-4">
+          <h2 className="text-base font-bold text-ink">Ce qui est public, personnel et Pro</h2>
+          <p className="mt-1 text-xs text-ink-3">
+            Pas de mur arbitraire : le compte protège vos données ; Pro finance les workflows de recherche intensifs.
+          </p>
+        </div>
+        <div className="divide-y divide-line">
+          {ACCESS_LAYERS.map((layer) => (
+            <div key={layer.layer} className="grid gap-2 px-5 py-4 sm:grid-cols-[150px_140px_1fr] sm:items-start">
+              <p className="text-sm font-bold text-ink">{layer.layer}</p>
+              <p className="text-xs font-semibold text-accent">{layer.price}</p>
+              <p className="text-xs leading-5 text-ink-2">{layer.items}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       <p className="flex items-start gap-2 rounded-xl border border-line bg-surface/60 p-4 text-xs leading-5 text-ink-3">

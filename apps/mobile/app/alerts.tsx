@@ -3,10 +3,17 @@ import { Alert as NativeAlert, Pressable, StyleSheet, Switch, Text, TextInput, V
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { EmptyState, Page, Section, SegmentedTabs } from "../src/components/ui";
+import { ActionButton, EmptyState, Page, Section, SegmentedTabs } from "../src/components/ui";
 import { AlertRow } from "../src/components/AlertRow";
 import { useMarketData } from "../src/providers/MarketDataProvider";
-import { usePriceAlertStore, useSettingsStore, type PriceAlertRule } from "../src/stores";
+import {
+  useAlertPreferencesStore,
+  usePortfolioStore,
+  usePriceAlertStore,
+  useSettingsStore,
+  useWatchlistStore,
+  type PriceAlertRule,
+} from "../src/stores";
 import { disableNotifications, enableNotifications, evaluatePriceAlerts } from "../src/services/alerts";
 import { parseAmount } from "../src/lib/forms";
 import { colors, radius, tabular, type } from "../src/theme";
@@ -14,6 +21,8 @@ import { useMobileAuth } from "../src/providers/AuthProvider";
 import { trackMobileEvent } from "../src/services/analytics";
 import { openTrustedExternalUrl } from "../src/lib/external-links";
 import { prioritizeCriticalAlerts } from "@wariba/core/alerts";
+import { computePositions } from "@wariba/core/portfolio";
+import { AccountGate } from "../src/components/AccountGate";
 
 function RuleRow({ rule, onRemove, onRearm }: { rule: PriceAlertRule; onRemove: () => void; onRearm: () => void }) {
   const above = rule.direction === "above";
@@ -59,7 +68,7 @@ function RuleRow({ rule, onRemove, onRearm }: { rule: PriceAlertRule; onRemove: 
 
 export default function AlertsScreen() {
   const router = useRouter();
-  const { session, syncNow } = useMobileAuth();
+  const { loading: authLoading, session, user, syncNow } = useMobileAuth();
   const market = useMarketData();
   const params = useLocalSearchParams<{ ticker?: string }>();
   const rules = usePriceAlertStore((state) => state.rules);
@@ -68,6 +77,15 @@ export default function AlertsScreen() {
   const rearm = usePriceAlertStore((state) => state.rearm);
   const notifications = useSettingsStore((state) => state.notifications);
   const emailNotifications = useSettingsStore((state) => state.emailNotifications);
+  const watchlist = useWatchlistStore((state) => state.tickers);
+  const transactions = usePortfolioStore((state) => state.transactions);
+  const scope = useAlertPreferencesStore((state) => state.scope);
+  const importantOnly = useAlertPreferencesStore((state) => state.importantOnly);
+  const hiddenTypes = useAlertPreferencesStore((state) => state.hiddenTypes);
+  const setScope = useAlertPreferencesStore((state) => state.setScope);
+  const setImportantOnly = useAlertPreferencesStore((state) => state.setImportantOnly);
+  const hideType = useAlertPreferencesStore((state) => state.hideType);
+  const showAllTypes = useAlertPreferencesStore((state) => state.showAllTypes);
   const [ticker, setTicker] = useState(typeof params.ticker === "string" && params.ticker ? params.ticker.toUpperCase() : "SNTS");
   const [target, setTarget] = useState("");
   const [direction, setDirection] = useState<"above" | "below">("above");
@@ -81,10 +99,21 @@ export default function AlertsScreen() {
         ? "Le seuil doit être un montant positif en FCFA."
         : null;
   const canSubmit = Boolean(quote && parsedTarget !== null);
-  const factualAlerts = useMemo(
-    () => prioritizeCriticalAlerts(market.alerts),
-    [market.alerts]
+  const heldTickers = useMemo(
+    () => computePositions(transactions).filter((position) => position.quantity > 0).map((position) => position.ticker),
+    [transactions]
   );
+  const factualAlerts = useMemo(() => {
+    const selected = scope === "market"
+      ? null
+      : new Set(scope === "watchlist" ? watchlist : scope === "portfolio" ? heldTickers : [...watchlist, ...heldTickers]);
+    return prioritizeCriticalAlerts(market.alerts.filter((alert) => {
+      if (hiddenTypes.includes(alert.type)) return false;
+      if (importantOnly && alert.severity !== "critical" && alert.severity !== "warning") return false;
+      if (!selected) return true;
+      return Boolean(alert.ticker && selected.has(alert.ticker));
+    }));
+  }, [heldTickers, hiddenTypes, importantOnly, market.alerts, scope, watchlist]);
 
   const submit = async () => {
     if (!quote || parsedTarget === null) {
@@ -95,19 +124,37 @@ export default function AlertsScreen() {
     const channels: ("in_app" | "push" | "email")[] = ["in_app"];
     if (notifications && session) channels.push("push");
     if (emailNotifications && session) channels.push("email");
-    add({ id: `${Date.now()}`, ticker: ticker.toUpperCase(), target: parsedTarget, direction, enabled: true, channels });
+    const id = `${Date.now()}`;
+    add({ id, ticker: ticker.toUpperCase(), target: parsedTarget, direction, enabled: true, channels });
     try {
       await syncNow();
     } catch {
-      NativeAlert.alert("Alerte créée localement", "La synchronisation a échoué. Relancez-la depuis Compte quand le réseau revient.");
+      remove(id);
+      NativeAlert.alert("Alerte non enregistrée", "La synchronisation cloud a échoué. Vérifiez votre connexion puis réessayez.");
     }
     void trackMobileEvent("alert_create", { ticker: ticker.toUpperCase(), push: channels.includes("push"), email: channels.includes("email") }, "/alerts");
     setTarget("");
   };
 
+  if (!authLoading && !user) {
+    return (
+      <Page title="Alertes" subtitle="Ce qui compte aujourd’hui pour vos actions">
+        <AccountGate
+          title="Recevez moins de bruit et davantage de signaux utiles."
+          detail="WARIBA rapproche automatiquement vos actions suivies et détenues des publications, prix, volumes, dividendes et fondamentaux."
+          benefits={[
+            "Priorités expliquées avec leur conséquence possible",
+            "Alertes personnalisées watchlist et portefeuille",
+            "Push synchronisé sur web, iPhone et Android",
+          ]}
+        />
+      </Page>
+    );
+  }
+
   return (
     <Page
-      subtitle="Seuils évalués contre le dernier cours disponible, localement et par le serveur pour les comptes synchronisés"
+      subtitle="Ce qui compte aujourd’hui pour vos actions suivies et détenues"
       refreshing={market.refreshing}
       onRefresh={() => void market.refresh().then(() => evaluatePriceAlerts(market.quotes))}
     >
@@ -115,7 +162,7 @@ export default function AlertsScreen() {
         <View style={styles.permissionCopy}>
           <Text style={styles.permissionTitle}>Notifications de prix</Text>
           <Text style={styles.permissionDetail}>
-            {session ? "Push serveur sur cet appareil ; les seuils sont synchronisés à leur création." : "Sans compte, vérification locale uniquement."}
+            Push serveur sur cet appareil ; vos seuils et préférences sont synchronisés avec votre compte.
           </Text>
         </View>
         <Switch
@@ -158,10 +205,39 @@ export default function AlertsScreen() {
       <Section title="Mes seuils" detail={rules.length ? `${rules.length} actif${rules.length > 1 ? "s" : ""}` : undefined}>
         {rules.length
           ? rules.map((rule) => <RuleRow key={rule.id} rule={rule} onRemove={() => { remove(rule.id); void syncNow().catch(() => undefined); }} onRearm={() => { rearm(rule.id); void syncNow().catch(() => undefined); }} />)
-          : <EmptyState icon="notifications-off-outline" title="Aucun seuil" detail="Créez une alerte de prix locale — elle reste sur cet appareil." />}
+          : <EmptyState icon="notifications-off-outline" title="Aucun seuil" detail="Créez un seuil : il sera synchronisé avec votre compte." />}
       </Section>
 
-      <Section title="Alertes factuelles" detail={`${factualAlerts.length} faits et publications`}>
+      <Section title="Mes alertes factuelles" detail={`${factualAlerts.length} faits et publications`}>
+        <SegmentedTabs
+          tabs={[
+            { id: "personal", label: "Mes actions" },
+            { id: "watchlist", label: "Suivies" },
+            { id: "portfolio", label: "Détenues" },
+            { id: "market", label: "Marché" },
+          ] as const}
+          active={scope}
+          onChange={setScope}
+        />
+        <View style={styles.alertFilters}>
+          <View style={styles.permissionCopy}>
+            <Text style={styles.permissionTitle}>Priorité élevée seulement</Text>
+            <Text style={styles.permissionDetail}>Publications critiques et points de vigilance</Text>
+          </View>
+          <Switch
+            accessibilityLabel="Afficher seulement les alertes importantes"
+            value={importantOnly}
+            onValueChange={setImportantOnly}
+            trackColor={{ false: colors.surface2, true: "rgba(32,201,130,0.45)" }}
+            thumbColor={importantOnly ? colors.accent : colors.ink3}
+          />
+        </View>
+        {hiddenTypes.length ? (
+          <View style={styles.hiddenRow}>
+            <Text style={styles.permissionDetail}>{hiddenTypes.length} type{hiddenTypes.length > 1 ? "s" : ""} masqué{hiddenTypes.length > 1 ? "s" : ""}</Text>
+            <ActionButton label="Tout réafficher" icon="eye-outline" onPress={showAllTypes} />
+          </View>
+        ) : null}
         {factualAlerts.length
           ? factualAlerts.map((alert) => (
               <AlertRow
@@ -172,6 +248,8 @@ export default function AlertsScreen() {
                   : alert.ticker
                     ? () => router.push(`/stocks/${alert.ticker}`)
                     : undefined}
+                context={alert.ticker && heldTickers.includes(alert.ticker) ? "Portefeuille" : alert.ticker && watchlist.includes(alert.ticker) ? "Watchlist" : undefined}
+                onHideType={() => hideType(alert.type)}
               />
             ))
           : <EmptyState icon="pulse-outline" title="Rien à signaler" detail="Aucun fait notable sur la dernière séance." />}
@@ -188,6 +266,11 @@ const styles = StyleSheet.create({
   permissionCopy: { flex: 1 },
   permissionTitle: { ...type.body },
   permissionDetail: { ...type.caption, marginTop: 3 },
+  alertFilters: {
+    flexDirection: "row", alignItems: "center", gap: 12, marginTop: 10, padding: 12,
+    backgroundColor: colors.surface2, borderRadius: radius.md,
+  },
+  hiddenRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10, marginTop: 8 },
   form: {
     padding: 14, gap: 12,
     backgroundColor: colors.surface, borderColor: colors.line, borderWidth: 1, borderRadius: radius.lg,

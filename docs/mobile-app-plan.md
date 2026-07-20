@@ -45,13 +45,14 @@ packages/
 `lib/real-*.ts`, et tous les `data/real/*.json` (servis depuis
 `wariba.app/data` — pas de backend de données séparé).
 
-**Ce qui migre avec un adaptateur mineur** : les stores zustand
+**État final des stores** : les stores zustand
 (`hooks/use-watchlist.ts`, `use-portfolio.ts`, `use-price-alerts.ts`,
 `use-chart-levels.ts`, `use-chart-layouts.ts`, `use-saved-filters.ts`)
-— même logique, seul le moteur de stockage change (`localStorage` →
-`AsyncStorage`/`expo-secure-store`). Le pattern d'hydratation
-(`skipHydration` + `rehydrate()` + `hasHydrated()`) déjà en place ne
-change pas.
+partagent les mêmes contrats. Watchlist, portefeuille, alertes et filtres
+restent en mémoire et sont chargés depuis le compte cloud ; ils ne sont pas
+persistés comme sessions appareil. AsyncStorage conserve seulement thème,
+préférences chart, onboarding et cache de marché public ; SecureStore protège
+la session Auth.
 
 **Ce qui se reconstruit entièrement** : tous les composants React
 (`components/*`) — écrits en JSX/Tailwind, incompatibles avec React
@@ -142,13 +143,15 @@ est le prix du rendu 100 % natif demandé.
   Stochastique), panes synchronisés au viewport, marqueurs, échelles log/% ,
   références, niveaux et partage PNG. Validation visuelle/performance sur
   appareil en attente.
-- 🟡 **Phase 4 — implémentée et exportée.** Fiche action, portefeuille,
-  screener et filtres sauvegardés, dividendes, documents/actualités,
-  IPO/opérations, carte, réglages et statut. Les longues collections sont
+- 🟡 **Phase 4 — implémentée et exportée.** Fiche action, portefeuille
+  (performance totale, revenus, secteurs, concentration et risques),
+  screener public et filtres cloud, dividendes, actualités BRVM/UEMOA/
+  internationales, hub Opérations & documents, comparateur SGI Côte d'Ivoire,
+  carte, réglages et statut. Les longues collections sont
   rendues par lots pour protéger les appareils modestes.
 - 🟡 **Phase 5 — code et configuration terminés ; publication non exécutée.**
-  Notifications locales, vérification au premier plan et tâche opportuniste,
-  deep-link vers la fiche, icônes adaptatives, splash, identifiants iOS/
+  Alertes push serveur personnalisées par watchlist/portefeuille, préférences
+  synchronisées, deep-link vers la fiche, icônes adaptatives, splash, identifiants iOS/
   Android, versioning et profils EAS sont configurés. Les builds signés et
   soumissions nécessitent les comptes Apple/Google et les identifiants EAS.
 
@@ -206,7 +209,7 @@ Babel Expo présent. `expo-haptics` utilise la version SDK 54.
 - **Typographie :** police système iOS/Android retenue pour les métriques,
   performances et scripts francophones ; tous les prix et pourcentages ont
   `tabular-nums`. Aucun fichier Geist n'est embarqué.
-- **Alertes :** livraison locale uniquement. Sans backend, aucune garantie
+- **Alertes :** livraison serveur authentifiée uniquement. Sans backend, aucune garantie
   de notification temps réel lorsque l'application est forcée à l'arrêt.
   Les contrôles ont lieu au chargement, au retour au premier plan, au
   rafraîchissement et dans les fenêtres de tâche accordées par le système.

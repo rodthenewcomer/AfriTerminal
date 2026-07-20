@@ -11,13 +11,17 @@ import { useSavedFilters } from "@/hooks/use-saved-filters";
 import { DEFAULT_MA_COLORS, useChartPrefs, type MaId } from "@/hooks/use-chart-prefs";
 import { useChartLevels } from "@/hooks/use-chart-levels";
 import { useChartLayouts, type ChartLayout } from "@/hooks/use-chart-layouts";
+import { useAlertPreferences, type AlertScope } from "@/hooks/use-alert-preferences";
 
-const LEDGER_PREFIX = "wariba-cloud-sync-ledger-v1";
-const OWNER_KEY = "wariba-cloud-sync-owner-v1";
 let applyingCloudPayload = false;
+let activeCloudUserId: string | null = null;
+const ledgers = new Map<string, CloudSyncPayload>();
 const WEB_SCOPE = {
-  preferenceKeys: ["chart", "chart_levels", "chart_layouts"] as ("chart" | "chart_levels" | "chart_layouts")[],
-  preferencePatchKeys: { chart: ["maColors"] },
+  preferenceKeys: ["chart", "chart_levels", "chart_layouts", "settings"] as ("chart" | "chart_levels" | "chart_layouts" | "settings")[],
+  preferencePatchKeys: {
+    chart: ["maColors"],
+    settings: ["alertScope", "alertImportantOnly", "hiddenAlertTypes"],
+  },
 };
 
 function now(): string {
@@ -63,6 +67,15 @@ export function buildWebCloudPayload(): CloudSyncPayload {
         },
         updatedAt,
       },
+      {
+        key: "settings",
+        value: {
+          alertScope: useAlertPreferences.getState().scope,
+          alertImportantOnly: useAlertPreferences.getState().importantOnly,
+          hiddenAlertTypes: useAlertPreferences.getState().hiddenTypes,
+        },
+        updatedAt,
+      },
     ],
   };
 }
@@ -83,26 +96,12 @@ async function cloudRequest(token: string, init?: RequestInit): Promise<CloudSyn
   return parsed.data as CloudSyncPayload;
 }
 
-function ledgerKey(userId: string): string {
-  return `${LEDGER_PREFIX}:${userId}`;
-}
-
 function readLedger(userId: string): CloudSyncPayload | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(ledgerKey(userId));
-    if (!raw) return null;
-    const parsed = cloudSyncSchema.safeParse(JSON.parse(raw));
-    return parsed.success ? parsed.data as CloudSyncPayload : null;
-  } catch {
-    return null;
-  }
+  return ledgers.get(userId) ?? null;
 }
 
 function writeLedger(userId: string, payload: CloudSyncPayload): void {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(ledgerKey(userId), JSON.stringify(payload));
-  window.localStorage.setItem(OWNER_KEY, userId);
+  ledgers.set(userId, payload);
 }
 
 function validLevels(value: unknown): Record<string, number[]> {
@@ -178,6 +177,21 @@ export function applyWebCloudPayload(payload: CloudSyncPayload): void {
       } else if (preference.key === "chart_layouts") {
         const value = validLayouts(preference.value);
         if (value) useChartLayouts.setState({ layouts: value.layouts, activeId: value.activeId ?? value.layouts[0].id });
+      } else if (preference.key === "settings" && !Array.isArray(preference.value) && preference.value) {
+        const value = preference.value as {
+          alertScope?: unknown;
+          alertImportantOnly?: unknown;
+          hiddenAlertTypes?: unknown;
+        };
+        const scopes: AlertScope[] = ["personal", "watchlist", "portfolio", "market"];
+        const alertTypes = ["prix", "volume", "dividende", "document", "fondamental", "ia"] as const;
+        useAlertPreferences.getState().replaceAll({
+          scope: scopes.includes(value.alertScope as AlertScope) ? value.alertScope as AlertScope : "personal",
+          importantOnly: value.alertImportantOnly === true,
+          hiddenTypes: Array.isArray(value.hiddenAlertTypes)
+            ? value.hiddenAlertTypes.filter((item): item is typeof alertTypes[number] => alertTypes.includes(item as typeof alertTypes[number]))
+            : [],
+        });
       }
     }
   } finally {
@@ -187,14 +201,24 @@ export function applyWebCloudPayload(payload: CloudSyncPayload): void {
 
 export async function rehydrateWebCloudStores(): Promise<void> {
   await Promise.all([
-    useWatchlist.persist.rehydrate(),
-    usePortfolio.persist.rehydrate(),
-    usePriceAlerts.persist.rehydrate(),
-    useSavedFilters.persist.rehydrate(),
     useChartPrefs.persist.rehydrate(),
     useChartLevels.persist.rehydrate(),
     useChartLayouts.persist.rehydrate(),
   ]);
+}
+
+export function clearWebCloudPersonalState(): void {
+  applyingCloudPayload = true;
+  try {
+    useWatchlist.getState().replaceAll([], "default");
+    usePortfolio.getState().clear();
+    usePriceAlerts.getState().clear();
+    useSavedFilters.getState().replaceAll([]);
+    useAlertPreferences.getState().replaceAll({});
+    activeCloudUserId = null;
+  } finally {
+    applyingCloudPayload = false;
+  }
 }
 
 export function subscribeWebCloudChanges(onChange: () => void): () => void {
@@ -206,6 +230,7 @@ export function subscribeWebCloudChanges(onChange: () => void): () => void {
     useChartPrefs,
     useChartLevels,
     useChartLayouts,
+    useAlertPreferences,
   ];
   const unsubscribers = stores.map((store) => store.subscribe(() => {
     if (!applyingCloudPayload) onChange();
@@ -216,8 +241,9 @@ export function subscribeWebCloudChanges(onChange: () => void): () => void {
 export async function syncWebData(token: string, userId: string): Promise<CloudSyncPayload> {
   await rehydrateWebCloudStores();
   const remote = await cloudRequest(token);
-  const localOwner = typeof window === "undefined" ? null : window.localStorage.getItem(OWNER_KEY);
-  if (localOwner && localOwner !== userId) {
+  if (activeCloudUserId !== userId) {
+    clearWebCloudPersonalState();
+    activeCloudUserId = userId;
     applyWebCloudPayload(remote);
     writeLedger(userId, remote);
     return remote;

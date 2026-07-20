@@ -26,7 +26,7 @@ export default function StatusScreen() {
           <Metric label="Cotations" value={`${quotes.length} / 48`} tone={quotes.length === 48 ? "up" : "down"} detail={marketDetail} />
           <Metric label="Fondamentaux" value={`${Object.keys(market.fundamentals).length} / 48`} tone="up" detail="exercices intégrés" />
           <Metric label="Documents" value={`${market.documents.length}`} detail="liens brvm.org" />
-          <Metric label="Mode" value={market.offline ? "Cache" : "Réseau"} tone={market.offline ? "accent" : "up"} detail={market.offline ? "données locales" : "sources en ligne"} />
+          <Metric label="Mode" value={market.offline ? "Cache" : "Réseau"} tone={market.offline ? "accent" : "up"} detail={market.offline ? "cache public de l’appareil" : "sources en ligne"} />
         </View>
       </Section>
 

@@ -9,6 +9,11 @@ import { analyzeRealEquity, describeNetIncomeTrend, type RealEquityAnalysis, typ
 import { compactFcfa, compactVolume, dateFr, fcfa, millions, num, pct, ratio } from "@wariba/core/format";
 import { companyProfile } from "@wariba/core/company-profiles";
 import { GLOSSARY } from "@wariba/core/glossary";
+import {
+  annualMetricDisclosure,
+  brvmMetricDisclosure,
+  explainOfficialPer,
+} from "@wariba/core/financial-language";
 import type { OHLCV } from "@wariba/core/types";
 import { AdvancedChart } from "../../src/components/AdvancedChart";
 import { YearComparison } from "../../src/components/YearComparison";
@@ -19,12 +24,13 @@ import { useSettingsStore, useWatchlistStore } from "../../src/stores";
 import { countryFromTicker, sectorLabel } from "../../src/lib/sectors";
 import { openTrustedExternalUrl } from "../../src/lib/external-links";
 import { colors, radius, tabular, type } from "../../src/theme";
+import { useMobileAuth } from "../../src/providers/AuthProvider";
 
 const STOCK_TABS = [
   { id: "chart", label: "Graphique" },
   { id: "fundamentals", label: "Fondamentaux" },
-  { id: "risk", label: "Risque & opérations" },
-  { id: "news", label: "Actus & documents" },
+  { id: "risk", label: "Risque" },
+  { id: "news", label: "Infos & documents" },
 ] as const;
 type Tab = (typeof STOCK_TABS)[number]["id"];
 
@@ -224,6 +230,7 @@ export default function StockScreen() {
   const reduceMotion = useReducedMotion();
   const ticker = String(params.ticker ?? "SNTS").toUpperCase();
   const market = useMarketData();
+  const { user } = useMobileAuth();
   const loadSeries = market.loadSeries;
   const quote = market.quotes[ticker];
   const fundamental = market.fundamentals[ticker];
@@ -286,6 +293,37 @@ export default function StockScreen() {
     ? Math.min(100, Math.max(0, ((quote.lastClose - quote.week52Low) / (quote.week52High - quote.week52Low)) * 100))
     : 100;
   const bpa = fundamental?.sharesOutstanding ? (fundamental.netIncomeM * 1e6) / fundamental.sharesOutstanding : null;
+  const annualDisclosure = fundamental
+    ? annualMetricDisclosure({
+        fiscalYear: fundamental.fiscalYear,
+        publishedOn: fundamental.publishedOn,
+        sourceUrl: fundamental.source,
+      })
+    : undefined;
+  const brvmDisclosure = brvmMetricDisclosure({ asOfDate: quote.asOfDate });
+  const perDisclosure = {
+    ...brvmDisclosure,
+    basisNote: explainOfficialPer({
+      officialPer: quote.per,
+      fiscalYear: fundamental?.fiscalYear,
+      latestAnnualNetIncome: fundamental?.netIncomeM,
+      impliedAnnualPer:
+        fundamental?.sharesOutstanding && fundamental.netIncomeM > 0
+          ? quote.lastClose / ((fundamental.netIncomeM * 1e6) / fundamental.sharesOutstanding)
+          : null,
+    }),
+  };
+  const mixedDisclosure =
+    annualDisclosure
+      ? {
+          ...annualDisclosure,
+          period: `Clôture ${dateFr(quote.asOfDate)} / comptes ${fundamental?.fiscalYear}`,
+          periodType: "brvm-indicator" as const,
+          accountsDate: quote.asOfDate,
+          sourceLabel: "BRVM + états financiers officiels",
+          basisNote: "Cours de clôture rapproché des données annuelles vérifiées.",
+        }
+      : undefined;
 
   const refreshAll = async () => {
     setSeriesError(false);
@@ -443,21 +481,22 @@ export default function StockScreen() {
                   : `Bulletin BRVM du ${dateFr(quote.asOfDate)}`
               }
               explanation={GLOSSARY.per.def}
+              disclosure={perDisclosure}
             />
-            <Metric label="Rendement net" value={quote.netYieldPct !== null ? pct(quote.netYieldPct, { signed: false, digits: 2 }) : "—"} tone={quote.netYieldPct !== null && quote.netYieldPct >= 6 ? "up" : "default"} explanation={GLOSSARY["rendement-net"].def} />
-            <Metric label="Vol. moyen 30 j" value={compactVolume(quote.avgVolume30d)} explanation={GLOSSARY["vol-moyen"].def} />
-            <Metric label="Dernier dividende net" value={quote.lastDividendNet !== null ? fcfa(quote.lastDividendNet) : "—"} detail={quote.lastDividendDate ? `Payé le ${dateFr(quote.lastDividendDate)}` : undefined} explanation={GLOSSARY["dividende-net"].def} />
+            <Metric label="Rendement net" value={quote.netYieldPct !== null ? pct(quote.netYieldPct, { signed: false, digits: 2 }) : "—"} tone={quote.netYieldPct !== null && quote.netYieldPct >= 6 ? "up" : "default"} explanation={GLOSSARY["rendement-net"].def} disclosure={brvmDisclosure} />
+            <Metric label="Vol. moyen 30 j" value={compactVolume(quote.avgVolume30d)} explanation={GLOSSARY["vol-moyen"].def} disclosure={brvmDisclosure} />
+            <Metric label="Dernier dividende net" value={quote.lastDividendNet !== null ? fcfa(quote.lastDividendNet) : "—"} detail={quote.lastDividendDate ? `Payé le ${dateFr(quote.lastDividendDate)}` : undefined} explanation={GLOSSARY["dividende-net"].def} disclosure={brvmDisclosure} />
             {fundamental?.sharesOutstanding ? <>
-              <Metric label="Capitalisation" value={compactFcfa(fundamental.sharesOutstanding * quote.lastClose)} detail={`${(fundamental.sharesOutstanding / 1e6).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} M d'actions`} explanation={GLOSSARY.capitalisation.def} />
-              {bpa !== null ? <Metric label={`BPA ${fundamental.fiscalYear}`} value={fcfa(bpa)} detail="Bénéfice net par action" explanation={GLOSSARY.bpa.def} /> : null}
-              {fundamental.equityM ? <Metric label="P/B" value={ratio(quote.lastClose / ((fundamental.equityM * 1e6) / fundamental.sharesOutstanding))} explanation={GLOSSARY.pb.def} /> : null}
+              <Metric label="Capitalisation" value={compactFcfa(fundamental.sharesOutstanding * quote.lastClose)} detail={`${(fundamental.sharesOutstanding / 1e6).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} M d'actions`} explanation={GLOSSARY.capitalisation.def} disclosure={mixedDisclosure} />
+              {bpa !== null ? <Metric label={`BPA ${fundamental.fiscalYear}`} value={fcfa(bpa)} detail="Bénéfice net par action" explanation={GLOSSARY.bpa.def} disclosure={annualDisclosure} /> : null}
+              {fundamental.equityM ? <Metric label="P/B" value={ratio(quote.lastClose / ((fundamental.equityM * 1e6) / fundamental.sharesOutstanding))} explanation={GLOSSARY.pb.def} disclosure={mixedDisclosure} /> : null}
             </> : null}
-            {fundamental?.equityM ? <Metric label={`ROE ${fundamental.fiscalYear}`} value={pct((fundamental.netIncomeM / fundamental.equityM) * 100, { signed: false, digits: 1 })} explanation={GLOSSARY.roe.def} /> : null}
+            {fundamental?.equityM ? <Metric label={`ROE ${fundamental.fiscalYear}`} value={pct((fundamental.netIncomeM / fundamental.equityM) * 100, { signed: false, digits: 1 })} explanation={GLOSSARY.roe.def} disclosure={annualDisclosure} /> : null}
             {fundamental ? <>
               <Metric label={`${fundamental.revenueLabel} ${fundamental.fiscalYear}`} value={millions(fundamental.revenueM)} detail={(() => {
                 const growth = growthPct(fundamental.revenueM, fundamental.revenuePrevM);
                 return growth !== null ? `${pct(growth, { digits: 1 })} vs ${fundamental.fiscalYear - 1}` : undefined;
-              })()} explanation={GLOSSARY[fundamental.revenueLabel === "PNB" ? "pnb" : "chiffre-affaires"].def} />
+              })()} explanation={GLOSSARY[fundamental.revenueLabel === "PNB" ? "pnb" : "chiffre-affaires"].def} disclosure={annualDisclosure} />
               <Metric label={`Résultat net ${fundamental.fiscalYear}`} value={millions(fundamental.netIncomeM)} tone={fundamental.netIncomeM >= 0 ? "up" : "down"} detail={(() => {
                 const trend = describeNetIncomeTrend(
                   fundamental.netIncomeM,
@@ -466,14 +505,14 @@ export default function StockScreen() {
                 return trend?.changePct !== null && trend?.changePct !== undefined
                   ? `${trend.label} de ${pct(Math.abs(trend.changePct), { signed: false, digits: 1 })} vs ${fundamental.fiscalYear - 1}`
                   : trend?.label;
-              })()} explanation={GLOSSARY["resultat-net"].def} />
-              <Metric label="Marge nette" value={pct((fundamental.netIncomeM / fundamental.revenueM) * 100, { signed: false, digits: 1 })} explanation={GLOSSARY["marge-nette"].def} />
-              {fundamental.ordinaryIncomeM !== null ? <Metric label="Résultat ordinaire" value={millions(fundamental.ordinaryIncomeM)} tone={fundamental.ordinaryIncomeM < 0 ? "down" : "default"} explanation={GLOSSARY["resultat-ordinaire"].def} /> : null}
-              {fundamental.cirPct !== null ? <Metric label="Coefficient d'exploitation" value={pct(fundamental.cirPct, { signed: false, digits: 1 })} detail={fundamental.cirPrevPct !== null ? `${pct(fundamental.cirPrevPct, { signed: false, digits: 1 })} en ${fundamental.fiscalYear - 1}` : undefined} explanation={GLOSSARY.cir.def} /> : null}
-              {fundamental.costOfRiskM !== null ? <Metric label="Coût du risque" value={millions(fundamental.costOfRiskM)} detail={fundamental.costOfRiskM < 0 ? "Négatif = reprise nette" : undefined} explanation={GLOSSARY["cout-du-risque"].def} /> : null}
-              {fundamental.depositsM !== null ? <Metric label="Dépôts clientèle" value={millions(fundamental.depositsM)} detail="L'argent que les clients confient" explanation={GLOSSARY["depots-clientele"].def} /> : null}
-              {fundamental.loansM !== null ? <Metric label="Crédits clientèle" value={millions(fundamental.loansM)} detail={fundamental.depositsM ? `${pct((fundamental.loansM / fundamental.depositsM) * 100, { signed: false, digits: 0 })} des dépôts prêtés` : undefined} explanation={GLOSSARY["credits-clientele"].def} /> : null}
-              {fundamental.proposedGrossDividend !== null ? <Metric label="Dividende brut proposé" value={fcfa(fundamental.proposedGrossDividend)} tone="accent" detail={`Au titre de ${fundamental.fiscalYear}, soumis à l'AG`} explanation={GLOSSARY["dividende-propose"].def} /> : null}
+              })()} explanation={GLOSSARY["resultat-net"].def} disclosure={annualDisclosure} />
+              <Metric label="Marge nette" value={pct((fundamental.netIncomeM / fundamental.revenueM) * 100, { signed: false, digits: 1 })} explanation={GLOSSARY["marge-nette"].def} disclosure={annualDisclosure} />
+              {fundamental.ordinaryIncomeM !== null ? <Metric label="Résultat ordinaire" value={millions(fundamental.ordinaryIncomeM)} tone={fundamental.ordinaryIncomeM < 0 ? "down" : "default"} explanation={GLOSSARY["resultat-ordinaire"].def} disclosure={annualDisclosure} /> : null}
+              {fundamental.cirPct !== null ? <Metric label="Coefficient d'exploitation" value={pct(fundamental.cirPct, { signed: false, digits: 1 })} detail={fundamental.cirPrevPct !== null ? `${pct(fundamental.cirPrevPct, { signed: false, digits: 1 })} en ${fundamental.fiscalYear - 1}` : undefined} explanation={GLOSSARY.cir.def} disclosure={annualDisclosure} /> : null}
+              {fundamental.costOfRiskM !== null ? <Metric label="Coût du risque" value={millions(fundamental.costOfRiskM)} detail={fundamental.costOfRiskM < 0 ? "Négatif = reprise nette" : undefined} explanation={GLOSSARY["cout-du-risque"].def} disclosure={annualDisclosure} /> : null}
+              {fundamental.depositsM !== null ? <Metric label="Dépôts clientèle" value={millions(fundamental.depositsM)} detail="L'argent que les clients confient" explanation={GLOSSARY["depots-clientele"].def} disclosure={annualDisclosure} /> : null}
+              {fundamental.loansM !== null ? <Metric label="Crédits clientèle" value={millions(fundamental.loansM)} detail={fundamental.depositsM ? `${pct((fundamental.loansM / fundamental.depositsM) * 100, { signed: false, digits: 0 })} des dépôts prêtés` : undefined} explanation={GLOSSARY["credits-clientele"].def} disclosure={annualDisclosure} /> : null}
+              {fundamental.proposedGrossDividend !== null ? <Metric label="Dividende brut proposé" value={fcfa(fundamental.proposedGrossDividend)} tone="accent" detail={`Au titre de ${fundamental.fiscalYear}, soumis à l'AG`} explanation={GLOSSARY["dividende-propose"].def} disclosure={annualDisclosure} /> : null}
             </> : null}
           </View>
           {fundamental ? <>
@@ -519,11 +558,6 @@ export default function StockScreen() {
           </View>
           <Text style={styles.disclaimer}>Statistiques historiques descriptives, pas une prévision ni un conseil en investissement.</Text>
         </Section>
-        <Section title="Opérations sur capital" detail="Splits, augmentations, fusions actés à la BRVM">
-          {operations.length
-            ? operations.map((item) => <Row key={item.url} icon="git-branch-outline" title={item.title} detail={`${item.type} · ${dateFr(item.date)}`} onPress={() => void openTrustedExternalUrl(item.url)} />)
-            : <EmptyState icon="git-branch-outline" title="Aucune opération" detail="Aucune opération sur capital identifiée pour cette société." />}
-        </Section>
       </Animated.View> : null}
 
       {tab === "news" ? <Animated.View key="news" entering={reduceMotion ? undefined : FadeIn.duration(200)} style={styles.tabContent}>
@@ -531,6 +565,11 @@ export default function StockScreen() {
           {news.length
             ? news.map((item) => <Row key={item.link} icon="newspaper-outline" title={item.title} detail={`${item.source} · ${item.publishedAt.slice(0, 10)}`} onPress={() => void openTrustedExternalUrl(item.link)} />)
             : <EmptyState icon="newspaper-outline" title="Aucun article" detail={`Aucune actualité sourcée liée à ${ticker}.`} />}
+        </Section>
+        <Section title="Opérations sur capital" detail="Splits, augmentations et fusions reliés aux avis officiels">
+          {operations.length
+            ? operations.map((item) => <Row key={item.url} icon="git-branch-outline" title={item.title} detail={`${item.type} · ${dateFr(item.date)}`} onPress={() => void openTrustedExternalUrl(item.url)} />)
+            : <EmptyState icon="git-branch-outline" title="Aucune opération" detail="Aucune opération sur capital identifiée pour cette société." />}
         </Section>
         <Section title="Publications officielles" detail={`${documents.length} récentes`}>
           {documents.length
@@ -545,21 +584,21 @@ export default function StockScreen() {
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Créer une alerte de prix pour ${ticker}`}
-        onPress={() => router.push(`/alerts?ticker=${ticker}`)}
+        onPress={() => router.push(user ? `/alerts?ticker=${ticker}` : "/(auth)/sign-up")}
         style={({ pressed }) => [styles.footerPrimary, pressed && { opacity: 0.75 }]}
       >
         <Ionicons name="notifications-outline" size={16} color={colors.onAccent} />
-        <Text style={styles.footerPrimaryText}>Créer une alerte</Text>
+        <Text style={styles.footerPrimaryText}>{user ? "Créer une alerte" : "Compte & alertes"}</Text>
       </Pressable>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={watched ? `Retirer ${ticker} de la watchlist` : `Ajouter ${ticker} à la watchlist`}
         accessibilityState={{ selected: watched }}
-        onPress={() => toggle(ticker)}
+        onPress={() => user ? toggle(ticker) : router.push("/(auth)/sign-up")}
         style={({ pressed }) => [styles.footerSecondary, watched && styles.footerSecondaryActive, pressed && { opacity: 0.75 }]}
       >
         <Ionicons name={watched ? "star" : "star-outline"} size={16} color={watched ? colors.accent : colors.ink2} />
-        <Text style={[styles.footerSecondaryText, watched && { color: colors.accent }]}>{watched ? "Suivie" : "Suivre"}</Text>
+        <Text style={[styles.footerSecondaryText, watched && { color: colors.accent }]}>{user ? (watched ? "Suivie" : "Suivre") : "Suivre partout"}</Text>
       </Pressable>
     </View>
     </View>

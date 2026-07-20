@@ -104,7 +104,7 @@ export default function AccountScreen() {
     const storeWarning = account?.subscription.provider === "apple" || account?.subscription.provider === "google"
       ? " L'abonnement store doit être résilié séparément dans vos abonnements Apple ou Google."
       : "";
-    Alert.alert("Supprimer définitivement le compte ?", `Les données serveur seront supprimées. Les données locales restent sur cet appareil.${storeWarning}`, [
+    Alert.alert("Supprimer définitivement le compte ?", `Les données personnelles cloud seront supprimées et retirées de cet appareil.${storeWarning}`, [
       { text: "Annuler", style: "cancel" },
       { text: "Supprimer", style: "destructive", onPress: async () => {
         setBusy("delete");
@@ -122,7 +122,7 @@ export default function AccountScreen() {
 
   if (loading) return <View style={styles.center}><ActivityIndicator color={colors.accent} /><Text style={styles.caption}>Chargement du compte…</Text></View>;
   if (!configured) return <Page><Text style={styles.notice}>La connexion est temporairement indisponible. Les données publiques de marché restent accessibles.</Text></Page>;
-  if (!user) return <Page><View style={styles.hero}><Text style={styles.eyebrow}>ESPACE PRIVÉ</Text><Text style={styles.title}>Synchronisez sans fermer le terminal public.</Text><Text style={styles.caption}>Le compte est optionnel. Vos données ne quittent pas cet appareil sans votre action.</Text><Pressable accessibilityRole="button" onPress={() => router.push("/(auth)/sign-in")} style={styles.primary}><Text style={styles.primaryText}>Se connecter</Text></Pressable><Pressable accessibilityRole="button" onPress={() => router.push("/(auth)/sign-up")} style={styles.secondary}><Text style={styles.secondaryText}>Créer un espace</Text></Pressable></View></Page>;
+  if (!user) return <Page><View style={styles.hero}><Text style={styles.eyebrow}>ESPACE PERSONNEL GRATUIT</Text><Text style={styles.title}>Vos actions, votre portefeuille et vos alertes partout avec vous.</Text><Text style={styles.caption}>La cote reste publique. Le compte protège et synchronise vos données personnelles entre le web, iPhone et Android.</Text><Pressable accessibilityRole="button" onPress={() => router.push("/(auth)/sign-up")} style={styles.primary}><Text style={styles.primaryText}>Créer mon compte gratuit</Text></Pressable><Pressable accessibilityRole="button" onPress={() => router.push("/(auth)/sign-in")} style={styles.secondary}><Text style={styles.secondaryText}>Se connecter</Text></Pressable></View></Page>;
 
   return (
     <Page subtitle="Identité, synchronisation et forfait">
@@ -135,7 +135,7 @@ export default function AccountScreen() {
       <Section title="Synchronisation" detail="Automatique · web, iOS et Android">
         <View style={styles.group}>
           <Row icon="sync-outline" title="Synchroniser maintenant" detail="Fusionne watchlist, portefeuille, alertes, filtres et préférences" onPress={() => void sync()} />
-          <Row icon={syncStatus === "error" ? "cloud-offline-outline" : "cloud-done-outline"} title={syncStatus === "syncing" ? "Synchronisation en cours…" : syncStatus === "error" ? "Synchronisation à reprendre" : "Synchronisation active"} detail={lastSyncedAt ? `Dernière réussite à ${new Date(lastSyncedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}` : syncError ?? "Les changements hors ligne restent sur cet appareil"} />
+          <Row icon={syncStatus === "error" ? "cloud-offline-outline" : "cloud-done-outline"} title={syncStatus === "syncing" ? "Synchronisation en cours…" : syncStatus === "error" ? "Synchronisation à reprendre" : "Synchronisation active"} detail={lastSyncedAt ? `Dernière réussite à ${new Date(lastSyncedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}` : syncError ?? "Le compte cloud est la source de référence"} />
         </View>
         {busy === "sync" || syncStatus === "syncing" ? <ActivityIndicator style={styles.activity} color={colors.accent} /> : null}
         {syncError ? <Text accessibilityRole="alert" style={styles.billingError}>{syncError}</Text> : null}

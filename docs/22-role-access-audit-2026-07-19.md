@@ -1,6 +1,6 @@
 # WARIBA — audit 22 rôles, accès et confiance
 
-Date : 19 juillet 2026  
+Date : 20 juillet 2026
 Portée : web responsive, iOS, Android, données, produit, conversion et exploitation.
 
 ## Décision exécutive
@@ -12,8 +12,8 @@ avancés, jamais sur l'accès aux faits essentiels.
 | Couche | Accès | Fonctions |
 | --- | --- | --- |
 | Public | Sans compte | Accueil complet, 48 fiches, cours, graphiques essentiels, fondamentaux sourcés, N/N-1, actualités, documents, dividendes, screener de base |
-| Compte | Session vérifiée | Synchronisation, portefeuille privé, watchlists, alertes simples, filtres enregistrés, préférences multi-appareils |
-| Pro | Compte + entitlement actif | Laboratoire 48, classements multi-facteurs, comparaisons avancées, exports, alertes avancées et limites étendues |
+| Compte | Session vérifiée | Synchronisation cloud, portefeuille privé, watchlists, alertes personnalisées, filtres enregistrés, demandes SGI et préférences multi-appareils |
+| Pro | Compte + entitlement actif | Laboratoire 48, classements multi-facteurs, comparaisons avancées, exports et limites étendues |
 | Interne | Jamais client | EAS, variables d'environnement, responsables, webhooks, secrets, commandes de build, diagnostics fournisseur |
 
 ## Lecture des 22 rôles
@@ -28,9 +28,9 @@ avancés, jamais sur l'accès aux faits essentiels.
 | UX Writer | Suppression du jargon EAS, RevenueCat, Supabase, webhook et variables dans l'UI client |
 | Accessibility | Onglets nommés, état sélectionné, défilement visible, réduction de mouvement respectée |
 | Senior Frontend | Rangées graphiques mobiles séparées ; onglet actif ramené dans la zone visible |
-| Mobile Engineer | 1D/1W ajoutés, sélecteurs défilables visibles, gate natif identique |
+| Mobile Engineer | 1D/1W ajoutés, sélecteurs défilables visibles, gate natif identique et aucun état métier persistant hors compte |
 | Full-stack | Route Pro rendue dynamiquement et données non calculées pour un utilisateur non autorisé |
-| Backend | Entitlement `research_exports` ou abonnement Pro actif/trialing comme autorité |
+| Backend | Supabase/RLS comme autorité des données privées ; entitlement `research_exports` ou abonnement Pro actif/trialing comme autorité Pro |
 | Data Engineer | Toutes les périodes de tous les tickers testées sur les séries réelles |
 | Financial Analyst | Une perte réduite reste une perte ; aucun « bénéfice en hausse » possible |
 | Market Data QA | PER neutralisé si les derniers comptes vérifiés sont déficitaires |
@@ -40,7 +40,7 @@ avancés, jamais sur l'accès aux faits essentiels.
 | Privacy | Les fournisseurs restent cités uniquement dans la politique légale nécessaire |
 | Revenue / Pricing | 3 000 FCFA/mois ; cible annuelle 30 000 FCFA |
 | Growth | Pages publiques indexables ; Pro explique la valeur avant inscription |
-| Customer Success | Support par canal WARIBA, pas par dépôt GitHub public |
+| Customer Success | Alertes expliquées, demandes SGI suivies et support par canal WARIBA, pas par dépôt GitHub public |
 | Operations / SRE | Secrets et procédures restent dans les docs internes versionnées |
 
 ## Règles financières centrales
@@ -55,6 +55,9 @@ avancés, jamais sur l'accès aux faits essentiels.
    de perte reste orange, pas verte.
 5. Méthode, exercice, date de publication, couverture et confiance restent
    visibles ; aucune donnée absente n'est estimée.
+6. Une cession d'actif porte la mention **élément exceptionnel non récurrent**.
+7. Un flux opérationnel négatif interdit toute formulation automatique
+   **génératrice de trésorerie**.
 
 ## Contrôles de graphique
 
@@ -74,3 +77,5 @@ avancés, jamais sur l'accès aux faits essentiels.
 - Produits App Store / Google Play, offering RevenueCat et webhook validés.
 - EAS signé, TestFlight, Play Internal Testing et QA sur appareils physiques.
 - Tests réels achat/restauration/annulation/cross-login avant toute CTA native.
+- Accord sur les droits de redistribution BRVM et pilote SGI : documents prêts,
+  aucune prise de contact externe n'est revendiquée sans autorisation.

@@ -1,4 +1,5 @@
 import type { AIInsight, RealQuote, Scores, Signal } from "./types";
+import { explainEarningsQuality } from "./financial-language";
 
 export const REAL_ANALYSIS_VERSION = "WARIBA Factuel v1.0";
 
@@ -605,6 +606,19 @@ export function analyzeRealEquity(args: {
   }
   if (fundamental.ordinaryIncomeM !== null && fundamental.ordinaryIncomeM < 0) {
     addSignal(signals, "ordinary-loss", "Activité ordinaire déficitaire", "negative", `Le résultat des activités ordinaires est négatif (${fundamental.ordinaryIncomeM.toLocaleString("fr-FR")} M FCFA).`);
+  }
+  const earningsQuality = explainEarningsQuality({
+    netIncome: fundamental.netIncomeM,
+    ordinaryIncome: fundamental.ordinaryIncomeM,
+  });
+  if (earningsQuality.classification === "exceptional-non-recurring") {
+    addSignal(
+      signals,
+      "exceptional-non-recurring",
+      earningsQuality.label,
+      "warning",
+      earningsQuality.detail
+    );
   }
   if (company.cirImprovement !== null) {
     if (company.cirImprovement >= 2) {

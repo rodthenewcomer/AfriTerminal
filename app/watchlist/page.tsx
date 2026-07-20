@@ -12,17 +12,30 @@ import { Select } from "@/components/ui/input";
 import { Sparkline } from "@/components/charts/sparkline";
 import { PriceChange, SignalBadges } from "@/components/stocks/badges";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/components/auth/auth-provider";
+import { AccountValueGate } from "@/components/auth/account-value-gate";
 
 export default function WatchlistPage() {
+  const { user, loading } = useAuth();
   const hydrated = useWatchlistHydrated();
   const { lists, activeId, setActive, toggle, createList, removeList } = useWatchlist();
 
-  if (!hydrated) {
+  if (!hydrated || loading) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-64 w-full" />
       </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <AccountValueGate
+        title="Suivez seulement les actions qui comptent pour vous"
+        description="Votre watchlist alimente vos alertes personnalisées. Une publication, un dividende ou un mouvement important sur un titre suivi remonte automatiquement ici et sur mobile."
+        next="/watchlist"
+      />
     );
   }
 
@@ -41,7 +54,7 @@ export default function WatchlistPage() {
           <p className="mt-1 max-w-3xl text-sm text-ink-3">
             Vos valeurs suivies, avec signaux et prochains dividendes. Pour en
             ajouter une, cliquez l&apos;étoile ☆ à côté de n&apos;importe
-            quelle action (tableaux, fiches) — tout reste dans ce navigateur.
+            quelle action. Vos listes sont synchronisées avec votre compte.
           </p>
         </div>
         <Button

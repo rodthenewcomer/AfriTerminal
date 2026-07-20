@@ -2,8 +2,6 @@ import * as Notifications from "expo-notifications";
 import * as BackgroundTask from "expo-background-task";
 import * as TaskManager from "expo-task-manager";
 import { Platform } from "react-native";
-import { fetchDataFile } from "../data/api";
-import { quoteMapSchema } from "../data/validation";
 import { priceAlertMatches } from "../lib/forms";
 import type { QuoteMap } from "../data/types";
 import { usePriceAlertStore, useSettingsStore } from "../stores";
@@ -48,23 +46,6 @@ export async function evaluatePriceAlerts(quotes: QuoteMap): Promise<number> {
   return triggered;
 }
 
-const runPriceAlertTask = async () => {
-  try {
-    await Promise.all([
-      usePriceAlertStore.persist.rehydrate(),
-      useSettingsStore.persist.rehydrate(),
-    ]);
-    const quotes = await fetchDataFile("real/snapshot.json", quoteMapSchema);
-    await evaluatePriceAlerts(quotes.data);
-    return BackgroundTask.BackgroundTaskResult.Success;
-  } catch {
-    return BackgroundTask.BackgroundTaskResult.Failed;
-  }
-};
-
-TaskManager.defineTask(TASK_NAME, runPriceAlertTask);
-TaskManager.defineTask(PREVIOUS_TASK_NAME, runPriceAlertTask);
-
 async function unregisterBackgroundTasks(): Promise<void> {
   for (const name of [TASK_NAME, PREVIOUS_TASK_NAME]) {
     if (await TaskManager.isTaskRegisteredAsync(name)) {
@@ -84,6 +65,10 @@ export async function enableNotifications(accessToken?: string): Promise<boolean
   const permission = current.granted ? current : await Notifications.requestPermissionsAsync();
   const enabled = permission.granted;
   useSettingsStore.getState().setNotifications(enabled);
+  if (enabled && !accessToken) {
+    useSettingsStore.getState().setNotifications(false);
+    throw new Error("Connexion requise pour les alertes push");
+  }
   if (enabled && accessToken) {
     try {
       await registerPushDevice(accessToken);
@@ -94,11 +79,6 @@ export async function enableNotifications(accessToken?: string): Promise<boolean
       useSettingsStore.getState().setServerPushRegistered(false);
       throw error;
     }
-  } else if (enabled && await TaskManager.isAvailableAsync()) {
-    if (await TaskManager.isTaskRegisteredAsync(PREVIOUS_TASK_NAME)) {
-      await BackgroundTask.unregisterTaskAsync(PREVIOUS_TASK_NAME);
-    }
-    await BackgroundTask.registerTaskAsync(TASK_NAME, { minimumInterval: 15 });
   }
   return enabled;
 }

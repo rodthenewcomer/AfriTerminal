@@ -7,6 +7,8 @@ import { useMarketData } from "../src/providers/MarketDataProvider";
 import { colors, radius } from "../src/theme";
 import { useScreenerStore, type ScreenerSort } from "../src/stores";
 import { sectorLabel } from "../src/lib/sectors";
+import { useMobileAuth } from "../src/providers/AuthProvider";
+import { useRouter } from "expo-router";
 
 const SORTS: { id: ScreenerSort; label: string }[] = [
   { id: "variation", label: "Variation" },
@@ -17,6 +19,8 @@ const SORTS: { id: ScreenerSort; label: string }[] = [
 
 export default function ScreenerScreen() {
   const market = useMarketData();
+  const { user } = useMobileAuth();
+  const router = useRouter();
   const { query, sector, sort, saved, setQuery, setSector, setSort, saveCurrent, apply, remove } = useScreenerStore();
   const sectors = useMemo(
     () => ["Tous", ...new Set(Object.values(market.quotes).map((quote) => sectorLabel(quote.sectorCode)))],
@@ -64,9 +68,13 @@ export default function ScreenerScreen() {
         </View>
       </Section>
 
-      <Section title="Filtres enregistrés" detail={saved.length ? `${saved.length}` : "aucun"}>
+      <Section title="Filtres enregistrés" detail={user ? (saved.length ? `${saved.length}` : "aucun") : "compte gratuit requis"}>
         <View style={styles.chipsWrap}>
-          <ActionButton label="Enregistrer le filtre actuel" icon="bookmark-outline" onPress={saveCurrent} />
+          <ActionButton
+            label={user ? "Enregistrer le filtre actuel" : "Créer un compte pour enregistrer"}
+            icon="bookmark-outline"
+            onPress={user ? saveCurrent : () => router.push("/(auth)/sign-up")}
+          />
           {saved.map((filter) => (
             <ActionButton
               key={filter.id}

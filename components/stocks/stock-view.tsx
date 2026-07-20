@@ -9,6 +9,11 @@ import { getRealQuote, LATEST_TRADING_DATE } from "@/lib/real-data";
 import { getRealFundamentals, growthPct } from "@/lib/real-fundamentals";
 import { getRealAnalysis } from "@/lib/real-analysis";
 import { describeNetIncomeTrend } from "@wariba/core/real-analysis";
+import {
+  annualMetricDisclosure,
+  brvmMetricDisclosure,
+  explainOfficialPer,
+} from "@wariba/core/financial-language";
 import { newsDate, newsForTicker } from "@/lib/news";
 import { realDocsForTicker } from "@/lib/real-documents";
 import { DIVIDEND_MAP } from "@/lib/mock/dividends";
@@ -42,8 +47,8 @@ import { usePriceAlerts } from "@/hooks/use-price-alerts";
 const STOCK_TABS = [
   { id: "graphique", label: "Graphique" },
   { id: "fondamentaux", label: "Fondamentaux" },
-  { id: "risque", label: "Risque & opérations" },
-  { id: "actus", label: "Actus & documents" },
+  { id: "risque", label: "Risque" },
+  { id: "actus", label: "Infos & documents" },
 ] as const;
 
 type StockTabId = (typeof STOCK_TABS)[number]["id"];
@@ -91,6 +96,41 @@ export function StockView({ ticker }: { ticker: string }) {
   const lastPrice = real?.lastClose ?? stock.lastPrice;
   const dayChange = real?.dayChangePct ?? stock.dayChange;
   const staleQuote = !!real && real.asOfDate !== LATEST_TRADING_DATE;
+  const annualDisclosure = realFund
+    ? annualMetricDisclosure({
+        fiscalYear: realFund.fiscalYear,
+        publishedOn: realFund.publishedOn,
+        sourceUrl: realFund.source,
+      })
+    : undefined;
+  const brvmDisclosure = real
+    ? brvmMetricDisclosure({ asOfDate: real.asOfDate })
+    : undefined;
+  const perExplanation = real
+    ? explainOfficialPer({
+        officialPer: real.per,
+        fiscalYear: realFund?.fiscalYear,
+        latestAnnualNetIncome: realFund?.netIncomeM,
+        impliedAnnualPer:
+          realFund?.sharesOutstanding && realFund.netIncomeM > 0
+            ? lastPrice / ((realFund.netIncomeM * 1e6) / realFund.sharesOutstanding)
+            : null,
+      })
+    : undefined;
+  const perDisclosure = brvmDisclosure
+    ? { ...brvmDisclosure, basisNote: perExplanation }
+    : undefined;
+  const mixedValuationDisclosure =
+    annualDisclosure && real
+      ? {
+          ...annualDisclosure,
+          period: `Clôture ${dateFr(real.asOfDate)} / comptes ${realFund?.fiscalYear}`,
+          periodType: "brvm-indicator" as const,
+          accountsDate: real.asOfDate,
+          sourceLabel: "BRVM + états financiers officiels",
+          basisNote: "Cours de clôture rapproché des actions ou capitaux propres annuels vérifiés.",
+        }
+      : undefined;
 
   return (
     <div className="space-y-4 fade-in">
@@ -130,7 +170,7 @@ export function StockView({ ticker }: { ticker: string }) {
               variant="outline"
               size="sm"
               onClick={() => setAlertOpen(true)}
-              title="Alerte de prix locale : seuil vérifié à chaque ouverture contre le dernier cours officiel"
+              title="Créer une alerte synchronisée avec votre compte"
             >
               <Bell className="h-3.5 w-3.5" /> Alerte
               {alertCount > 0 ? (
@@ -354,19 +394,22 @@ export function StockView({ ticker }: { ticker: string }) {
                     ? `Non significatif : résultat net ${realFund.fiscalYear} négatif`
                     : `Bulletin BRVM au ${dateFr(real.asOfDate)} · base bénéficiaire officielle`
                 }
+                disclosure={perDisclosure}
               />
               <MetricCard
                 label="Rendement net"
                 term="rendement-net"
                 value={real.netYieldPct ? pct(real.netYieldPct, { signed: false, digits: 2 }) : "—"}
                 tone={real.netYieldPct && real.netYieldPct >= 6 ? "up" : undefined}
+                disclosure={brvmDisclosure}
               />
-              <MetricCard label="Vol. moyen 30 j" term="vol-moyen" value={compactVolume(real.avgVolume30d)} />
+              <MetricCard label="Vol. moyen 30 j" term="vol-moyen" value={compactVolume(real.avgVolume30d)} disclosure={brvmDisclosure} />
               <MetricCard
                 label="Dernier dividende net"
                 term="dividende-net"
                 value={real.lastDividendNet ? fcfa(real.lastDividendNet) : "—"}
                 hint={real.lastDividendDate ? `Payé le ${dateFr(real.lastDividendDate)}` : undefined}
+                disclosure={brvmDisclosure}
               />
               {realFund?.sharesOutstanding ? (
                 <>
@@ -375,12 +418,14 @@ export function StockView({ ticker }: { ticker: string }) {
                     term="capitalisation"
                     value={compactFcfa(realFund.sharesOutstanding * lastPrice)}
                     hint={`${(realFund.sharesOutstanding / 1e6).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} M d'actions`}
+                    disclosure={mixedValuationDisclosure}
                   />
                   <MetricCard
                     label={`BPA ${realFund.fiscalYear}`}
                     term="bpa"
                     value={fcfa((realFund.netIncomeM * 1e6) / realFund.sharesOutstanding)}
                     hint="Bénéfice net par action"
+                    disclosure={annualDisclosure}
                   />
                   {realFund.equityM ? (
                     <MetricCard
@@ -389,6 +434,7 @@ export function StockView({ ticker }: { ticker: string }) {
                       value={ratio(
                         lastPrice / ((realFund.equityM * 1e6) / realFund.sharesOutstanding)
                       )}
+                      disclosure={mixedValuationDisclosure}
                     />
                   ) : null}
                 </>
@@ -400,6 +446,7 @@ export function StockView({ ticker }: { ticker: string }) {
                   label={`ROE ${realFund.fiscalYear}`}
                   term="roe"
                   value={pct((realFund.netIncomeM / realFund.equityM) * 100, { signed: false, digits: 1 })}
+                  disclosure={annualDisclosure}
                 />
               ) : null}
               {realFund ? (
@@ -412,6 +459,7 @@ export function StockView({ ticker }: { ticker: string }) {
                       const g = growthPct(realFund.revenueM, realFund.revenuePrevM);
                       return g !== null ? `${pct(g, { digits: 1 })} vs ${realFund.fiscalYear - 1}` : undefined;
                     })()}
+                    disclosure={annualDisclosure}
                   />
                   <MetricCard
                     label={`Résultat net ${realFund.fiscalYear}`}
@@ -427,11 +475,13 @@ export function StockView({ ticker }: { ticker: string }) {
                         ? `${trend.label} de ${pct(Math.abs(trend.changePct), { signed: false, digits: 1 })} vs ${realFund.fiscalYear - 1}`
                         : trend?.label;
                     })()}
+                    disclosure={annualDisclosure}
                   />
                   <MetricCard
                     label="Marge nette"
                     term="marge-nette"
                     value={pct((realFund.netIncomeM / realFund.revenueM) * 100, { signed: false, digits: 1 })}
+                    disclosure={annualDisclosure}
                   />
                   {realFund.ordinaryIncomeM !== null ? (
                     <MetricCard
@@ -439,6 +489,7 @@ export function StockView({ ticker }: { ticker: string }) {
                       term="resultat-ordinaire"
                       value={millions(realFund.ordinaryIncomeM)}
                       tone={realFund.ordinaryIncomeM < 0 ? "down" : undefined}
+                      disclosure={annualDisclosure}
                     />
                   ) : null}
                   {realFund.cirPct !== null ? (
@@ -447,6 +498,7 @@ export function StockView({ ticker }: { ticker: string }) {
                       term="cir"
                       value={pct(realFund.cirPct, { signed: false, digits: 1 })}
                       hint={realFund.cirPrevPct !== null ? `${pct(realFund.cirPrevPct, { signed: false, digits: 1 })} en ${realFund.fiscalYear - 1}` : undefined}
+                      disclosure={annualDisclosure}
                     />
                   ) : null}
                   {realFund.costOfRiskM !== null ? (
@@ -455,6 +507,7 @@ export function StockView({ ticker }: { ticker: string }) {
                       term="cout-du-risque"
                       value={millions(realFund.costOfRiskM)}
                       hint={realFund.costOfRiskM < 0 ? "Négatif = reprise nette" : undefined}
+                      disclosure={annualDisclosure}
                     />
                   ) : null}
                   {realFund.depositsM !== null ? (
@@ -466,6 +519,7 @@ export function StockView({ ticker }: { ticker: string }) {
                         const g = growthPct(realFund.depositsM, realFund.depositsPrevM);
                         return g !== null ? `${pct(g, { digits: 1 })} vs ${realFund.fiscalYear - 1} — l'argent que les clients confient` : "L'argent que les clients confient à la banque";
                       })()}
+                      disclosure={annualDisclosure}
                     />
                   ) : null}
                   {realFund.loansM !== null ? (
@@ -478,6 +532,7 @@ export function StockView({ ticker }: { ticker: string }) {
                           ? `${pct((realFund.loansM / realFund.depositsM) * 100, { signed: false, digits: 0 })} des dépôts sont prêtés`
                           : "Ce que la banque prête"
                       }
+                      disclosure={annualDisclosure}
                     />
                   ) : null}
                   {realFund.proposedGrossDividend !== null ? (
@@ -486,6 +541,7 @@ export function StockView({ ticker }: { ticker: string }) {
                       term="dividende-propose"
                       value={fcfa(realFund.proposedGrossDividend)}
                       hint={`Au titre de ${realFund.fiscalYear}, soumis à l'AG`}
+                      disclosure={annualDisclosure}
                     />
                   ) : null}
                 </>
@@ -618,49 +674,6 @@ export function StockView({ ticker }: { ticker: string }) {
       {/* Profil de risque calculé (volatilité, bêta, perte max) */}
       <RiskStats ticker={stock.ticker} />
 
-      {/* Opérations sur capital de la société (splits, augmentations) */}
-      {(() => {
-        const ops = operationsForTicker(stock.ticker);
-        if (ops.length === 0) return null;
-        return (
-          <Card>
-            <CardHeader
-              title={
-                <span className="inline-flex items-center gap-1.5">
-                  <Landmark className="h-3.5 w-3.5 text-accent" /> Opérations
-                  sur capital
-                </span>
-              }
-              subtitle="Splits, augmentations et réductions actés à la BRVM pour cette société"
-            />
-            <CardBody className="space-y-1.5">
-              {ops.map((op, i) => (
-                <div
-                  key={i}
-                  className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-line bg-surface/50 px-3 py-2 text-xs"
-                >
-                  <Badge tone="accent">{op.kind}</Badge>
-                  {op.date ? <time className="text-ink-3">{dateFr(op.date)}</time> : null}
-                  {op.parity ? (
-                    <span className="min-w-0 flex-1 truncate text-ink-2">{op.parity}</span>
-                  ) : null}
-                  {op.avisPdf ? (
-                    <a
-                      href={op.avisPdf}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[11px] underline text-ink-3 hover:text-ink"
-                    >
-                      Avis officiel
-                    </a>
-                  ) : null}
-                </div>
-              ))}
-            </CardBody>
-          </Card>
-        );
-      })()}
-
       {/* Valeurs comparables : même secteur, les plus liquides */}
       {(() => {
         const peers = getSnapshots()
@@ -729,6 +742,33 @@ export function StockView({ ticker }: { ticker: string }) {
           </div>
         </section>
       ) : null}
+
+      {(() => {
+        const ops = operationsForTicker(stock.ticker);
+        if (ops.length === 0) return null;
+        return (
+          <Card>
+            <CardHeader
+              title={
+                <span className="inline-flex items-center gap-1.5">
+                  <Landmark className="h-3.5 w-3.5 text-accent" /> Opérations sur capital
+                </span>
+              }
+              subtitle="Fractionnements et opérations de capital reliés aux avis officiels"
+            />
+            <CardBody className="space-y-1.5">
+              {ops.map((operation, index) => (
+                <div key={`${operation.date}-${index}`} className="flex flex-wrap items-center gap-2 rounded-lg border border-line bg-surface/50 px-3 py-2 text-xs">
+                  <Badge tone="accent">{operation.kind}</Badge>
+                  {operation.date ? <time className="text-ink-3">{dateFr(operation.date)}</time> : null}
+                  {operation.parity ? <span className="min-w-0 flex-1 text-ink-2">{operation.parity}</span> : null}
+                  {operation.avisPdf ? <a href={operation.avisPdf} target="_blank" rel="noopener noreferrer" className="text-[11px] underline text-ink-3 hover:text-ink">Avis officiel</a> : null}
+                </div>
+              ))}
+            </CardBody>
+          </Card>
+        );
+      })()}
 
       {/* Documents */}
       <section id="documents" className="scroll-mt-20">

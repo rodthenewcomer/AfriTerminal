@@ -1,13 +1,14 @@
 # WARIBA Pro — audit du classeur 48 actions et décision produit
 
-Dernière mise à jour : 16 juillet 2026
+Dernière mise à jour : 20 juillet 2026
 
 ## Décision
 
-WARIBA Pro est un laboratoire de recherche factuelle ouvert pendant le
-prélancement. Aucun compte, abonnement, entitlement ou paywall n'est requis.
-La valeur produit vient du workflow — classement, filtres, comparaison et
-export — pas de la fermeture des données de marché.
+WARIBA Pro est un laboratoire de recherche factuelle réservé à un compte ayant
+un entitlement Pro actif. Les faits de marché, fiches, fondamentaux,
+actualités, documents, dividendes et screener essentiel restent publics. La
+valeur payante vient du workflow — classement, filtres multi-facteurs,
+comparaison et export — pas de la fermeture des données essentielles.
 
 Le classeur `Analyse_48_actions_BRVM_2026-07-15.xlsx` a été audité comme une
 source d'idées et de contrôle. Ses scores et verdicts ne sont pas importés dans
@@ -85,7 +86,8 @@ référence affichée.
 - Date de publication, exercice, couverture, confiance et raisons visibles.
 - Export CSV des lignes réellement filtrées.
 - Navigation WARIBA Pro sur desktop, web mobile, iOS et Android.
-- Tarifs en accès ouvert : aucun checkout ou paywall pendant le prélancement.
+- Matrice Public / Compte / Pro visible avant inscription ; checkout web
+  affiché seulement quand la configuration Stripe de production est complète.
 - Méthodologie publique et avertissement non-conseil intégrés.
 
 ## Lecture croisée par 22 rôles
@@ -117,13 +119,9 @@ référence affichée.
 
 ## Priorités après ce volet
 
-1. Catégoriser les actualités régionales (`BRVM`, `Afrique`, `Énergie`,
-   `Mines`, `Macroéconomie`) au lieu d'un badge BRVM générique.
-2. Mesurer le LCP/temps d'apparition du graphique sur Android milieu de gamme
+1. Mesurer le LCP/temps d'apparition du graphique sur Android milieu de gamme
    et réseau mobile lent, puis fixer un budget de performance.
-3. Remplacer l'état watchlist temporairement désactivé par un message immédiat
-   « Connectez-vous pour suivre » lorsque la session n'est pas encore chargée.
-4. Vérifier par HTTP que le domaine secondaire redirige en permanence vers le
+2. Vérifier par HTTP que le domaine secondaire redirige en permanence vers le
    canonique choisi et que les metadata/canonical restent cohérentes.
-5. Ne rouvrir le chantier paywall qu'après release stores, mesure d'usage et
-   validation produit/juridique.
+3. Valider la tarification, les achats stores et les droits de redistribution
+   avant d'activer l'acquisition payante.

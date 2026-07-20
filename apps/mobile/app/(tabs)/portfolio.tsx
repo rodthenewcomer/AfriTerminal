@@ -9,9 +9,24 @@ import { AllocationDonut } from "../../src/components/AllocationDonut";
 import { parseAmount, parseDateInput, parseFees, parseQuantity, todayIso } from "../../src/lib/forms";
 import * as Haptics from "expo-haptics";
 import { colors, radius, tabular, type } from "../../src/theme";
+import { useMobileAuth } from "../../src/providers/AuthProvider";
+import { AccountGate } from "../../src/components/AccountGate";
+
+const SECTOR_LABELS: Record<string, string> = {
+  AGR: "Agriculture",
+  BAN: "Banques",
+  DIS: "Distribution",
+  FIN: "Finance",
+  IND: "Industrie",
+  OIL: "Énergie",
+  SPU: "Services publics",
+  TRA: "Transport",
+  TEL: "Télécommunications",
+};
 
 export default function PortfolioScreen() {
   const market = useMarketData();
+  const { loading: authLoading, user } = useMobileAuth();
   const transactions = usePortfolioStore((state) => state.transactions);
   const beginner = useSettingsStore((state) => state.experienceLevel === "debutant");
   const add = usePortfolioStore((state) => state.add);
@@ -33,6 +48,38 @@ export default function PortfolioScreen() {
     () => dividendIncome(transactions, (symbol) => market.dividends[symbol] ?? []),
     [transactions, market.dividends]
   );
+  const health = useMemo(() => {
+    const positions = summary.positions;
+    const ordered = [...positions].sort((a, b) => b.marketValue - a.marketValue);
+    const topPosition = ordered[0];
+    const topPositionWeight = topPosition && summary.totalValue > 0 ? topPosition.marketValue / summary.totalValue : 0;
+    const sectorValues = new Map<string, number>();
+    for (const position of positions) {
+      const code = market.quotes[position.ticker]?.sectorCode ?? "Autre";
+      sectorValues.set(code, (sectorValues.get(code) ?? 0) + position.marketValue);
+    }
+    const topSector = [...sectorValues.entries()].sort((a, b) => b[1] - a[1])[0];
+    const topSectorWeight = topSector && summary.totalValue > 0 ? topSector[1] / summary.totalValue : 0;
+    const today = new Date().toISOString().slice(0, 10);
+    const futureIncome = positions.reduce((total, position) => {
+      const announced = (market.dividends[position.ticker] ?? []).filter((event) => event.date > today);
+      return total + announced.reduce((sum, event) => sum + event.net * position.quantity, 0);
+    }, 0);
+    const risks = [
+      ...(topPositionWeight > 0.4 ? [`${topPosition?.ticker} représente ${pct(topPositionWeight * 100, { digits: 0 })} du portefeuille.`] : []),
+      ...(topSectorWeight > 0.55 && topSector ? [`Le secteur ${SECTOR_LABELS[topSector[0]] ?? topSector[0]} pèse ${pct(topSectorWeight * 100, { digits: 0 })}.`] : []),
+      ...(positions.length > 0 && positions.length < 3 ? ["Moins de trois lignes : diversification limitée."] : []),
+    ];
+    return {
+      topPosition,
+      topPositionWeight,
+      topSector,
+      topSectorWeight,
+      futureIncome,
+      risks,
+      totalPerformance: summary.totalUnrealizedPnl + summary.totalRealizedPnl + income.total,
+    };
+  }, [income.total, market.dividends, market.quotes, summary]);
   const formComplete = Boolean(ticker.trim() && quantity.trim() && price.trim() && date.trim());
 
   const submit = () => {
@@ -62,10 +109,26 @@ export default function PortfolioScreen() {
     ]);
   };
 
+  if (!authLoading && !user) {
+    return (
+      <Page title="Portefeuille" subtitle="Votre patrimoine BRVM, protégé et synchronisé">
+        <AccountGate
+          title="Transformez vos transactions en décisions utiles."
+          detail="Le compte gratuit conserve vos achats, frais et dividendes et relie chaque position aux alertes de l’entreprise."
+          benefits={[
+            "PRU, performance totale et revenus calculés avec vos frais",
+            "Concentration, secteurs et risques visibles en un coup d’œil",
+            "Portefeuille disponible sur web, iPhone et Android",
+          ]}
+        />
+      </Page>
+    );
+  }
+
   return (
     <Page
       title="Portefeuille"
-      subtitle="PRU et performance calculés localement — les données restent sur cet appareil"
+      subtitle="PRU, revenus et risques synchronisés avec votre compte"
       action={<ActionButton label="Ajouter" icon="add" onPress={() => setOpen(true)} />}
     >
       <View style={styles.hero}>
@@ -101,6 +164,29 @@ export default function PortfolioScreen() {
           </Text>
         ) : null}
       </View>
+
+      {summary.positions.length ? (
+        <Section title="Santé du portefeuille" detail="Performance, revenus et concentration">
+          <View style={styles.metrics}>
+            <Metric label="Performance totale" value={fcfa(health.totalPerformance)} tone={health.totalPerformance >= 0 ? "up" : "down"} detail="Réalisé + latent + dividendes reçus" />
+            <Metric label="Revenus reçus" value={fcfa(income.total)} tone="accent" detail="Dividendes nets estimés selon vos dates de détention" />
+            <Metric label="Revenus futurs" value={fcfa(health.futureIncome)} tone="accent" detail={health.futureIncome > 0 ? "Paiements annoncés dont la date est à venir" : "Aucun paiement futur présent dans les données officielles"} />
+            <Metric
+              label="Plus forte position"
+              value={health.topPosition?.ticker ?? "—"}
+              detail={pct(health.topPositionWeight * 100, { digits: 1 })}
+            />
+            <Metric
+              label="Premier secteur"
+              value={health.topSector ? SECTOR_LABELS[health.topSector[0]] ?? health.topSector[0] : "—"}
+              detail={pct(health.topSectorWeight * 100, { digits: 1 })}
+            />
+          </View>
+          {health.risks.length ? health.risks.map((risk) => (
+            <Row key={risk} icon="warning-outline" title="Point de vigilance" detail={risk} />
+          )) : <Row icon="shield-checkmark-outline" title="Diversification correcte" detail="Aucun seuil simple de concentration n’est dépassé. Cela ne constitue pas un conseil d’investissement." />}
+        </Section>
+      ) : null}
 
       <Section title="Positions" detail="Cours de la dernière clôture">
         {summary.positions.length > 1 ? (
@@ -139,7 +225,7 @@ export default function PortfolioScreen() {
             </View>
           );
         }) : <>
-          <EmptyState icon="pie-chart-outline" title="Portefeuille vide" detail="Ajoutez un achat ou une vente — tout est calculé et stocké localement." />
+          <EmptyState icon="pie-chart-outline" title="Portefeuille vide" detail="Ajoutez un achat ou une vente : les calculs seront synchronisés avec votre compte." />
           <View style={styles.emptyCta}>
             <ActionButton label="Ajouter ma première transaction" icon="add" onPress={() => setOpen(true)} />
           </View>

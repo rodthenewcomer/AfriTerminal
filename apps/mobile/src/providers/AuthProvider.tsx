@@ -4,7 +4,11 @@ import type { Session, User } from "@supabase/supabase-js";
 import { installAuthAutoRefresh, mobileSupabase } from "../lib/supabase";
 import { setNativeBillingUser } from "../services/native-billing";
 import { unregisterPushDevice } from "../services/push-registration";
-import { subscribeMobileCloudChanges, syncMobileData } from "../services/cloud-sync";
+import {
+  clearMobileCloudPersonalState,
+  subscribeMobileCloudChanges,
+  syncMobileData,
+} from "../services/cloud-sync";
 import { useSettingsStore } from "../stores";
 
 interface MobileAuthState {
@@ -30,6 +34,7 @@ export function MobileAuthProvider({ children }: { children: ReactNode }) {
   const runningSync = useRef(false);
   const queuedSync = useRef(false);
   const scheduleSync = useRef<() => void>(() => undefined);
+  const previousCloudUserId = useRef<string | null>(null);
   const syncUserId = session?.user.id;
 
   useEffect(() => {
@@ -57,6 +62,14 @@ export function MobileAuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     void setNativeBillingUser(session?.user.id ?? null).catch(() => undefined);
+  }, [session?.user.id]);
+
+  useEffect(() => {
+    const nextUserId = session?.user.id ?? null;
+    if (previousCloudUserId.current !== nextUserId) {
+      clearMobileCloudPersonalState();
+      previousCloudUserId.current = nextUserId;
+    }
   }, [session?.user.id]);
 
   const syncNow = useCallback(async () => {
@@ -145,6 +158,7 @@ export function MobileAuthProvider({ children }: { children: ReactNode }) {
       }
       useSettingsStore.getState().setNotifications(false);
       useSettingsStore.getState().setServerPushRegistered(false);
+      clearMobileCloudPersonalState();
       if (mobileSupabase) await mobileSupabase.auth.signOut();
       await setNativeBillingUser(null).catch(() => undefined);
     },

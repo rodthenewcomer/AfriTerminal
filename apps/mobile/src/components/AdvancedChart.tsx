@@ -9,7 +9,7 @@ import {
   calculateMACD, calculateRSI, calculateSMA, calculateStochastic, calculateVWAP,
 } from "@wariba/core/indicators";
 import { WebChart, type WebChartHandle, type WebChartMarker, type WebChartOverlay, type WebChartPanes, type WebChartPayload } from "./chart/WebChart";
-import { ActionButton, SegmentedTabs } from "./ui";
+import { ActionButton } from "./ui";
 import { useChartLevelStore, useChartStore } from "../stores";
 import { colors, type } from "../theme";
 
@@ -168,7 +168,30 @@ export function AdvancedChart({
     ? `Graphique ${ticker}, ${rangeStats.count} séances. Dernière clôture ${rangeStats.last.toLocaleString("fr-FR")} FCFA, variation ${rangeStats.change.toLocaleString("fr-FR", { maximumFractionDigits: 2 })} %, plus haut ${rangeStats.high.toLocaleString("fr-FR")}, plus bas ${rangeStats.low.toLocaleString("fr-FR")}.`
     : `Graphique ${ticker}, aucune donnée sur la période.`;
 
-  const rangeChips = <SegmentedTabs tabs={RANGES} active={range} onChange={setRange} />;
+  const rangeChips = (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.toolbar}
+      accessibilityLabel="Choisir la période du graphique"
+    >
+      {RANGES.map((item) => (
+        <ActionButton key={item.id} label={item.label} active={range === item.id} onPress={() => setRange(item.id)} />
+      ))}
+    </ScrollView>
+  );
+  const typeChips = (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.toolbar}
+      accessibilityLabel="Choisir le type de graphique"
+    >
+      {TYPES.map((item) => (
+        <ActionButton key={item.id} label={item.label} active={chartType === item.id} onPress={() => setType(item.id)} />
+      ))}
+    </ScrollView>
+  );
 
   return (
     <View style={styles.root}>
@@ -182,9 +205,12 @@ export function AdvancedChart({
           <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Points</Text><Text style={styles.summaryValue}>{rangeStats.count}</Text></View>
         </View>
       ) : null}
+      <View style={styles.selectorBlock}>
+        <Text style={styles.selectorLabel}>Type de graphique</Text>
+        {typeChips}
+      </View>
       <WebChart ref={chartRef} payload={payload} height={height} onLevelTap={(price) => toggleLevel(ticker, price)} />
       {levelMode ? <Text style={styles.levelHint}>Touchez le graphique pour poser ou retirer un niveau de prix.</Text> : null}
-      <SegmentedTabs tabs={TYPES} active={chartType} onChange={setType} />
       <View style={styles.actions}>
         <ActionButton label="Indicateurs" icon="options-outline" active={showIndicators} onPress={() => setShowIndicators((value) => !value)} />
         <ActionButton label="Log" active={logarithmic} onPress={toggleLog} />
@@ -216,10 +242,11 @@ export function AdvancedChart({
             </Pressable>
           </View>
           {rangeChips}
+          {typeChips}
           {fullscreen ? (
             <WebChart
               payload={{ ...payload, fit: true }}
-              height={window_.height - insets.top - insets.bottom - 132}
+              height={Math.max(260, window_.height - insets.top - insets.bottom - 190)}
               onLevelTap={(price) => toggleLevel(ticker, price)}
             />
           ) : null}
@@ -233,6 +260,8 @@ const styles = StyleSheet.create({
   root: { gap: 10 },
   rangeRow: { gap: 7 },
   toolbar: { gap: 7 },
+  selectorBlock: { gap: 6 },
+  selectorLabel: { ...type.label, color: colors.ink2 },
   actions: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
   levelHint: { ...type.caption, color: colors.accent },
   srSummary: { position: "absolute", width: 1, height: 1, opacity: 0 },

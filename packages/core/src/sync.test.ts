@@ -23,8 +23,11 @@ describe("mergeLatest", () => {
 const NOW = "2026-07-15T12:00:00.000Z";
 const BEFORE = "2026-07-15T10:00:00.000Z";
 const WEB_SCOPE = {
-  preferenceKeys: ["chart", "chart_levels", "chart_layouts"] as const,
-  preferencePatchKeys: { chart: ["maColors"] },
+  preferenceKeys: ["chart", "chart_levels", "chart_layouts", "settings"] as const,
+  preferencePatchKeys: {
+    chart: ["maColors"],
+    settings: ["alertScope", "alertImportantOnly", "hiddenAlertTypes"],
+  },
 };
 
 function payload(patch: Partial<CloudSyncPayload>): CloudSyncPayload {
@@ -80,6 +83,15 @@ describe("reconcileCloudSync", () => {
     const remote = payload({ preferences: [{ key: "chart", value: { type: "line" }, updatedAt: BEFORE }] });
     const merged = reconcileCloudSync(local, remote, { now: NOW, scope: WEB_SCOPE });
     expect(merged.preferences[0].value).toEqual({ type: "line", maColors: { sma20: "#111" } });
+  });
+
+  it("keeps SGI request tracking when alert display preferences change", () => {
+    const sgiRequests = [{ id: "request-1", sgi_id: "boa-capital-securities", status: "pending" }];
+    const previous = payload({ preferences: [{ key: "settings", value: { alertScope: "personal", sgiRequests }, updatedAt: BEFORE }] });
+    const local = payload({ preferences: [{ key: "settings", value: { alertScope: "portfolio" }, updatedAt: NOW }] });
+    const remote = payload({ preferences: [{ key: "settings", value: { alertScope: "personal", sgiRequests }, updatedAt: "2026-07-15T11:00:00.000Z" }] });
+    const merged = reconcileCloudSync(local, remote, { now: NOW, previous, scope: WEB_SCOPE });
+    expect(merged.preferences[0].value).toEqual({ alertScope: "portfolio", sgiRequests });
   });
 
   it("does not delete watchlists outside a mobile client's managed scope", () => {

@@ -15,7 +15,7 @@ application**. Il s'applique à l'app mobile (Expo) et au site web (Next.js).
 
 ## 1. Principes non négociables
 
-1. **Local-first reste la vérité.** L'app et le site fonctionnent
+1. **Le terminal public reste sans compte ; le cloud est la vérité privée.** L'app et le site fonctionnent
    entièrement sans compte, comme aujourd'hui. Le compte est un *ajout*
    (synchronisation, futur push serveur), jamais un mur. Un bouton
    « Continuer sans compte » est présent à chaque étape d'auth.
@@ -63,26 +63,28 @@ price_alerts, saved_filters, user_preferences, device_push_tokens,
 subscriptions, entitlements, billing_webhook_events
 ```
 
-- **Stratégie de synchro : réconciliation à trois voies par enregistrement.**
-  Les stores restent la source locale et un ledger conserve le dernier état
-  canonique. `packages/core/sync-reconcile.ts` fusionne ajouts, suppressions et
+- **Stratégie de synchro : compte cloud comme source de référence.**
+  Les stores métier ne persistent plus dans `localStorage` ou `AsyncStorage` ;
+  un ledger mémoire ne sert qu'à réconcilier la session active.
+  `packages/core/sync-reconcile.ts` fusionne ajouts, suppressions et
   changements concurrents ; la synchro part à la connexion, au retour au
   premier plan et après chaque écriture (debounce + limite de fréquence).
   Les préférences partagées web/mobile sont fusionnées par champ et l'ancien
   mode serveur `replace` est rejeté pour éviter les pertes silencieuses. Les
   ledgers sont séparés par identifiant utilisateur ; un changement de compte
-  restaure d'abord son cloud au lieu de transférer les données du compte précédent.
-- **Migration au premier login** : la première réconciliation préfère les
-  enregistrements cloud lorsqu'un même identifiant existe déjà, puis ajoute
-  les données locales uniques. Le compte reste optionnel ; l'automatisation
-  ne démarre qu'après authentification.
+  vide immédiatement l'état métier puis restaure le cloud du nouveau compte.
+- **Premier login** : watchlist, portefeuille, alertes et filtres sont chargés
+  depuis le compte. Sans compte, ces fonctions personnelles affichent leur
+  valeur et invitent à créer un espace gratuit ; aucune session métier locale
+  n'est créée.
 - **Suppression de compte dans l'app** (obligatoire App Store 5.1.1(v)) :
-  Réglages > Compte > Supprimer — purge serveur + retour au mode local.
+  Réglages > Compte > Supprimer — purge serveur, nettoyage mémoire et retour
+  au terminal public.
 
 ### Validation & sécurité
 
-- Toutes les écritures passent par les mêmes validateurs purs que le
-  local (`apps/mobile/src/lib/forms.ts` remonte dans
+- Toutes les écritures passent par les mêmes validateurs purs côté client et
+  serveur (`apps/mobile/src/lib/forms.ts` remonte dans
   `packages/core/validation.ts`, partagé web/mobile/serveur).
 - Contraintes SQL miroir (quantity > 0, price > 0, date >= '1998-09-16').
 - Rate limiting Supabase Auth par défaut + captcha (Turnstile) sur signup
@@ -129,7 +131,7 @@ incluse, pour pouvoir re-présenter un onboarding enrichi plus tard).
 |---|---|---|
 | 1 | « La BRVM devient une décision » | Vraie donnée du BRVM Composite et signal de marché. |
 | 2 | « Suivez moins. Comprenez mieux. » | Watchlist, portefeuille et alertes sur clôture officielle. |
-| 3 | « Votre espace reste le vôtre » | Mode invité local et synchronisation chiffrée opt-in. |
+| 3 | « Votre espace reste le vôtre » | Terminal public sans données métier privées ; compte cloud isolé et synchronisé. |
 | 4 | « Commencez à votre rythme » | Niveau Guidé/Investisseur/Expert, puis boutons Créer un compte, Se connecter et Explorer sans compte. |
 
 **Le choix « Débutant » active le mode débutant** (persisté dans
@@ -148,7 +150,8 @@ cache pas de données (rôle 11 : rien ne doit paraître cassé ou bridé).
 **Web** : pas de carrousel bloquant (anti-pattern web). À la première
 visite : bannière discrète « Nouveau sur la BRVM ? Visite guidée de
 2 minutes » → visite guidée en 4 étapes ancrées sur les vrais éléments
-(dashboard, fiche, screener, alertes), stockée dans `localStorage`.
+(dashboard, fiche, screener, alertes). Seul l'état de cette visite guidée peut
+rester sur l'appareil ; il ne contient aucune donnée d'investissement.
 
 ## 5. Création de compte & connexion — spécification visuelle
 
@@ -175,7 +178,7 @@ apparaît. L'écran d'auth doit ressembler à WARIBA, pas à un template.
 3. **Pied** : « Continuer sans compte » en évidence égale (principe 1),
    liens conditions/confidentialité, bascule connexion ↔ inscription.
 4. **Après inscription** : écran « Retrouver vos données » (migration
-   opt-in du local vers le compte, avec récapitulatif chiffré : « 12
+chargement du compte cloud, avec récapitulatif chiffré : « 12
    valeurs suivies, 34 transactions, 3 alertes ») puis retour exactement
    là où l'utilisateur était.
 

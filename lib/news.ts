@@ -1,4 +1,8 @@
 import newsJson from "@/data/news/news.json";
+export {
+  classifyNewsRegion,
+  type NewsRegion,
+} from "@wariba/core/news-region";
 
 /**
  * Actualités réelles agrégées depuis Sika Finance et Financial Afrik

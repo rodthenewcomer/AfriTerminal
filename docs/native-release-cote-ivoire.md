@@ -1,6 +1,6 @@
 # Lancement natif WARIBA — Côte d’Ivoire
 
-Dernière vérification : 19 juillet 2026
+Dernière vérification : 20 juillet 2026
 
 Ce document est la procédure de référence pour publier WARIBA sur iPhone et
 Android en Côte d'Ivoire. Les faits de marché restent gratuits et publics ;

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "next-themes";
-import { Camera } from "lucide-react";
+import { Camera, Minimize2 } from "lucide-react";
 import {
   AreaSeries,
   BarSeries,
@@ -790,9 +790,21 @@ export function MainChart({ ticker }: { ticker: string }) {
     <div
       className={cn(
         "flex min-w-0 flex-col gap-2.5",
-        fullscreen && "fixed inset-0 z-50 bg-background p-3 sm:p-5"
+        fullscreen && "fixed inset-0 z-50 isolate overflow-y-auto bg-background p-3 pt-16 sm:p-5 sm:pt-16"
       )}
     >
+      {fullscreen ? (
+        <button
+          type="button"
+          onClick={() => setFullscreen(false)}
+          title="Quitter le plein écran (Échap)"
+          aria-label="Quitter le plein écran"
+          className="fixed right-3 z-[70] flex h-11 w-11 items-center justify-center rounded-xl border border-line bg-surface text-ink shadow-xl shadow-black/20 transition hover:bg-surface-2 sm:right-5"
+          style={{ top: "max(0.75rem, env(safe-area-inset-top))" }}
+        >
+          <Minimize2 className="h-5 w-5" />
+        </button>
+      ) : null}
       <ChartToolbar
         tf={tf}
         onTf={setTf}

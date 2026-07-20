@@ -6,10 +6,13 @@ import { ActionButton, EmptyState, Metric, Page, Section } from "../../src/compo
 import { QuoteRow } from "../../src/components/QuoteRow";
 import { useMarketData } from "../../src/providers/MarketDataProvider";
 import { useWatchlistStore } from "../../src/stores";
+import { useMobileAuth } from "../../src/providers/AuthProvider";
+import { AccountGate } from "../../src/components/AccountGate";
 
 export default function WatchlistScreen() {
   const market = useMarketData();
   const router = useRouter();
+  const { loading, user } = useMobileAuth();
   const tickers = useWatchlistStore((state) => state.tickers);
   const toggle = useWatchlistStore((state) => state.toggle);
   const quotes = useMemo(
@@ -23,8 +26,24 @@ export default function WatchlistScreen() {
     return { average, best: sorted[0], worst: sorted[sorted.length - 1] };
   }, [quotes]);
 
+  if (!loading && !user) {
+    return (
+      <Page title="Watchlist" subtitle="Vos actions suivies, sur tous vos appareils">
+        <AccountGate
+          title="Retrouvez immédiatement les informations qui comptent pour vous."
+          detail="Un compte relie vos actions suivies aux publications, variations, volumes inhabituels et dividendes."
+          benefits={[
+            "Watchlist synchronisée sur web, iPhone et Android",
+            "Alertes prioritaires sur vos entreprises",
+            "Aucune action suivie perdue en changeant de téléphone",
+          ]}
+        />
+      </Page>
+    );
+  }
+
   return (
-    <Page title="Watchlist" subtitle="Synchronisée localement sur cet appareil" refreshing={market.refreshing} onRefresh={() => void market.refresh()}>
+    <Page title="Watchlist" subtitle="Synchronisée avec votre compte WARIBA" refreshing={market.refreshing} onRefresh={() => void market.refresh()}>
       {summary ? (
         <View style={styles.metrics}>
           <Metric label="Variation moyenne" value={pct(summary.average, { signed: true, digits: 2 })} tone={summary.average >= 0 ? "up" : "down"} detail={`${quotes.length} titre${quotes.length > 1 ? "s" : ""} suivis`} />

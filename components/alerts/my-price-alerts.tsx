@@ -38,7 +38,7 @@ export function MyPriceAlerts() {
             {hits > 0 ? <Badge tone="positive">{hits} franchie{hits > 1 ? "s" : ""}</Badge> : null}
           </span>
         }
-        subtitle="Seuils personnels vérifiés localement et, après synchronisation du compte, par le serveur de notifications."
+        subtitle="Seuils personnels synchronisés avec votre compte et vérifiés par le serveur de notifications."
       />
       <CardBody className="space-y-1.5">
         {evaluated.map((a) => (

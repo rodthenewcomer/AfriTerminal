@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getSnapshots } from "@/lib/data";
 import { SITE_URL } from "@/lib/site";
+import { COTE_DIVOIRE_SGIS } from "@wariba/core/sgi";
 
 // Export statique : le sitemap est généré au build, comme tout le site.
 export const dynamic = "force-static";
@@ -21,9 +22,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/watchlist",
     "/dividendes",
     "/news",
-    "/documents",
+    "/operations",
     "/alerts",
-    "/ipo",
+    "/sgi",
+    "/pro",
+    "/pricing",
     "/status",
     "/methodologie",
   ].map((path) => ({
@@ -40,5 +43,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  return [...sections, ...stocks];
+  const sgis = COTE_DIVOIRE_SGIS.map((sgi) => ({
+    url: `${SITE_URL}/sgi/${sgi.id}/`,
+    lastModified: new Date(`${sgi.verifiedOn}T12:00:00Z`),
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
+
+  return [...sections, ...stocks, ...sgis];
 }

@@ -9,12 +9,7 @@ import { useSavedFilters, useSavedFiltersHydrated } from "@/hooks/use-saved-filt
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 
-/**
- * Sauvegarde/restauration des données locales. Tout vit en localStorage :
- * un vidage de cache ou un changement d'appareil efface portefeuille,
- * watchlists et filtres — cette carte est la porte de sortie (et le
- * transfert d'appareil à appareil en attendant les comptes).
- */
+/** Export portable et restauration explicite des données du compte chargé. */
 export function BackupCard() {
   const portfolioHydrated = usePortfolioHydrated();
   const watchlistHydrated = useWatchlistHydrated();
@@ -75,12 +70,13 @@ export function BackupCard() {
     <Card>
       <CardHeader
         title="Sauvegarde de vos données"
-        subtitle="Portefeuille, watchlists et filtres vivent uniquement dans ce navigateur — un vidage de cache les efface"
+        subtitle="Export portable des données actuellement synchronisées avec votre compte"
       />
       <CardBody className="space-y-3">
         <p className="text-xs leading-relaxed text-ink-2">
-          Téléchargez un fichier de sauvegarde régulièrement, et pour passer
-          d&apos;un appareil à l&apos;autre, restaurez-le sur le nouveau.
+          Le cloud reste la source de référence. Ce fichier sert à votre propre
+          archivage ou à une restauration volontaire ; il ne crée aucune
+          session persistante dans le navigateur.
         </p>
         <div className="flex flex-wrap gap-2">
           <Button variant="accent" size="sm" onClick={doExport} disabled={!hydrated}>

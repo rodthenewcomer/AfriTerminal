@@ -189,7 +189,10 @@ export function ChartToolbar(props: ChartToolbarProps) {
           onClick={() => props.onFullscreen(!props.fullscreen)}
           title={props.fullscreen ? "Quitter le plein écran (Échap)" : "Plein écran"}
           aria-label={props.fullscreen ? "Quitter le plein écran" : "Plein écran"}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-line bg-surface/60 text-ink-2 hover:bg-surface-2 hover:text-ink cursor-pointer transition-colors"
+          className={cn(
+            "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-line bg-surface/60 text-ink-2 hover:bg-surface-2 hover:text-ink cursor-pointer transition-colors",
+            props.fullscreen && "hidden"
+          )}
         >
           {props.fullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
         </button>

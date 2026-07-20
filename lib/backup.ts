@@ -4,10 +4,9 @@ import type { SavedFilter } from "@/hooks/use-saved-filters";
 import { legacyProductLabel } from "@wariba/core/legacy";
 
 /**
- * Sauvegarde/restauration des données locales — le portefeuille, les
- * watchlists et les filtres vivent en localStorage : un vidage de cache
- * ou un changement d'appareil efface tout. Ce module produit un fichier
- * JSON autoporteur et valide strictement ce qu'on lui redonne (un
+ * Export/restauration portable des données de compte. Le cloud reste la
+ * source de référence ; ce module produit une copie JSON autoporteuse et
+ * valide strictement ce qu'on lui redonne (un
  * fichier trafiqué ou d'une autre app ne doit jamais corrompre l'état).
  */
 

@@ -28,15 +28,13 @@ export default function MoreScreen() {
         <Row icon="sparkles-outline" title="WARIBA Pro" detail="Laboratoire des 48 actions, scores et comparaison" onPress={() => router.push("/pro")} />
         <Row icon="wallet-outline" title="Portefeuille" detail="Positions, performance et revenu estimé" onPress={() => router.push("/portfolio")} />
         <Row icon="funnel-outline" title="Screener" detail="Filtres, tris et recherches enregistrées" onPress={() => router.push("/screener")} />
-        <Row icon="notifications-outline" title="Alertes" detail="Alertes factuelles et seuils de prix locaux" onPress={() => router.push("/alerts")} />
+        <Row icon="notifications-outline" title="Alertes" detail="Ce qui compte pour vos actions suivies et détenues" onPress={() => router.push("/alerts")} />
         <Row icon="cash-outline" title="Dividendes" detail="Saisonnalité et journal des versements nets" onPress={() => router.push("/dividends")} />
       </Section>
       <Section title="Marché">
         <Row icon="grid-outline" title="Carte du marché" detail="Treemap par liquidité, 8 horizons de performance" onPress={() => router.push("/map")} />
-        <Row icon="rocket-outline" title="IPO & opérations" detail="Avis réels et pédagogie clairement séparés" onPress={() => router.push("/ipo")} />
-      </Section>
-      <Section title="Information">
-        <Row icon="document-text-outline" title="Documents" detail="Publications officielles BRVM" onPress={() => router.push("/documents")} />
+        <Row icon="document-text-outline" title="Opérations & documents" detail="Publications, avis et opérations réunis" onPress={() => router.push("/operations")} />
+        <Row icon="business-outline" title="Choisir une SGI" detail="Questionnaire et annuaire officiel Côte d’Ivoire" onPress={() => router.push("/sgi")} />
       </Section>
       <Section title="Application">
         <Row icon="person-circle-outline" title={user ? "Mon compte" : "Compte"} detail={user?.email ?? "Connexion, synchronisation et forfait"} onPress={() => router.push("/account")} />

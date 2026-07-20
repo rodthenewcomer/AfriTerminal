@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import type { ChartType, IndicatorId } from "@wariba/core/types";
+import type { AlertType, ChartType, IndicatorId } from "@wariba/core/types";
 import type { PortfolioTransaction } from "@wariba/core/portfolio";
 import { legacyStorageKey } from "@wariba/core/legacy";
 import type { ColorMode } from "../theme";
@@ -30,18 +30,17 @@ interface WatchlistState {
   hasHydrated: boolean;
   setHydrated: (value: boolean) => void;
 }
-export const useWatchlistStore = create<WatchlistState>()(persist(
+export const useWatchlistStore = create<WatchlistState>()(
   (set, get) => ({
-    tickers: ["SNTS", "ORAC", "SGBC"],
+    tickers: [],
     toggle: (ticker) => set({ tickers: get().tickers.includes(ticker)
       ? get().tickers.filter((item) => item !== ticker)
       : [...get().tickers, ticker] }),
     replaceAll: (tickers) => set({ tickers: [...tickers] }),
-    hasHydrated: false,
+    hasHydrated: true,
     setHydrated: (hasHydrated) => set({ hasHydrated }),
-  }),
-  { name: "wariba-watchlist", storage, skipHydration: true, onRehydrateStorage: () => (state) => state?.setHydrated(true) }
-));
+  })
+);
 
 interface PortfolioState {
   transactions: PortfolioTransaction[];
@@ -52,18 +51,17 @@ interface PortfolioState {
   hasHydrated: boolean;
   setHydrated: (value: boolean) => void;
 }
-export const usePortfolioStore = create<PortfolioState>()(persist(
+export const usePortfolioStore = create<PortfolioState>()(
   (set, get) => ({
     transactions: [],
     add: (transaction) => set({ transactions: [...get().transactions, transaction] }),
     remove: (id) => set({ transactions: get().transactions.filter((item) => item.id !== id) }),
     clear: () => set({ transactions: [] }),
     replaceAll: (transactions) => set({ transactions: [...transactions] }),
-    hasHydrated: false,
+    hasHydrated: true,
     setHydrated: (hasHydrated) => set({ hasHydrated }),
-  }),
-  { name: "wariba-portfolio", storage, skipHydration: true, onRehydrateStorage: () => (state) => state?.setHydrated(true) }
-));
+  })
+);
 
 export interface PriceAlertRule {
   id: string;
@@ -82,7 +80,7 @@ interface AlertState {
   rearm: (id: string) => void;
   replaceAll: (rules: PriceAlertRule[]) => void;
 }
-export const usePriceAlertStore = create<AlertState>()(persist(
+export const usePriceAlertStore = create<AlertState>()(
   (set, get) => ({
     rules: [],
     add: (rule) => set({ rules: [...get().rules, rule] }),
@@ -90,9 +88,36 @@ export const usePriceAlertStore = create<AlertState>()(persist(
     markTriggered: (id, triggeredAt) => set({ rules: get().rules.map((item) => item.id === id ? { ...item, triggeredAt } : item) }),
     rearm: (id) => set({ rules: get().rules.map((item) => item.id === id ? { ...item, enabled: true, triggeredAt: undefined } : item) }),
     replaceAll: (rules) => set({ rules: [...rules] }),
+  })
+);
+
+export type AlertScope = "personal" | "watchlist" | "portfolio" | "market";
+interface AlertPreferencesState {
+  scope: AlertScope;
+  importantOnly: boolean;
+  hiddenTypes: AlertType[];
+  setScope: (scope: AlertScope) => void;
+  setImportantOnly: (value: boolean) => void;
+  hideType: (type: AlertType) => void;
+  showAllTypes: () => void;
+  replaceAll: (value: Partial<Pick<AlertPreferencesState, "scope" | "importantOnly" | "hiddenTypes">>) => void;
+}
+export const useAlertPreferencesStore = create<AlertPreferencesState>()((set) => ({
+  scope: "personal",
+  importantOnly: false,
+  hiddenTypes: [],
+  setScope: (scope) => set({ scope }),
+  setImportantOnly: (importantOnly) => set({ importantOnly }),
+  hideType: (type) => set((state) => ({
+    hiddenTypes: state.hiddenTypes.includes(type) ? state.hiddenTypes : [...state.hiddenTypes, type],
+  })),
+  showAllTypes: () => set({ hiddenTypes: [] }),
+  replaceAll: (value) => set({
+    scope: value.scope ?? "personal",
+    importantOnly: value.importantOnly ?? false,
+    hiddenTypes: value.hiddenTypes ?? [],
   }),
-  { name: "wariba-price-alerts", storage, skipHydration: true }
-));
+}));
 
 interface ChartState {
   type: ChartType;
@@ -158,7 +183,7 @@ interface ScreenerState {
   apply: (filter: SavedScreenerFilter) => void;
   remove: (id: string) => void;
 }
-export const useScreenerStore = create<ScreenerState>()(persist(
+export const useScreenerStore = create<ScreenerState>()(
   (set, get) => ({
     query: "",
     sector: "Tous",
@@ -176,9 +201,8 @@ export const useScreenerStore = create<ScreenerState>()(persist(
     },
     apply: ({ query, sector, sort }) => set({ query, sector, sort }),
     remove: (id) => set({ saved: get().saved.filter((filter) => filter.id !== id) }),
-  }),
-  { name: "@wariba:screener", storage, skipHydration: true }
-));
+  })
+);
 
 export type ExperienceLevel = "debutant" | "intermediaire" | "avance";
 /** Version du flux de première ouverture — l'incrémenter re-présente l'onboarding. */
@@ -226,9 +250,8 @@ export const useSettingsStore = create<SettingsState>()(persist(
 
 export async function rehydrateStores(): Promise<void> {
   await Promise.all([
-    useWatchlistStore.persist.rehydrate(), usePortfolioStore.persist.rehydrate(),
-    usePriceAlertStore.persist.rehydrate(), useChartStore.persist.rehydrate(),
-    useChartLevelStore.persist.rehydrate(), useScreenerStore.persist.rehydrate(),
+    useChartStore.persist.rehydrate(),
+    useChartLevelStore.persist.rehydrate(),
     useSettingsStore.persist.rehydrate(),
   ]);
 }

@@ -6,15 +6,22 @@ import { ActionButton, EmptyState, Page, Section, SegmentedTabs } from "../../sr
 import { useMarketData } from "../../src/providers/MarketDataProvider";
 import { colors, radius, tabular, type } from "../../src/theme";
 import { openTrustedExternalUrl } from "../../src/lib/external-links";
+import { classifyNewsRegion, type NewsRegion } from "@wariba/core/news-region";
 
-type NewsFilter = "all" | "results" | "listed" | "regional";
+type NewsFilter = NewsRegion | "results";
 
 const FILTERS: readonly { id: NewsFilter; label: string }[] = [
-  { id: "all", label: "Tout" },
+  { id: "brvm", label: "BRVM" },
+  { id: "uemoa", label: "UEMOA" },
+  { id: "international", label: "International" },
   { id: "results", label: "Résultats" },
-  { id: "listed", label: "Cotées" },
-  { id: "regional", label: "Régional" },
 ];
+
+const REGION_LABELS: Record<NewsRegion, string> = {
+  brvm: "BRVM",
+  uemoa: "UEMOA",
+  international: "International",
+};
 
 const DATE_FORMAT = new Intl.DateTimeFormat("fr-FR", {
   day: "numeric",
@@ -32,22 +39,20 @@ export default function NewsScreen() {
   const market = useMarketData();
   const router = useRouter();
   const [limit, setLimit] = useState(30);
-  const [filter, setFilter] = useState<NewsFilter>("all");
+  const [filter, setFilter] = useState<NewsFilter>("brvm");
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query.trim().toLocaleLowerCase("fr"));
 
   const news = useMemo(() => market.news.filter((item) => {
     if (filter === "results" && !/résultat|rapport annuel|chiffre d.affaires|bénéfice|dividende|publication financière/i.test(`${item.title} ${item.summary}`)) return false;
-    if (filter === "listed" && !item.tickers.length) return false;
-    if (filter === "regional" && item.tickers.length) return false;
+    if (filter !== "results" && classifyNewsRegion(item) !== filter) return false;
     if (!deferredQuery) return true;
     return `${item.title} ${item.summary} ${item.source} ${item.tickers.join(" ")}`
       .toLocaleLowerCase("fr")
       .includes(deferredQuery);
   }), [deferredQuery, filter, market.news]);
 
-  const linkedLeadIndex = filter === "regional" ? 0 : news.findIndex((item) => item.tickers.length > 0);
-  const lead = news[Math.max(0, linkedLeadIndex)];
+  const lead = news[0];
   const stream = news.filter((item) => item.link !== lead?.link);
 
   return (
@@ -78,6 +83,7 @@ export default function NewsScreen() {
             <View style={styles.leadMeta}>
               <View style={styles.liveDot} />
               <Text style={styles.leadSource}>{lead.source}</Text>
+              <Text style={styles.regionBadge}>{REGION_LABELS[classifyNewsRegion(lead)]}</Text>
               <Text style={styles.leadDate}>· {displayDate(lead.publishedAt)}</Text>
             </View>
             <Pressable
@@ -107,7 +113,7 @@ export default function NewsScreen() {
                   </Pressable>
                 ))}
               </View>
-            ) : <Text style={styles.regionalLabel}>Contexte économique régional</Text>}
+            ) : <Text style={styles.regionalLabel}>{REGION_LABELS[classifyNewsRegion(lead)]} · contexte économique</Text>}
           </View>
         </Section>
       ) : null}
@@ -119,6 +125,7 @@ export default function NewsScreen() {
               <View style={styles.articleHeader}>
                 <Text style={styles.articleIndex}>{String(index + 2).padStart(2, "0")}</Text>
                 <Text style={styles.source}>{item.source}</Text>
+                <Text style={styles.regionBadge}>{REGION_LABELS[classifyNewsRegion(item)]}</Text>
                 <Text style={styles.date}>· {displayDate(item.publishedAt)}</Text>
               </View>
               <Pressable
@@ -179,6 +186,7 @@ const styles = StyleSheet.create({
   leadMeta: { flexDirection: "row", alignItems: "center", gap: 6 },
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.accent },
   leadSource: { ...type.label, color: colors.accent },
+  regionBadge: { color: colors.ink2, fontSize: 9.5, fontWeight: "800", textTransform: "uppercase" },
   leadDate: { ...type.caption, fontVariant: tabular },
   leadTitle: { color: colors.ink, fontSize: 20, lineHeight: 25, fontWeight: "900", letterSpacing: -0.35 },
   leadSummary: { ...type.sub, marginTop: 8, lineHeight: 19 },

@@ -25,7 +25,7 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
       <Pressable accessibilityRole="button" accessibilityLabel="Réessayer" onPress={() => void retry()} style={({ pressed }) => [errorStyles.button, pressed && { opacity: 0.75 }]}>
         <Text style={errorStyles.buttonText}>Réessayer</Text>
       </Pressable>
-      <Text style={errorStyles.hint}>Si le problème persiste, fermez puis rouvrez l'application. Vos données locales sont conservées.</Text>
+      <Text style={errorStyles.hint}>Si le problème persiste, fermez puis rouvrez l’application. Vos données de compte restent protégées dans le cloud.</Text>
     </View>
   );
 }
@@ -100,8 +100,11 @@ export default function RootLayout() {
           <Stack.Screen name="screener" options={{ title: "Screener" }} />
           <Stack.Screen name="pro" options={{ title: "WARIBA Pro" }} />
           <Stack.Screen name="dividends" options={{ title: "Dividendes" }} />
-          <Stack.Screen name="documents" options={{ title: "Documents" }} />
-          <Stack.Screen name="ipo" options={{ title: "IPO & opérations" }} />
+          <Stack.Screen name="operations" options={{ title: "Opérations & documents" }} />
+          <Stack.Screen name="documents" options={{ title: "Opérations & documents" }} />
+          <Stack.Screen name="ipo" options={{ title: "Opérations & documents" }} />
+          <Stack.Screen name="sgi" options={{ title: "Choisir une SGI" }} />
+          <Stack.Screen name="sgi/[id]" options={{ title: "Fiche SGI" }} />
           <Stack.Screen name="map" options={{ title: "Carte du marché" }} />
           <Stack.Screen name="settings" options={{ title: "Réglages" }} />
           <Stack.Screen name="status" options={{ title: "État des données" }} />

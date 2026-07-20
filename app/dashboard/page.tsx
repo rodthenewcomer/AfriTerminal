@@ -428,7 +428,7 @@ export default function DashboardPage() {
               </span>
             }
             action={
-              <Link href="/ipo" className="inline-flex items-center gap-1 text-xs text-accent hover:underline">
+              <Link href="/operations" className="inline-flex items-center gap-1 text-xs text-accent hover:underline">
                 Tout voir <ArrowRight className="h-3 w-3" />
               </Link>
             }
