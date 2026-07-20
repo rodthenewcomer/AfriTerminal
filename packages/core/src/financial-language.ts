@@ -1,5 +1,6 @@
 export type FinancialPeriodType = "annual" | "semiannual" | "ttm" | "brvm-indicator";
 export type FinancialConfidence = "high" | "medium" | "limited";
+export type FinancialEvidenceStatus = "verified" | "calculated" | "estimated" | "unavailable";
 
 export interface MetricDisclosure {
   period: string;
@@ -9,6 +10,7 @@ export interface MetricDisclosure {
   sourceLabel: string;
   sourceUrl?: string;
   confidence: FinancialConfidence;
+  evidenceStatus: FinancialEvidenceStatus;
   basisNote?: string;
 }
 
@@ -23,6 +25,13 @@ const CONFIDENCE_LABELS: Record<FinancialConfidence, string> = {
   high: "élevée",
   medium: "moyenne",
   limited: "limitée",
+};
+
+const EVIDENCE_LABELS: Record<FinancialEvidenceStatus, string> = {
+  verified: "Vérifié",
+  calculated: "Calculé",
+  estimated: "Estimé",
+  unavailable: "N/D",
 };
 
 function dateFr(iso: string): string {
@@ -40,6 +49,7 @@ export function annualMetricDisclosure(args: {
   sourceLabel?: string;
   sourceUrl?: string;
   confidence?: FinancialConfidence;
+  evidenceStatus?: FinancialEvidenceStatus;
   basisNote?: string;
 }): MetricDisclosure {
   return {
@@ -50,6 +60,7 @@ export function annualMetricDisclosure(args: {
     sourceLabel: args.sourceLabel ?? "États financiers officiels BRVM",
     sourceUrl: args.sourceUrl,
     confidence: args.confidence ?? "high",
+    evidenceStatus: args.evidenceStatus ?? "verified",
     basisNote: args.basisNote,
   };
 }
@@ -59,6 +70,7 @@ export function brvmMetricDisclosure(args: {
   sourceLabel?: string;
   sourceUrl?: string;
   confidence?: FinancialConfidence;
+  evidenceStatus?: FinancialEvidenceStatus;
   basisNote?: string;
 }): MetricDisclosure {
   return {
@@ -68,12 +80,14 @@ export function brvmMetricDisclosure(args: {
     sourceLabel: args.sourceLabel ?? "Bulletin officiel de la BRVM",
     sourceUrl: args.sourceUrl,
     confidence: args.confidence ?? "high",
+    evidenceStatus: args.evidenceStatus ?? "verified",
     basisNote: args.basisNote,
   };
 }
 
 export function metricDisclosureLabel(disclosure: MetricDisclosure): string {
   return [
+    metricEvidenceLabel(disclosure.evidenceStatus),
     PERIOD_LABELS[disclosure.periodType],
     disclosure.period,
     `données au ${dateFr(disclosure.accountsDate)}`,
@@ -81,6 +95,10 @@ export function metricDisclosureLabel(disclosure: MetricDisclosure): string {
     `source : ${disclosure.sourceLabel}`,
     `confiance ${CONFIDENCE_LABELS[disclosure.confidence]}`,
   ].filter(Boolean).join(" · ");
+}
+
+export function metricEvidenceLabel(status: FinancialEvidenceStatus): string {
+  return EVIDENCE_LABELS[status];
 }
 
 export interface EarningsQualityExplanation {

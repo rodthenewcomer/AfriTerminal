@@ -158,6 +158,9 @@ export function RealSectorComparisonCard({
         }) : (
           <p className="text-xs text-ink-3">Aucune métrique comparable n&apos;est disponible sans estimation.</p>
         )}
+        <p className="border-t border-line pt-3 text-[10px] leading-4 text-ink-3">
+          Moyennes historiques 5 ans du PER et du P/B : N/D. Le pipeline ne dispose pas encore d&apos;une série officielle de ratios par exercice ; WARIBA n&apos;extrapole pas ces valeurs.
+        </p>
       </CardBody>
     </Card>
   );

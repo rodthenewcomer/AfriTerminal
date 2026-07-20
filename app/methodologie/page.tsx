@@ -197,6 +197,16 @@ export default function MethodologiePage() {
               bénéfice 20, pertes/capitaux propres négatifs 15 et ancienneté
               des comptes 10.
             </li>
+            <li>
+              <strong className="text-ink">Dividende</strong> — score
+              complémentaire : rang du rendement net 70 % et récence du dernier
+              versement 30 %. Un dividende absent ne devient jamais zéro estimé.
+            </li>
+            <li>
+              <strong className="text-ink">Liquidité</strong> — score
+              complémentaire : rang de la valeur moyenne échangée, calculée comme
+              cours × volume moyen sur 30 séances.
+            </li>
           </ul>
           <p>
             Le score central vaut <strong className="text-ink">35 % Qualité +
@@ -207,6 +217,9 @@ export default function MethodologiePage() {
             ou baisse annuelle, retour aux bénéfices, résultat ordinaire
             négatif, efficacité bancaire, volume ≥ 3×, proximité du plus haut
             52 semaines, PER/ROE extrême dans le secteur et comptes anciens.
+            Les scores Dividende et Liquidité sont affichés séparément pour
+            éclairer la lecture, mais ne modifient pas le score central afin de
+            préserver la continuité de la méthodologie.
           </p>
           <p>
             <strong className="text-ink">Confiance</strong> : la fiche expose

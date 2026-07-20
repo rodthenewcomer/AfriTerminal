@@ -6,6 +6,7 @@ import {
   explainOperatingCashFlow,
   metricDisclosureLabel,
 } from "./financial-language";
+import { metricEvidenceLabel } from "./financial-language";
 
 describe("financial-language", () => {
   it("identifie un bénéfice porté par un élément exceptionnel", () => {
@@ -37,8 +38,15 @@ describe("financial-language", () => {
       publishedOn: "2026-07-13",
       sourceUrl: "https://www.brvm.org/",
     }));
+    expect(label).toContain("Vérifié");
     expect(label).toContain("Annuel");
     expect(label).toContain("source");
     expect(label).toContain("confiance élevée");
+  });
+
+  it("expose le statut de preuve", () => {
+    expect(metricEvidenceLabel("calculated")).toBe("Calculé");
+    expect(metricEvidenceLabel("estimated")).toBe("Estimé");
+    expect(metricEvidenceLabel("unavailable")).toBe("N/D");
   });
 });

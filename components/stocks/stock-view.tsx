@@ -9,6 +9,7 @@ import { getRealQuote, LATEST_TRADING_DATE } from "@/lib/real-data";
 import { getRealFundamentals, growthPct } from "@/lib/real-fundamentals";
 import { getRealAnalysis } from "@/lib/real-analysis";
 import { describeNetIncomeTrend } from "@wariba/core/real-analysis";
+import { waribaSubsector } from "@wariba/core/company-metadata";
 import {
   annualMetricDisclosure,
   brvmMetricDisclosure,
@@ -35,6 +36,9 @@ import { PriceChange, ScoreBadge, SignalBadges } from "./badges";
 import { DividendPanel } from "./dividend-panel";
 import { MetricCard } from "./metric-card";
 import { FinancialYearComparison } from "./financial-year-comparison";
+import { FinancialHistory } from "./financial-history";
+import { OwnershipPanel } from "./ownership-panel";
+import { PerformanceHistory } from "./performance-history";
 import { RealSectorComparisonCard, SectorComparison } from "./sector-comparison";
 import { DividendHistory } from "./dividend-history";
 import { RiskStats } from "./risk-stats";
@@ -138,9 +142,24 @@ export function StockView({ ticker }: { ticker: string }) {
           periodType: "brvm-indicator" as const,
           accountsDate: real.asOfDate,
           sourceLabel: "BRVM + états financiers officiels",
+          evidenceStatus: "calculated" as const,
           basisNote: "Cours de clôture rapproché des actions ou capitaux propres annuels vérifiés.",
         }
       : undefined;
+  const calculatedAnnualDisclosure = annualDisclosure
+    ? {
+        ...annualDisclosure,
+        evidenceStatus: "calculated" as const,
+        basisNote: "Calcul WARIBA à partir des montants annuels vérifiés.",
+      }
+    : undefined;
+  const calculatedBrvmDisclosure = brvmDisclosure
+    ? {
+        ...brvmDisclosure,
+        evidenceStatus: "calculated" as const,
+        basisNote: "Calcul WARIBA à partir des séances officielles disponibles.",
+      }
+    : undefined;
 
   return (
     <div className="space-y-4 fade-in">
@@ -155,7 +174,7 @@ export function StockView({ ticker }: { ticker: string }) {
               {stock.name}
             </h1>
             <p className="flex flex-wrap items-center gap-1.5 text-[11px] text-ink-3">
-              {stock.ticker} · BRVM · {stock.sector} · {stock.country} · FCFA
+              {stock.ticker} · BRVM · {stock.sector} · {waribaSubsector(stock.sector)} · {stock.country} · FCFA
               {real ? (
                 <Badge
                   tone={staleQuote ? "warning" : "positive"}
@@ -251,10 +270,12 @@ export function StockView({ ticker }: { ticker: string }) {
             <CardHeader title="Résumé" />
             <CardBody className="space-y-3">
               {realAnalysis ? (
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                   <ScoreBadge kind="quality" value={realAnalysis.scores.quality} />
                   <ScoreBadge kind="valuation" value={realAnalysis.scores.valuation} />
                   <ScoreBadge kind="momentum" value={realAnalysis.scores.momentum} />
+                  <ScoreBadge kind="dividend" value={realAnalysis.scores.dividend} />
+                  <ScoreBadge kind="liquidity" value={realAnalysis.scores.liquidity} />
                   <ScoreBadge kind="risk" value={realAnalysis.scores.risk} />
                 </div>
               ) : !real ? (
@@ -325,9 +346,20 @@ export function StockView({ ticker }: { ticker: string }) {
           </Card>
 
           <Card>
-            <CardHeader title="À propos" />
+            <CardHeader title="Identité & activité" subtitle="Métadonnées de la valeur et périmètre de cotation" />
             <CardBody className="space-y-3">
               <p className="text-xs leading-relaxed text-ink-2">{stock.description}</p>
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-2 border-t border-line pt-3 text-[11px]">
+                <div><dt className="text-ink-3">Ticker</dt><dd className="font-semibold text-ink">{stock.ticker}</dd></div>
+                <div><dt className="text-ink-3">Marché</dt><dd className="font-semibold text-ink">BRVM</dd></div>
+                <div><dt className="text-ink-3">Secteur</dt><dd className="font-semibold text-ink">{stock.sector}</dd></div>
+                <div><dt className="text-ink-3">Sous-secteur WARIBA</dt><dd className="font-semibold text-ink">{waribaSubsector(stock.sector)}</dd></div>
+                <div><dt className="text-ink-3">Pays</dt><dd className="font-semibold text-ink">{stock.country}</dd></div>
+                <div><dt className="text-ink-3">Devise</dt><dd className="font-semibold text-ink">FCFA</dd></div>
+                <div><dt className="text-ink-3">Statut</dt><dd className="font-semibold text-ink">{staleQuote ? "Cotation suspendue" : real?.quoteStatus === "delayed-live" ? "Différé 15 min" : "Clôture officielle"}</dd></div>
+                <div><dt className="text-ink-3">Logo officiel</dt><dd className="font-semibold text-ink">N/D</dd></div>
+                <div className="col-span-2"><dt className="text-ink-3">Dernière donnée</dt><dd className="font-semibold text-ink">{real ? `${dateFr(real.asOfDate)}${quoteTime ? ` · ${quoteTime}` : ""} · source BRVM` : "N/D"}</dd></div>
+              </dl>
               {real ? (
                 <div className="space-y-2.5 border-t border-line pt-3">
                   <div>
@@ -378,8 +410,11 @@ export function StockView({ ticker }: { ticker: string }) {
             <CardBody className="space-y-3">
               <ol className="space-y-1.5 text-[11px] text-ink-2">
                 <li><strong className="text-ink">1.</strong> Comparez les SGI selon votre pays, leurs frais et l&apos;ouverture à distance.</li>
-                <li><strong className="text-ink">2.</strong> Ouvrez un compte-titres et déposez les fonds auprès de la SGI choisie.</li>
-                <li><strong className="text-ink">3.</strong> Passez votre ordre sur {stock.ticker}, puis suivez-le dans votre portefeuille.</li>
+                <li><strong className="text-ink">2.</strong> Vérifiez les frais, le minimum de dépôt et les canaux d&apos;ordre.</li>
+                <li><strong className="text-ink">3.</strong> Ouvrez un compte-titres et terminez les contrôles d&apos;identité de la SGI.</li>
+                <li><strong className="text-ink">4.</strong> Alimentez le compte auprès de la SGI choisie.</li>
+                <li><strong className="text-ink">5.</strong> Envoyez l&apos;ordre {stock.ticker} avec quantité, prix limite et validité.</li>
+                <li><strong className="text-ink">6.</strong> Contrôlez l&apos;exécution et suivez cours, documents et dividendes dans WARIBA.</li>
               </ol>
               <Link
                 href={`/sgi?ticker=${stock.ticker}`}
@@ -453,7 +488,7 @@ export function StockView({ ticker }: { ticker: string }) {
                 tone={real.netYieldPct && real.netYieldPct >= 6 ? "up" : undefined}
                 disclosure={brvmDisclosure}
               />
-              <MetricCard label="Vol. moyen 30 j" term="vol-moyen" value={compactVolume(real.avgVolume30d)} disclosure={brvmDisclosure} />
+              <MetricCard label="Vol. moyen 30 j" term="vol-moyen" value={compactVolume(real.avgVolume30d)} disclosure={calculatedBrvmDisclosure} />
               <MetricCard
                 label="Dernier dividende net"
                 term="dividende-net"
@@ -475,7 +510,7 @@ export function StockView({ ticker }: { ticker: string }) {
                     term="bpa"
                     value={fcfa((realFund.netIncomeM * 1e6) / realFund.sharesOutstanding)}
                     hint="Bénéfice net par action"
-                    disclosure={annualDisclosure}
+                    disclosure={calculatedAnnualDisclosure}
                   />
                   {realFund.equityM ? (
                     <MetricCard
@@ -496,7 +531,7 @@ export function StockView({ ticker }: { ticker: string }) {
                   label={`ROE ${realFund.fiscalYear}`}
                   term="roe"
                   value={pct((realFund.netIncomeM / realFund.equityM) * 100, { signed: false, digits: 1 })}
-                  disclosure={annualDisclosure}
+                  disclosure={calculatedAnnualDisclosure}
                 />
               ) : null}
               {realFund ? (
@@ -531,7 +566,7 @@ export function StockView({ ticker }: { ticker: string }) {
                     label="Marge nette"
                     term="marge-nette"
                     value={pct((realFund.netIncomeM / realFund.revenueM) * 100, { signed: false, digits: 1 })}
-                    disclosure={annualDisclosure}
+                    disclosure={calculatedAnnualDisclosure}
                   />
                   {realFund.ordinaryIncomeM !== null ? (
                     <MetricCard
@@ -600,6 +635,8 @@ export function StockView({ ticker }: { ticker: string }) {
             {realFund ? (
               <>
               <FinancialYearComparison fundamental={realFund} />
+              <FinancialHistory fundamental={realFund} />
+              <OwnershipPanel quote={real} fundamental={realFund} />
               <p className="mt-2.5 text-[11px] text-ink-3">
                 États financiers exercice {realFund.fiscalYear} publiés le{" "}
                 {dateFr(realFund.publishedOn)} —{" "}
@@ -721,6 +758,7 @@ export function StockView({ ticker }: { ticker: string }) {
 
       {tab === "risque" ? (
         <>
+      {real ? <PerformanceHistory ticker={stock.ticker} quote={real} /> : null}
       {/* Profil de risque calculé (volatilité, bêta, perte max) */}
       <RiskStats ticker={stock.ticker} />
 

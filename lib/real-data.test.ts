@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Timeframe } from "@wariba/core/types";
 import {
+  summarizePeriod,
   timeframeStartDate,
   validateMarketSeries,
 } from "@wariba/core/market-series";
@@ -18,7 +19,7 @@ describe("real data snapshot", () => {
   });
 
   it("serves every daily timeframe for every BRVM ticker without leaking another ticker", async () => {
-    const timeframes: Timeframe[] = ["1W", "1M", "3M", "6M", "YTD", "1Y", "3Y", "5Y", "MAX"];
+    const timeframes: Timeframe[] = ["1D", "1W", "1M", "3M", "6M", "YTD", "1Y", "3Y", "5Y", "MAX"];
     for (const quote of getAllRealQuotes()) {
       for (const timeframe of timeframes) {
         const { data } = await realSeriesForTimeframe(quote.ticker, timeframe);
@@ -49,4 +50,30 @@ describe("real data snapshot", () => {
       ).toEqual([]);
     }
   }, 30_000);
+
+  it("keeps STBC 5Y and MAX anchored to its own trusted history", async () => {
+    const fiveYears = await realSeriesForTimeframe("STBC", "5Y");
+    const full = await realSeriesForTimeframe("STBC", "MAX");
+    const fiveYearSummary = summarizePeriod(fiveYears.data, "5Y");
+    const fullSummary = summarizePeriod(full.data, "MAX");
+
+    expect(fiveYearSummary).toMatchObject({
+      startDate: "2021-07-19",
+      endDate: "2026-07-17",
+      initialClose: 3350,
+      finalClose: 23900,
+      high: 25000,
+      low: 3350,
+    });
+    expect(fiveYearSummary?.priceReturnPct).toBeCloseTo(613.43, 2);
+    expect(fullSummary).toMatchObject({
+      startDate: "2019-01-02",
+      endDate: "2026-07-17",
+      initialClose: 1970,
+      finalClose: 23900,
+      high: 25000,
+      low: 440,
+    });
+    expect(fullSummary?.priceReturnPct).toBeCloseTo(1113.2, 1);
+  });
 });

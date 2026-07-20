@@ -1,7 +1,7 @@
 import type { AIInsight, RealQuote, Scores, Signal } from "./types";
 import { explainEarningsQuality } from "./financial-language";
 
-export const REAL_ANALYSIS_VERSION = "WARIBA Factuel v1.0";
+export const REAL_ANALYSIS_VERSION = "WARIBA Factuel v1.1";
 
 export interface NetIncomeTrend {
   id:
@@ -78,7 +78,10 @@ export interface RealEquityAnalysis {
   fiscalYear: number;
   publishedOn: string;
   overallScore: number;
-  scores: Scores;
+  scores: Scores & {
+    dividend: number;
+    liquidity: number;
+  };
   signals: Signal[];
   insight: AIInsight;
   confidence: {
@@ -105,6 +108,7 @@ interface NormalizedCompany {
   pb: number | null;
   roe: number | null;
   yield: number | null;
+  dividendRecency: number;
   revenueGrowth: number | null;
   netIncomeGrowth: number | null;
   netMargin: number | null;
@@ -230,6 +234,17 @@ function normalize(
         ? (fundamental.netIncomeM / fundamental.equityM) * 100
         : null,
     yield: finite(quote.netYieldPct),
+    dividendRecency: (() => {
+      if (!quote.lastDividendDate) return 0;
+      const paidAt = Date.parse(`${quote.lastDividendDate}T00:00:00Z`);
+      const observedAt = Date.parse(`${quote.asOfDate}T00:00:00Z`);
+      if (!Number.isFinite(paidAt) || !Number.isFinite(observedAt) || paidAt > observedAt) return 0;
+      const ageDays = (observedAt - paidAt) / 86_400_000;
+      if (ageDays <= 550) return 100;
+      if (ageDays <= 1_095) return 60;
+      if (ageDays <= 1_825) return 30;
+      return 10;
+    })(),
     revenueGrowth: signedGrowthPct(fundamental.revenueM, fundamental.revenuePrevM),
     netIncomeGrowth,
     netMargin:
@@ -511,6 +526,13 @@ export function analyzeRealEquity(args: {
       weight: 15,
     },
   ]);
+  const dividend = weightedAverage([
+    { score: scoreFor("yield"), weight: 70 },
+    { score: company.dividendRecency, weight: 30 },
+  ]);
+  const liquidity = weightedAverage([
+    { score: scoreFor("liquidity"), weight: 100 },
+  ]);
 
   const expectedFiscalYear = Number(quote.asOfDate.slice(0, 4)) - 1;
   const fiscalLag = Math.max(0, expectedFiscalYear - fundamental.fiscalYear);
@@ -522,11 +544,13 @@ export function analyzeRealEquity(args: {
     { score: Math.min(100, fiscalLag * 50), weight: 10 },
   ]);
 
-  const scores: Scores = {
+  const scores: Scores & { dividend: number; liquidity: number } = {
     quality: quality.score,
     valuation: valuation.score,
     momentum: momentum.score,
     risk: risk.score,
+    dividend: dividend.score,
+    liquidity: liquidity.score,
   };
   const overallScore = Math.round(
     scores.quality * 0.35 +

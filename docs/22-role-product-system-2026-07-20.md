@@ -44,6 +44,21 @@ Surfaces : web desktop, web mobile, iOS et Android.
 | 21. QA / Release | TypeScript, lint, tests, build, audit, Expo Doctor, exports et tests physiques forment le gate. |
 | 22. Opérations Côte d'Ivoire | Français, FCFA, réseaux lents, Android milieu de gamme et comptes d'organisation sont prioritaires. |
 
+## Contrôle des 10 tâches de chaque fiche action
+
+| Tâche | Implémentation commune web mobile, iOS et Android |
+| --- | --- |
+| 1. Périodes | 1J, 1S, 1M, 3M, 6M, YTD, 1A, 3A, 5A et MAX utilisent le même moteur ; 1J retombe sur la dernière séance officielle et sa clôture précédente. |
+| 2. Identité | Nom, ticker, marché, secteur, sous-secteur WARIBA, pays, devise, statut, date/source et logo officiel N/D sont visibles sans inventer d'actif. |
+| 3. Rendements | Variation du cours, dividendes cumulés et rendement total restent séparés. |
+| 4. Résumé | Chaque période expose dates, cours initial/final, haut/bas, volume, séances sans échange et annualisation quand elle est pertinente. |
+| 5. Sections | Activité, performance, dividendes, cinq exercices, valorisation, actualités/documents, capital/actionnariat et parcours SGI en six étapes sont livrés. |
+| 6. Scores | Qualité, Valorisation, Momentum, Risque, Dividende et Liquidité sont affichés ; les deux derniers restent complémentaires au score central. |
+| 7. Statuts | Vérifié, Calculé, Estimé et N/D font partie du contrat de métrique partagé. |
+| 8. Contrôles | Les 48 tickers et leurs dix périodes sont testés ; les séries OHLCV invalides ou inter-ticker échouent fermées. |
+| 9. Interfaces | Tables défilables, commandes tactiles, plein écran avec sortie fixe et mêmes informations sur quatre surfaces. |
+| 10. SITAB | STBC 5A et MAX ont des assertions dédiées sur dates, cours, extrêmes et performance ; MAX conserve l'historique fiable depuis 2019. |
+
 ## Parcours débutant
 
 1. Lire l'accueil sans compte et comprendre la date/fraîcheur des données.

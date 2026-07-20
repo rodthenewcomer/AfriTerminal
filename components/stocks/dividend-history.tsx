@@ -101,11 +101,12 @@ export function DividendHistory({ ticker }: { ticker: string }) {
           ))}
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[32rem] text-left text-[11px]">
+          <table className="w-full min-w-[38rem] text-left text-[11px]">
             <thead className="text-ink-3">
               <tr className="border-b border-line">
                 <th className="py-2 font-medium">Année</th>
                 <th className="py-2 font-medium">Dividende net/action</th>
+                <th className="py-2 font-medium">Détachement</th>
                 <th className="py-2 font-medium">Dernier paiement</th>
                 <th className="py-2 text-right font-medium">Rendement au paiement</th>
               </tr>
@@ -115,6 +116,7 @@ export function DividendHistory({ ticker }: { ticker: string }) {
                 <tr key={item.year} className="border-b border-line/60">
                   <td className="py-2 font-semibold text-ink">{item.year}</td>
                   <td className="num py-2 text-ink-2">{fcfa(item.net)}</td>
+                  <td className="py-2 text-ink-3">N/D</td>
                   <td className="py-2 text-ink-2">{dateFr(item.lastDate)}</td>
                   <td className="num py-2 text-right text-ink-2">
                     {paymentYields[item.year] === undefined
@@ -132,7 +134,7 @@ export function DividendHistory({ ticker }: { ticker: string }) {
           <div><dt className="text-ink-3">Prochain paiement</dt><dd className="mt-0.5 font-semibold text-ink">N/D · aucune date officielle</dd></div>
         </dl>
         <p className="text-[10px] text-ink-3">
-          Vérifié : bulletins officiels BRVM, montants nets après IRVM 10 %. Rendement calculé par WARIBA au premier cours de clôture disponible à la date de paiement. Régularité {regularity >= 0.8 ? "élevée" : regularity >= 0.5 ? "intermédiaire" : "faible"} sur l&apos;historique couvert.
+          Vérifié : bulletins officiels BRVM, montants nets après IRVM 10 %. Les dates de détachement historiques ne sont pas enregistrées par ce pipeline et restent N/D. Rendement calculé par WARIBA au premier cours de clôture disponible à la date de paiement. Régularité {regularity >= 0.8 ? "élevée" : regularity >= 0.5 ? "intermédiaire" : "faible"} sur l&apos;historique couvert.
         </p>
       </CardBody>
     </Card>

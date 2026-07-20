@@ -16,7 +16,7 @@ import { openTrustedExternalUrl } from "../src/lib/external-links";
 import { sectorLabel } from "../src/lib/sectors";
 import { colors, radius, tabular, type } from "../src/theme";
 
-type SortKey = "overall" | "quality" | "valuation" | "momentum" | "protection";
+type SortKey = "overall" | "quality" | "valuation" | "momentum" | "dividend" | "liquidity" | "protection";
 
 interface ResearchRow {
   quote: RealQuote;
@@ -28,6 +28,8 @@ const SORTS: { id: SortKey; label: string }[] = [
   { id: "quality", label: "Qualité" },
   { id: "valuation", label: "Valorisation" },
   { id: "momentum", label: "Momentum" },
+  { id: "dividend", label: "Dividende" },
+  { id: "liquidity", label: "Liquidité" },
   { id: "protection", label: "Protection" },
 ];
 
@@ -36,6 +38,8 @@ const FACTORS = [
   { key: "valuation", label: "Valorisation", inverse: false },
   { key: "momentum", label: "Momentum", inverse: false },
   { key: "risk", label: "Risque", inverse: true },
+  { key: "dividend", label: "Dividende", inverse: false },
+  { key: "liquidity", label: "Liquidité", inverse: false },
 ] as const;
 
 function scoreColor(value: number): string {
@@ -209,6 +213,8 @@ export default function ProScreen() {
         if (sort === "quality") return b.analysis.scores.quality - a.analysis.scores.quality;
         if (sort === "valuation") return b.analysis.scores.valuation - a.analysis.scores.valuation;
         if (sort === "momentum") return b.analysis.scores.momentum - a.analysis.scores.momentum;
+        if (sort === "dividend") return b.analysis.scores.dividend - a.analysis.scores.dividend;
+        if (sort === "liquidity") return b.analysis.scores.liquidity - a.analysis.scores.liquidity;
         if (sort === "protection") return a.analysis.scores.risk - b.analysis.scores.risk;
         return b.analysis.overallScore - a.analysis.overallScore || a.quote.ticker.localeCompare(b.quote.ticker);
       });
@@ -282,7 +288,7 @@ export default function ProScreen() {
           <Text style={styles.proBadgeText}>WARIBA PRO · COMPTE ACTIF</Text>
         </View>
         <Text style={styles.heroTitle}>Laboratoire 48</Text>
-        <Text style={styles.heroDetail}>Même méthode pour toute la cote : scores, signaux, confiance et fraîcheur. Aucun verdict d’achat ou de vente.</Text>
+        <Text style={styles.heroDetail}>Même méthode pour toute la cote : quatre piliers, scores complémentaires Dividende/Liquidité, signaux, confiance et fraîcheur. Aucun verdict d’achat ou de vente.</Text>
         <View style={styles.summary}>
           <View style={styles.summaryItem}><Text style={styles.summaryValue}>{allRows.length}/48</Text><Text style={styles.summaryLabel}>analysées</Text></View>
           <View style={styles.summaryItem}><Text style={styles.summaryValue}>{accounts2025}</Text><Text style={styles.summaryLabel}>comptes 2025</Text></View>
@@ -339,7 +345,7 @@ export default function ProScreen() {
         <Ionicons name="calculator-outline" size={17} color={colors.accent} />
         <View style={styles.methodCopy}>
           <Text style={styles.methodTitle}>Formule et limites publiées</Text>
-          <Text style={styles.methodDetail}>Qualité 35 % · Valorisation 20 % · Momentum 25 % · Protection 20 %</Text>
+          <Text style={styles.methodDetail}>Score central : Qualité 35 % · Valorisation 20 % · Momentum 25 % · Protection 20 %. Dividende et Liquidité restent complémentaires.</Text>
         </View>
         <Ionicons name="open-outline" size={14} color={colors.ink3} />
       </Pressable>

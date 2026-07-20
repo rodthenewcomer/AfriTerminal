@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { cn } from "@wariba/core/utils";
 import { Term } from "@/components/ui/term";
 import {
+  metricEvidenceLabel,
   metricDisclosureLabel,
   type MetricDisclosure,
 } from "@wariba/core/financial-language";
@@ -24,9 +25,18 @@ export function MetricCard({
 }) {
   return (
     <div className="card-glass px-3.5 py-3">
-      <p className="text-[11px] font-medium uppercase tracking-wide text-ink-3">
-        {term ? <Term id={term}>{label}</Term> : label}
-      </p>
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-[11px] font-medium uppercase tracking-wide text-ink-3">
+          {term ? <Term id={term}>{label}</Term> : label}
+        </p>
+        <span className="rounded-full border border-line bg-surface-2 px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wide text-ink-3">
+          {disclosure
+            ? metricEvidenceLabel(disclosure.evidenceStatus)
+            : value === "N/D"
+              ? "N/D"
+              : "Calculé"}
+        </span>
+      </div>
       <p
         className={cn(
           "mt-1 num text-lg font-semibold text-ink",

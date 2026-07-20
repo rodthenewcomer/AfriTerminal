@@ -38,6 +38,14 @@ export interface PeriodSummary {
   totalReturnPct: number;
 }
 
+export interface PeriodSummaryOptions {
+  /**
+   * Clôture précédente utilisée comme base de la dernière séance lorsque
+   * la période 1J ne contient qu'une bougie quotidienne officielle.
+   */
+  previousClose?: number;
+}
+
 export type SeriesIssueCode =
   | "duplicate-time"
   | "non-chronological"
@@ -127,7 +135,8 @@ export function sliceSeriesByTimeframe(data: OHLCV[], timeframe: Timeframe): OHL
 export function summarizePeriod(
   data: OHLCV[],
   timeframe: Timeframe,
-  dividends: PeriodDividend[] = []
+  dividends: PeriodDividend[] = [],
+  options: PeriodSummaryOptions = {}
 ): PeriodSummary | null {
   if (data.length === 0) return null;
   const first = data[0];
@@ -162,11 +171,24 @@ export function summarizePeriod(
     }
   }
 
+  const oneDayReference =
+    timeframe === "1D" &&
+    data.length === 1 &&
+    typeof options.previousClose === "number" &&
+    Number.isFinite(options.previousClose) &&
+    options.previousClose > 0
+      ? options.previousClose
+      : null;
+  const initialClose = oneDayReference ?? first.close;
   const cumulativeDividends = dividends
     .filter((item) => item.date > startDate && item.date <= endDate && item.net >= 0)
     .reduce((sum, item) => sum + item.net, 0);
-  const priceReturnPct = ((last.close - first.close) / first.close) * 100;
-  const totalReturnPct = ((last.close + cumulativeDividends - first.close) / first.close) * 100;
+  const priceReturnPct = ((last.close - initialClose) / initialClose) * 100;
+  const totalReturnPct = ((last.close + cumulativeDividends - initialClose) / initialClose) * 100;
+  if (oneDayReference !== null) {
+    bestSessionPct = priceReturnPct;
+    worstSessionPct = priceReturnPct;
+  }
   const startMs = Date.parse(`${startDate}T00:00:00Z`);
   const endMs = Date.parse(`${endDate}T00:00:00Z`);
   const elapsedDays = Number.isFinite(startMs) && Number.isFinite(endMs)
@@ -181,7 +203,7 @@ export function summarizePeriod(
     timeframe,
     startDate,
     endDate,
-    initialClose: first.close,
+    initialClose,
     finalClose: last.close,
     priceReturnPct,
     annualizedReturnPct,

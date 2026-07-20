@@ -19,6 +19,8 @@ export * from "./sync";
 export * from "./legacy";
 export * from "./real-analysis";
 export * from "./financial-language";
+export * from "./financial-history";
+export * from "./company-metadata";
 export * from "./sgi";
 export * from "./news-region";
 export * from "./market-series";

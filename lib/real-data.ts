@@ -144,7 +144,7 @@ export async function realSeriesForTimeframe(
   const hasLive = !!live && LIVE_MARKET.asOfDate > String(official.at(-1)?.time ?? "");
 
   if (tf === "1D") {
-    const points = hasLive
+    const intradayPoints = hasLive
       ? live.points.map((point) => ({
           time: Math.floor(Date.parse(point.time) / 1000),
           open: point.price,
@@ -154,7 +154,14 @@ export async function realSeriesForTimeframe(
           volume: 0,
         }))
       : [];
-    return { data: points, intradayAvailable: points.length > 0 };
+    if (intradayPoints.length > 0) {
+      return { data: intradayPoints, intradayAvailable: true };
+    }
+    const latestOfficial = official.at(-1);
+    return {
+      data: latestOfficial ? [latestOfficial] : [],
+      intradayAvailable: false,
+    };
   }
 
   const daily = hasLive

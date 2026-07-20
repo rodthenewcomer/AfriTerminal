@@ -132,8 +132,8 @@ export function AdvancedChart({
   const paneCount = ["rsi", "macd", "atr", "stoch"].filter((id) => indicators.includes(id as IndicatorId)).length;
   const height = 400 + paneCount * 90;
   const rangeStats = useMemo(
-    () => summarizePeriod(visible, range, dividends),
-    [dividends, range, visible]
+    () => summarizePeriod(visible, range, dividends, { previousClose }),
+    [dividends, previousClose, range, visible]
   );
   const chartSummary = rangeStats
     ? `Graphique ${ticker}, ${rangeStats.sessions} séances. Cours initial ${rangeStats.initialClose.toLocaleString("fr-FR")} FCFA, cours final ${rangeStats.finalClose.toLocaleString("fr-FR")} FCFA, performance ${rangeStats.priceReturnPct.toLocaleString("fr-FR", { maximumFractionDigits: 2 })} %, plus haut ${rangeStats.high.toLocaleString("fr-FR")}, plus bas ${rangeStats.low.toLocaleString("fr-FR")}.`
@@ -167,19 +167,29 @@ export function AdvancedChart({
   return (
     <View style={styles.root}>
       {rangeChips}
+      {range === "1D" ? (
+        <Text style={styles.sessionNotice}>
+          1J = dernière séance officielle, de la clôture précédente à la clôture
+          du jour. Le bulletin BRVM ne fournit pas le détail intraday.
+        </Text>
+      ) : null}
       <Text accessibilityRole="summary" style={styles.srSummary}>{chartSummary}</Text>
       {rangeStats ? (
         <View style={styles.periodSummary}>
           <Text style={styles.periodTitle}>
             {range === "MAX"
               ? "Depuis le début de l’historique disponible"
+              : range === "1D"
+                ? "Variation de la dernière séance officielle"
               : `Performance du cours sur ${TIMEFRAME_OPTIONS.find((item) => item.value === range)?.label ?? range}`}
           </Text>
           <Text style={styles.periodDates}>
-            Du {dateFr(rangeStats.startDate)} au {dateFr(rangeStats.endDate)} · calcul WARIBA sur clôtures officielles
+            {range === "1D"
+              ? `Séance du ${dateFr(rangeStats.endDate)}`
+              : `Du ${dateFr(rangeStats.startDate)} au ${dateFr(rangeStats.endDate)}`} · calcul WARIBA sur clôtures officielles
           </Text>
           <View style={styles.summaryStrip}>
-            <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Cours initial</Text><Text style={styles.summaryValue}>{fcfa(rangeStats.initialClose)}</Text></View>
+            <View style={styles.summaryCell}><Text style={styles.summaryLabel}>{range === "1D" ? "Clôture précédente" : "Cours initial"}</Text><Text style={styles.summaryValue}>{fcfa(rangeStats.initialClose)}</Text></View>
             <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Cours final</Text><Text style={styles.summaryValue}>{fcfa(rangeStats.finalClose)}</Text></View>
             <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Performance</Text><Text style={[styles.summaryValue, { color: rangeStats.priceReturnPct >= 0 ? colors.up : colors.down }]}>{pct(rangeStats.priceReturnPct, { signed: true, digits: 2 })}</Text></View>
           </View>
@@ -254,6 +264,16 @@ const styles = StyleSheet.create({
   toolbar: { gap: 7 },
   selectorBlock: { gap: 6 },
   selectorLabel: { ...type.label, color: colors.ink2 },
+  sessionNotice: {
+    ...type.caption,
+    color: colors.ink2,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.surface2,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
   actions: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
   levelHint: { ...type.caption, color: colors.accent },
   srSummary: { position: "absolute", width: 1, height: 1, opacity: 0 },

@@ -34,6 +34,8 @@ export interface ProResearchRow {
   valuation: number;
   momentum: number;
   risk: number;
+  dividend: number;
+  liquidity: number;
   confidence: "high" | "medium" | "low";
   confidenceLabel: string;
   coveragePct: number;
@@ -43,7 +45,7 @@ export interface ProResearchRow {
   signals: { id: string; label: string; tone: "positive" | "negative" | "warning" | "neutral" }[];
 }
 
-type SortKey = "overall" | "quality" | "valuation" | "momentum" | "protection" | "ytd";
+type SortKey = "overall" | "quality" | "valuation" | "momentum" | "dividend" | "liquidity" | "protection" | "ytd";
 type ConfidenceFilter = "all" | ProResearchRow["confidence"];
 
 const SORTS: { value: SortKey; label: string }[] = [
@@ -51,6 +53,8 @@ const SORTS: { value: SortKey; label: string }[] = [
   { value: "quality", label: "Qualité" },
   { value: "valuation", label: "Valorisation" },
   { value: "momentum", label: "Momentum" },
+  { value: "dividend", label: "Dividende" },
+  { value: "liquidity", label: "Liquidité" },
   { value: "protection", label: "Protection au risque" },
   { value: "ytd", label: "Performance YTD" },
 ];
@@ -60,6 +64,8 @@ const FACTORS = [
   { key: "valuation", label: "Valorisation", inverse: false },
   { key: "momentum", label: "Momentum", inverse: false },
   { key: "risk", label: "Risque", inverse: true },
+  { key: "dividend", label: "Dividende", inverse: false },
+  { key: "liquidity", label: "Liquidité", inverse: false },
 ] as const;
 
 function scoreTone(value: number): string {
@@ -123,12 +129,12 @@ function SummaryMetric({ label, value, detail }: { label: string; value: string;
 function toCsv(rows: ProResearchRow[]): string {
   const columns = [
     "Ticker", "Société", "Secteur", "Pays", "Cours FCFA", "Variation YTD %", "PER", "Rendement net %",
-    "Score factuel", "Qualité", "Valorisation", "Momentum", "Risque", "Confiance", "Couverture %", "Exercice",
+    "Score factuel", "Qualité", "Valorisation", "Momentum", "Risque", "Dividende", "Liquidité", "Confiance", "Couverture %", "Exercice",
   ];
   const escape = (value: string | number | null) => `"${String(value ?? "").replaceAll('"', '""')}"`;
   return [columns, ...rows.map((row) => [
     row.ticker, row.name, row.sector, row.country, row.price, row.ytdChange, row.per, row.yieldNet,
-    row.overallScore, row.quality, row.valuation, row.momentum, row.risk, row.confidenceLabel, row.coveragePct, row.fiscalYear,
+    row.overallScore, row.quality, row.valuation, row.momentum, row.risk, row.dividend, row.liquidity, row.confidenceLabel, row.coveragePct, row.fiscalYear,
   ])].map((line) => line.map(escape).join(";")).join("\n");
 }
 
@@ -154,6 +160,8 @@ export function ProWorkspace({ rows, marketLabel, methodologyVersion }: {
         if (sort === "quality") return b.quality - a.quality;
         if (sort === "valuation") return b.valuation - a.valuation;
         if (sort === "momentum") return b.momentum - a.momentum;
+        if (sort === "dividend") return b.dividend - a.dividend;
+        if (sort === "liquidity") return b.liquidity - a.liquidity;
         if (sort === "protection") return a.risk - b.risk;
         if (sort === "ytd") return b.ytdChange - a.ytdChange;
         return b.overallScore - a.overallScore || a.ticker.localeCompare(b.ticker);
@@ -194,7 +202,7 @@ export function ProWorkspace({ rows, marketLabel, methodologyVersion }: {
             </div>
             <h1 className="mt-3 text-3xl font-bold tracking-[-0.035em] text-ink sm:text-4xl">Laboratoire 48</h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-2">
-              Comparez toute la cote avec le même moteur factuel : qualité, valorisation, momentum, risque, fraîcheur des comptes et niveau de confiance. Le rang est relatif à l’échantillon ; ce n’est pas un signal d’achat ou de vente.
+              Comparez toute la cote avec le même moteur factuel : qualité, valorisation, momentum, risque, dividende, liquidité, fraîcheur des comptes et niveau de confiance. Le rang est relatif à l’échantillon ; ce n’est pas un signal d’achat ou de vente.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -272,7 +280,7 @@ export function ProWorkspace({ rows, marketLabel, methodologyVersion }: {
                   </div>
                   <div className="text-right"><p className="num text-2xl font-bold text-ink">{row.overallScore}</p><p className="text-[10px] text-ink-3">sur 100</p></div>
                 </div>
-                <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3">
+                <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
                   {FACTORS.map((factor) => <FactorBar key={factor.key} label={factor.label} value={row[factor.key]} inverse={factor.inverse} />)}
                 </div>
                 <dl className="mt-4 grid grid-cols-3 gap-2 border-t border-line pt-3 text-center">
@@ -294,7 +302,7 @@ export function ProWorkspace({ rows, marketLabel, methodologyVersion }: {
 
       <section className="overflow-hidden rounded-2xl border border-line bg-surface">
         <div className="hidden overflow-x-auto md:block">
-          <table className="w-full min-w-[1120px] border-collapse text-left">
+          <table className="w-full min-w-[1240px] border-collapse text-left">
             <thead className="border-b border-line bg-surface-2/60 text-[10px] font-semibold uppercase tracking-[0.08em] text-ink-3">
               <tr>
                 <th className="w-12 px-4 py-3 text-center">Rang</th>
@@ -327,7 +335,7 @@ export function ProWorkspace({ rows, marketLabel, methodologyVersion }: {
                     <td className="px-3 py-3">
                       <div className="flex items-center gap-2"><span className="num text-lg font-bold text-ink">{row.overallScore}</span><span className="text-[10px] leading-3 text-ink-3">{researchBand(row.overallScore)}</span></div>
                     </td>
-                    <td className="px-3 py-3"><div className="grid grid-cols-4 gap-2">{FACTORS.map((factor) => <FactorBar key={factor.key} label={factor.label} value={row[factor.key]} inverse={factor.inverse} />)}</div></td>
+                    <td className="px-3 py-3"><div className="grid grid-cols-3 gap-2">{FACTORS.map((factor) => <FactorBar key={factor.key} label={factor.label} value={row[factor.key]} inverse={factor.inverse} />)}</div></td>
                     <td className="num px-3 py-3 text-right text-xs font-medium text-ink">{safeRatio(row.per)}</td>
                     <td className="num px-3 py-3 text-right text-xs font-medium text-ink">{safePct(row.yieldNet)}</td>
                     <td className={cn("num px-3 py-3 text-right text-xs font-semibold", row.ytdChange >= 0 ? "text-up" : "text-down")}>{pct(row.ytdChange, { signed: true })}</td>
@@ -380,7 +388,7 @@ export function ProWorkspace({ rows, marketLabel, methodologyVersion }: {
       <section className="grid gap-3 rounded-2xl border border-line bg-surface p-4 text-xs leading-5 text-ink-2 sm:p-5 lg:grid-cols-3">
         <div><ShieldCheck className="h-4 w-4 text-accent" /><p className="mt-2 font-semibold text-ink">Même méthode pour 48 titres</p><p className="mt-1 text-ink-3">Aucune donnée absente n’est inventée. La couverture et la confiance restent visibles.</p></div>
         <div><GitCompareArrows className="h-4 w-4 text-accent" /><p className="mt-2 font-semibold text-ink">Comparer, pas recommander</p><p className="mt-1 text-ink-3">Les rangs décrivent la position relative du jour. Ils ne prédisent ni prix ni rendement futur.</p></div>
-        <div><Download className="h-4 w-4 text-accent" /><p className="mt-2 font-semibold text-ink">Export traçable</p><p className="mt-1 text-ink-3">L’export reprend les lignes filtrées et les quatre facteurs affichés à l’écran.</p></div>
+        <div><Download className="h-4 w-4 text-accent" /><p className="mt-2 font-semibold text-ink">Export traçable</p><p className="mt-1 text-ink-3">L’export reprend les lignes filtrées, les quatre piliers du score et les deux scores complémentaires.</p></div>
       </section>
     </div>
   );

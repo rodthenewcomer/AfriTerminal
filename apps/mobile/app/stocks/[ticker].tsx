@@ -8,6 +8,7 @@ import { annualizedVolatility, maxDrawdown } from "@wariba/core/risk";
 import { analyzeRealEquity, describeNetIncomeTrend, type RealEquityAnalysis, type RealSectorComparison } from "@wariba/core/real-analysis";
 import { compactFcfa, compactVolume, dateFr, fcfa, millions, num, pct, ratio } from "@wariba/core/format";
 import { companyProfile } from "@wariba/core/company-profiles";
+import { waribaSubsector } from "@wariba/core/company-metadata";
 import { GLOSSARY } from "@wariba/core/glossary";
 import {
   annualMetricDisclosure,
@@ -18,6 +19,8 @@ import type { OHLCV } from "@wariba/core/types";
 import { validateMarketSeries } from "@wariba/core/market-series";
 import { AdvancedChart } from "../../src/components/AdvancedChart";
 import { YearComparison } from "../../src/components/YearComparison";
+import { FinancialHistoryTable } from "../../src/components/FinancialHistoryTable";
+import { PerformanceTable } from "../../src/components/PerformanceTable";
 import type { WebChartMarker } from "../../src/components/chart/WebChart";
 import { ActionButton, ChangePill, EmptyState, LoadingState, Metric, Page, Row, Section, SegmentedTabs } from "../../src/components/ui";
 import { useMarketData } from "../../src/providers/MarketDataProvider";
@@ -138,8 +141,13 @@ function QuantitativeAnalysis({
         <AnalysisScore label="Qualité" value={analysis.scores.quality} />
         <AnalysisScore label="Valorisation" value={analysis.scores.valuation} />
         <AnalysisScore label="Momentum" value={analysis.scores.momentum} />
+        <AnalysisScore label="Dividende" value={analysis.scores.dividend} />
+        <AnalysisScore label="Liquidité" value={analysis.scores.liquidity} />
         <AnalysisScore label="Risque" value={analysis.scores.risk} risk />
       </View>
+      <Text style={styles.disclaimer}>
+        Dividende et Liquidité sont des scores complémentaires ; ils ne modifient pas le score central.
+      </Text>
 
       <Text style={styles.analysisSummary}>{analysis.insight.summary}</Text>
 
@@ -199,6 +207,9 @@ function QuantitativeAnalysis({
             </View>
           );
         })}
+        <Text style={styles.disclaimer}>
+          Moyennes historiques 5 ans du PER et du P/B : N/D. Aucune série officielle historique n&apos;est estimée.
+        </Text>
       </View>
 
       <View style={styles.analysisConfidence}>
@@ -324,6 +335,7 @@ export default function StockScreen() {
   const dailyChangeAmount = quote.lastClose - quote.prevClose;
   const description = companyProfile(ticker);
   const country = countryFromTicker(ticker);
+  const sector = sectorLabel(quote.sectorCode);
   const capitalisation = fundamental?.sharesOutstanding ? fundamental.sharesOutstanding * quote.lastClose : null;
   const week52Share = quote.week52High > quote.week52Low
     ? Math.min(100, Math.max(0, ((quote.lastClose - quote.week52Low) / (quote.week52High - quote.week52Low)) * 100))
@@ -357,9 +369,30 @@ export default function StockScreen() {
           periodType: "brvm-indicator" as const,
           accountsDate: quote.asOfDate,
           sourceLabel: "BRVM + états financiers officiels",
+          evidenceStatus: "calculated" as const,
           basisNote: "Cours de clôture rapproché des données annuelles vérifiées.",
         }
       : undefined;
+  const calculatedAnnualDisclosure = annualDisclosure
+    ? {
+        ...annualDisclosure,
+        evidenceStatus: "calculated" as const,
+        basisNote: "Calcul WARIBA à partir des montants annuels vérifiés.",
+      }
+    : undefined;
+  const calculatedBrvmDisclosure = {
+    ...brvmDisclosure,
+    evidenceStatus: "calculated" as const,
+    basisNote: "Calcul WARIBA à partir des séances officielles disponibles.",
+  };
+  const payout =
+    fundamental?.sharesOutstanding &&
+    fundamental.proposedGrossDividend !== null &&
+    fundamental.netIncomeM > 0
+      ? (fundamental.proposedGrossDividend * fundamental.sharesOutstanding) /
+        (fundamental.netIncomeM * 1e6) *
+        100
+      : null;
 
   const refreshAll = async () => {
     setSeriesError(false);
@@ -396,7 +429,7 @@ export default function StockScreen() {
           <Text numberOfLines={2} style={styles.name}>
             {quote.name}
           </Text>
-          <Text style={styles.identity}>{ticker} · BRVM · {sectorLabel(quote.sectorCode)}{country ? ` · ${country}` : ""} · FCFA</Text>
+          <Text style={styles.identity}>{ticker} · BRVM · {sector} · {waribaSubsector(sector)}{country ? ` · ${country}` : ""} · FCFA</Text>
           <View style={styles.priceRow}>
             <Text style={styles.price}>{fcfa(quote.lastClose)}</Text>
             <ChangePill value={quote.dayChangePct} label={pct(quote.dayChangePct, { signed: true, digits: 2 })} />
@@ -475,8 +508,17 @@ export default function StockScreen() {
           </View>
         </Section>
 
-        <Section title="À propos">
+        <Section title="Identité & activité" detail="Métadonnées de la valeur">
           {description ? <Text style={styles.description}>{description}</Text> : null}
+          <View style={styles.factCard}>
+            <FactRow label="Ticker / marché" value={`${ticker} · BRVM`} />
+            <FactRow label="Secteur" value={sector} />
+            <FactRow label="Sous-secteur WARIBA" value={waribaSubsector(sector)} />
+            <FactRow label="Pays / devise" value={`${country ?? "N/D"} · FCFA`} />
+            <FactRow label="Statut" value={quote.quoteStatus === "delayed-live" ? "Cours différé 15 min" : "Clôture officielle"} />
+            <FactRow label="Dernière donnée" value={`${dateFr(quote.asOfDate)} · source BRVM`} />
+            <FactRow label="Logo officiel" value="N/D" />
+          </View>
           <View style={styles.rangeBlock}>
             <View style={styles.rangeHeader}>
               <Text style={styles.rangeLabel}>Clôtures extrêmes 52 semaines</Text>
@@ -496,8 +538,11 @@ export default function StockScreen() {
         <Section title={`Acheter ${ticker}`} detail="Choisir un intermédiaire agréé">
           <View style={styles.buySteps}>
             <Text style={styles.buyStep}><Text style={styles.buyStepNumber}>1. </Text>Comparez les SGI selon votre pays, leurs frais et l&apos;ouverture à distance.</Text>
-            <Text style={styles.buyStep}><Text style={styles.buyStepNumber}>2. </Text>Ouvrez un compte-titres et déposez les fonds auprès de la SGI.</Text>
-            <Text style={styles.buyStep}><Text style={styles.buyStepNumber}>3. </Text>Passez votre ordre sur {ticker}, puis suivez-le dans le portefeuille.</Text>
+            <Text style={styles.buyStep}><Text style={styles.buyStepNumber}>2. </Text>Vérifiez frais, dépôt minimum et canaux d&apos;ordre.</Text>
+            <Text style={styles.buyStep}><Text style={styles.buyStepNumber}>3. </Text>Ouvrez le compte-titres et terminez les contrôles d&apos;identité.</Text>
+            <Text style={styles.buyStep}><Text style={styles.buyStepNumber}>4. </Text>Alimentez le compte auprès de la SGI choisie.</Text>
+            <Text style={styles.buyStep}><Text style={styles.buyStepNumber}>5. </Text>Envoyez l&apos;ordre {ticker} avec quantité, prix limite et validité.</Text>
+            <Text style={styles.buyStep}><Text style={styles.buyStepNumber}>6. </Text>Contrôlez l&apos;exécution et suivez cours, documents et dividendes.</Text>
           </View>
           <ActionButton label="Comparer les SGI" icon="business-outline" onPress={() => router.push("/sgi")} />
           <Text style={styles.disclaimer}>WARIBA ne reçoit ni n&apos;exécute l&apos;ordre. La transaction est réalisée par la SGI choisie.</Text>
@@ -547,14 +592,14 @@ export default function StockScreen() {
               disclosure={perDisclosure}
             />
             <Metric label="Rendement net" value={quote.netYieldPct !== null ? pct(quote.netYieldPct, { signed: false, digits: 2 }) : "N/D"} tone={quote.netYieldPct !== null && quote.netYieldPct >= 6 ? "up" : "default"} explanation={GLOSSARY["rendement-net"].def} disclosure={brvmDisclosure} />
-            <Metric label="Vol. moyen 30 j" value={compactVolume(quote.avgVolume30d)} explanation={GLOSSARY["vol-moyen"].def} disclosure={brvmDisclosure} />
+            <Metric label="Vol. moyen 30 j" value={compactVolume(quote.avgVolume30d)} explanation={GLOSSARY["vol-moyen"].def} disclosure={calculatedBrvmDisclosure} />
             <Metric label="Dernier dividende net" value={quote.lastDividendNet !== null ? fcfa(quote.lastDividendNet) : "N/D"} detail={quote.lastDividendDate ? `Payé le ${dateFr(quote.lastDividendDate)}` : undefined} explanation={GLOSSARY["dividende-net"].def} disclosure={brvmDisclosure} />
             {fundamental?.sharesOutstanding ? <>
               <Metric label="Capitalisation" value={compactFcfa(fundamental.sharesOutstanding * quote.lastClose)} detail={`${(fundamental.sharesOutstanding / 1e6).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} M d'actions`} explanation={GLOSSARY.capitalisation.def} disclosure={mixedDisclosure} />
-              {bpa !== null ? <Metric label={`BPA ${fundamental.fiscalYear}`} value={fcfa(bpa)} detail="Bénéfice net par action" explanation={GLOSSARY.bpa.def} disclosure={annualDisclosure} /> : null}
+              {bpa !== null ? <Metric label={`BPA ${fundamental.fiscalYear}`} value={fcfa(bpa)} detail="Bénéfice net par action" explanation={GLOSSARY.bpa.def} disclosure={calculatedAnnualDisclosure} /> : null}
               {fundamental.equityM ? <Metric label="P/B" value={ratio(quote.lastClose / ((fundamental.equityM * 1e6) / fundamental.sharesOutstanding))} explanation={GLOSSARY.pb.def} disclosure={mixedDisclosure} /> : null}
             </> : null}
-            {fundamental?.equityM ? <Metric label={`ROE ${fundamental.fiscalYear}`} value={pct((fundamental.netIncomeM / fundamental.equityM) * 100, { signed: false, digits: 1 })} explanation={GLOSSARY.roe.def} disclosure={annualDisclosure} /> : null}
+            {fundamental?.equityM ? <Metric label={`ROE ${fundamental.fiscalYear}`} value={pct((fundamental.netIncomeM / fundamental.equityM) * 100, { signed: false, digits: 1 })} explanation={GLOSSARY.roe.def} disclosure={calculatedAnnualDisclosure} /> : null}
             {fundamental ? <>
               <Metric label={`${fundamental.revenueLabel} ${fundamental.fiscalYear}`} value={millions(fundamental.revenueM)} detail={(() => {
                 const growth = growthPct(fundamental.revenueM, fundamental.revenuePrevM);
@@ -569,7 +614,7 @@ export default function StockScreen() {
                   ? `${trend.label} de ${pct(Math.abs(trend.changePct), { signed: false, digits: 1 })} vs ${fundamental.fiscalYear - 1}`
                   : trend?.label;
               })()} explanation={GLOSSARY["resultat-net"].def} disclosure={annualDisclosure} />
-              <Metric label="Marge nette" value={pct((fundamental.netIncomeM / fundamental.revenueM) * 100, { signed: false, digits: 1 })} explanation={GLOSSARY["marge-nette"].def} disclosure={annualDisclosure} />
+              <Metric label="Marge nette" value={pct((fundamental.netIncomeM / fundamental.revenueM) * 100, { signed: false, digits: 1 })} explanation={GLOSSARY["marge-nette"].def} disclosure={calculatedAnnualDisclosure} />
               {fundamental.ordinaryIncomeM !== null ? <Metric label="Résultat ordinaire" value={millions(fundamental.ordinaryIncomeM)} tone={fundamental.ordinaryIncomeM < 0 ? "down" : "default"} explanation={GLOSSARY["resultat-ordinaire"].def} disclosure={annualDisclosure} /> : null}
               {fundamental.cirPct !== null ? <Metric label="Coefficient d'exploitation" value={pct(fundamental.cirPct, { signed: false, digits: 1 })} detail={fundamental.cirPrevPct !== null ? `${pct(fundamental.cirPrevPct, { signed: false, digits: 1 })} en ${fundamental.fiscalYear - 1}` : undefined} explanation={GLOSSARY.cir.def} disclosure={annualDisclosure} /> : null}
               {fundamental.costOfRiskM !== null ? <Metric label="Coût du risque" value={millions(fundamental.costOfRiskM)} detail={fundamental.costOfRiskM < 0 ? "Négatif = reprise nette" : undefined} explanation={GLOSSARY["cout-du-risque"].def} disclosure={annualDisclosure} /> : null}
@@ -584,6 +629,18 @@ export default function StockScreen() {
               <Text style={styles.yearComparisonDetail}>Sélectionnez une métrique pour comparer les montants publiés et leur variation.</Text>
               <YearComparison fundamental={fundamental} />
             </View>
+            <FinancialHistoryTable fundamental={fundamental} />
+            <Section title="Capital & actionnariat" detail="Aucune donnée manquante n'est estimée">
+              <View style={styles.factCard}>
+                <FactRow label="Actions en circulation" value={fundamental.sharesOutstanding ? fundamental.sharesOutstanding.toLocaleString("fr-FR") : "N/D"} />
+                <FactRow label="Capitalisation" value={capitalisation !== null ? compactFcfa(capitalisation) : "N/D"} />
+                <FactRow label="Capital social" value="N/D" />
+                <FactRow label="Flottant" value="N/D" />
+                <FactRow label="Principaux actionnaires" value="N/D" />
+                <FactRow label="Évolution de l'actionnariat" value="N/D" />
+                <FactRow label="Taux de distribution indicatif" value={payout !== null ? pct(payout, { signed: false, digits: 1 }) : "N/D"} />
+              </View>
+            </Section>
             <Row icon="open-outline" title="Document source BRVM" detail="États financiers officiels dont sont issus ces chiffres" onPress={() => void openTrustedExternalUrl(fundamental.source)} />
           </> : (
             <EmptyState title="Fondamentaux détaillés indisponibles" detail="Aucun état financier vérifié n'est encore curé pour cette société." />
@@ -604,7 +661,7 @@ export default function StockScreen() {
                 key={item.year}
                 icon="cash-outline"
                 title={`Dividende net ${item.year}`}
-                detail={`Dernier paiement ${dateFr(item.lastDate)} · rendement au paiement ${item.yieldPct === null ? "N/D" : pct(item.yieldPct, { signed: false, digits: 2 })}`}
+                detail={`Détachement N/D · dernier paiement ${dateFr(item.lastDate)} · rendement ${item.yieldPct === null ? "N/D" : pct(item.yieldPct, { signed: false, digits: 2 })}`}
                 value={fcfa(item.net)}
                 valueDetail="par action"
               />
@@ -615,7 +672,7 @@ export default function StockScreen() {
             <FactRow label="Prochain détachement" value="N/D · aucune date officielle" />
             <FactRow label="Prochain paiement" value="N/D · aucune date officielle" />
           </View>
-          <Text style={styles.disclaimer}>Rendement calculé par WARIBA au premier cours de clôture disponible à la date de paiement.</Text>
+          <Text style={styles.disclaimer}>Dates de détachement historiques N/D dans le pipeline actuel. Rendement calculé par WARIBA au premier cours de clôture disponible à la date de paiement.</Text>
         </Section>
         {beginner ? (
           <Section title="Lexique express" detail="Explications sans jargon">
@@ -630,6 +687,7 @@ export default function StockScreen() {
       </Animated.View> : null}
 
       {tab === "risk" ? <Animated.View key="risk" entering={reduceMotion ? undefined : FadeIn.duration(200)} style={styles.tabContent}>
+        <PerformanceTable data={chartSeries} dividends={market.dividends[ticker] ?? []} previousClose={quote.prevClose} />
         <Section title="Risque historique" detail="Calculé sur l'historique complet des clôtures">
           <View style={styles.metrics}>
             <Metric label="Volatilité annualisée" value={risk.volatility === null ? "N/D" : pct(risk.volatility, { signed: false, digits: 1 })} />

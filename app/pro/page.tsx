@@ -74,6 +74,8 @@ export default async function ProPage() {
       valuation: analysis.scores.valuation,
       momentum: analysis.scores.momentum,
       risk: analysis.scores.risk,
+      dividend: analysis.scores.dividend,
+      liquidity: analysis.scores.liquidity,
       confidence: analysis.confidence.level,
       confidenceLabel: analysis.confidence.label,
       coveragePct: analysis.confidence.coveragePct,

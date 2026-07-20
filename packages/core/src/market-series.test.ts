@@ -48,6 +48,22 @@ describe("market series", () => {
     expect(summary?.worstSessionPct).toBeCloseTo(-10);
   });
 
+  it("uses the previous official close as the 1D performance basis", () => {
+    const latest = bars.at(-1);
+    expect(latest).toBeDefined();
+    const summary = summarizePeriod(latest ? [latest] : [], "1D", [], {
+      previousClose: 22_235,
+    });
+    expect(summary?.startDate).toBe("2026-07-17");
+    expect(summary?.endDate).toBe("2026-07-17");
+    expect(summary?.initialClose).toBe(22_235);
+    expect(summary?.finalClose).toBe(23_900);
+    expect(summary?.priceReturnPct).toBeCloseTo(7.4881, 3);
+    expect(summary?.high).toBe(25_000);
+    expect(summary?.low).toBe(22_235);
+    expect(summary?.annualizedReturnPct).toBeNull();
+  });
+
   it("rejects mixed or contradictory OHLC data", () => {
     const invalid: OHLCV[] = [
       { time: "2026-07-17", open: 100, high: 90, low: 0, close: 95, volume: -1 },

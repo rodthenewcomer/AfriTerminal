@@ -31,6 +31,8 @@ const SCORE_LABELS: Record<string, string> = {
   quality: "Qualité",
   valuation: "Valorisation",
   momentum: "Momentum",
+  dividend: "Dividende",
+  liquidity: "Liquidité",
   risk: "Risque",
 };
 
@@ -39,7 +41,7 @@ export function ScoreBadge({
   value,
   compact,
 }: {
-  kind: "quality" | "valuation" | "momentum" | "risk";
+  kind: "quality" | "valuation" | "momentum" | "dividend" | "liquidity" | "risk";
   value: number;
   compact?: boolean;
 }) {

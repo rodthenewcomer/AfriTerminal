@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { colors, radius, tabular, type } from "../theme";
 import {
+  metricEvidenceLabel,
   metricDisclosureLabel,
   type MetricDisclosure,
 } from "@wariba/core/financial-language";
@@ -73,7 +74,14 @@ export function Metric({ label, value, tone = "default", detail, explanation, di
     <>
       <View style={styles.metricLabelRow}>
         <Text numberOfLines={1} style={styles.metricLabel}>{label}</Text>
-        {explanation ? <Ionicons name="help-circle-outline" size={14} color={colors.accent} /> : null}
+        <View style={styles.metricLabelActions}>
+          <View style={styles.metricStatus}>
+            <Text style={styles.metricStatusText}>
+              {disclosure ? metricEvidenceLabel(disclosure.evidenceStatus) : value === "N/D" ? "N/D" : "Calculé"}
+            </Text>
+          </View>
+          {explanation ? <Ionicons name="help-circle-outline" size={14} color={colors.accent} /> : null}
+        </View>
       </View>
       <Text
         numberOfLines={2}
@@ -244,7 +252,10 @@ const styles = StyleSheet.create({
   },
   metricExpanded: { flexBasis: "100%", borderColor: "rgba(32,201,130,0.4)" },
   metricLabelRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 5 },
+  metricLabelActions: { flexDirection: "row", alignItems: "center", gap: 5 },
   metricLabel: { ...type.label, flexShrink: 1 },
+  metricStatus: { borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface2, borderRadius: radius.full, paddingHorizontal: 5, paddingVertical: 2 },
+  metricStatusText: { color: colors.ink3, fontSize: 8, fontWeight: "700", textTransform: "uppercase" },
   metricValue: { color: colors.ink, fontSize: 21, fontWeight: "800", letterSpacing: -0.4, marginTop: 7, fontVariant: tabular },
   metricDetail: { ...type.caption, marginTop: 3 },
   metricDisclosure: { color: colors.ink3, fontSize: 9, lineHeight: 13, marginTop: 8, paddingTop: 7, borderTopWidth: 1, borderTopColor: colors.line },

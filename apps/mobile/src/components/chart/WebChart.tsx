@@ -131,7 +131,9 @@ const BRIDGE = `
     var stamp = typeof bar.time === "number"
       ? new Date(bar.time * 1000).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
       : bar.time;
-    legend.textContent = stamp + "  O " + fmtPrice(bar.open) + "  H " + fmtPrice(bar.high) + "  B " + fmtPrice(bar.low) + "  C " + fmtPrice(bar.close) + "  " + (change >= 0 ? "+" : "") + change.toFixed(2) + "%";
+var tradedValue = Math.max(0, bar.close * bar.volume);
+var valueLabel = tradedValue >= 1000000000 ? (tradedValue / 1000000000).toFixed(1) + " Md" : tradedValue >= 1000000 ? (tradedValue / 1000000).toFixed(1) + " M" : tradedValue >= 1000 ? (tradedValue / 1000).toFixed(1) + " k" : tradedValue.toFixed(0);
+legend.textContent = stamp + "  O " + fmtPrice(bar.open) + "  H " + fmtPrice(bar.high) + "  B " + fmtPrice(bar.low) + "  C " + fmtPrice(bar.close) + "  " + (change >= 0 ? "+" : "") + change.toFixed(2) + "%  Vol " + bar.volume.toLocaleString("fr-FR") + "  Val.≈ " + valueLabel + " FCFA";
   }
 
   chart.subscribeCrosshairMove(function (param) {

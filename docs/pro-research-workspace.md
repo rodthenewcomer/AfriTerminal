@@ -13,7 +13,7 @@ comparaison et export — pas de la fermeture des données essentielles.
 Le classeur `Analyse_48_actions_BRVM_2026-07-15.xlsx` a été audité comme une
 source d'idées et de contrôle. Ses scores et verdicts ne sont pas importés dans
 le produit : WARIBA recalcule les 48 actions depuis les JSON réels et le moteur
-`WARIBA Factuel v1.0` partagé par le web, le web mobile, iOS et Android.
+`WARIBA Factuel v1.1` partagé par le web, le web mobile, iOS et Android.
 
 ## Audit feuille par feuille
 
@@ -79,7 +79,7 @@ référence affichée.
 
 ## Fonctionnalités livrées
 
-- 48 actions couvertes avec score global et quatre facteurs.
+- 48 actions couvertes avec score global, quatre piliers et deux scores complémentaires Dividende/Liquidité.
 - Recherche par ticker ou société, filtre secteur et filtre confiance.
 - Tri Qualité, Valorisation, Momentum, protection et YTD.
 - Comparaison simultanée de trois actions sur le web et deux sur mobile natif.

@@ -33,10 +33,12 @@ export function AIInsightCard({
               <span className="text-[10px] text-ink-3">sur 100</span>
             </div>
             <div className="min-w-0 space-y-2">
-              <div className="flex flex-wrap gap-1.5">
+              <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
                 <ScoreBadge kind="quality" value={analysis.scores.quality} />
                 <ScoreBadge kind="valuation" value={analysis.scores.valuation} />
                 <ScoreBadge kind="momentum" value={analysis.scores.momentum} />
+                <ScoreBadge kind="dividend" value={analysis.scores.dividend} />
+                <ScoreBadge kind="liquidity" value={analysis.scores.liquidity} />
                 <ScoreBadge kind="risk" value={analysis.scores.risk} />
               </div>
               <p className="text-[11px] leading-relaxed text-ink-3">
@@ -98,6 +100,7 @@ export function AIInsightCard({
             <p>
               {analysis.methodologyVersion} · calcul déterministe sur données réelles, médianes et rangs sectoriels.
               Les valeurs manquantes sont omises et les poids restants renormalisés.
+              Les scores Dividende et Liquidité sont des lectures complémentaires et ne modifient pas le score factuel global.
             </p>
             <p>{analysis.confidence.reasons.join(" ")}</p>
             <p>

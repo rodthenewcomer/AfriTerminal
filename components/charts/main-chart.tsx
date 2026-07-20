@@ -60,7 +60,7 @@ import {
 import { dividendHistoryFor } from "@/lib/real-dividends";
 import { operationsForTicker } from "@/lib/real-operations";
 import { realDocsForTicker } from "@/lib/real-documents";
-import { compactVolume, dateFr, pct } from "@wariba/core/format";
+import { compactFcfa, compactVolume, dateFr, pct } from "@wariba/core/format";
 import { useChartPrefs, useChartPrefsHydrated } from "@/hooks/use-chart-prefs";
 import { rehydrateChartLevels, useChartLevels } from "@/hooks/use-chart-levels";
 import { cn } from "@wariba/core/utils";
@@ -241,7 +241,8 @@ export function MainChart({ ticker }: { ticker: string }) {
         `<span style="opacity:.6">L</span> ${fmtPrice(bar.low)} ` +
         `<span style="opacity:.6">C</span> ${fmtPrice(bar.close)} ` +
         `<span style="color:${color}">${pct(chg)}</span> ` +
-        `<span style="opacity:.6">Vol</span> ${compactVolume(bar.volume)}`;
+        `<span style="opacity:.6">Vol</span> ${compactVolume(bar.volume)} ` +
+        `<span style="opacity:.6">Val.≈</span> ${compactFcfa(bar.close * bar.volume)}`;
     };
     const onMove = (param: MouseEventParams) => {
       const bars = barsRef.current;
@@ -328,9 +329,15 @@ export function MainChart({ ticker }: { ticker: string }) {
 
     (async () => {
       try {
-        const raw = isReal
-          ? (await realSeriesForTimeframe(ticker, tf)).data
+        const realTimeframe = isReal
+          ? await realSeriesForTimeframe(ticker, tf)
+          : null;
+        const raw = realTimeframe
+          ? realTimeframe.data
           : seriesForTimeframe(ticker, tf).data;
+        const officialSessionFallback =
+          isReal && intraday && realTimeframe?.intradayAvailable === false;
+        setNoIntraday(officialSessionFallback);
         if (cancelled || chartRef.current !== chart) return;
 
         // purge des séries précédentes (les price lines et marqueurs
@@ -363,7 +370,8 @@ export function MainChart({ ticker }: { ticker: string }) {
         summarizePeriod(
           raw,
           tf,
-          isReal && !intraday ? dividendHistoryFor(ticker) : []
+          isReal && !intraday ? dividendHistoryFor(ticker) : [],
+          { previousClose: isReal ? getRealQuote(ticker)?.prevClose : undefined }
         )
       );
 
@@ -373,7 +381,7 @@ export function MainChart({ ticker }: { ticker: string }) {
       };
       const toTime = (t: string | number): Time => t as Time;
 
-      chart.timeScale().applyOptions({ timeVisible: intraday });
+      chart.timeScale().applyOptions({ timeVisible: intraday && !officialSessionFallback });
       chart.priceScale("right").applyOptions({
         scaleMargins: { top: 0.08, bottom: showVolume && !comparing ? 0.22 : 0.08 },
       });
@@ -856,6 +864,13 @@ export function MainChart({ ticker }: { ticker: string }) {
           <span className="text-ink-3">· échelle en %</span>
         </div>
       ) : null}
+      {ready && noIntraday ? (
+        <p className="rounded-lg border border-line bg-surface-2/50 px-3 py-2 text-[10px] leading-4 text-ink-3">
+          1J affiche la dernière séance officielle BRVM, de la clôture précédente
+          à la clôture du jour. Le détail intraday n&apos;est pas publié dans le
+          bulletin quotidien.
+        </p>
+      ) : null}
       {rangeStats && !comparing ? (
         <div className={cn("border-y border-line/70 py-3", fullscreen && "hidden")}>
           <div className="flex flex-wrap items-start justify-between gap-2">
@@ -863,10 +878,14 @@ export function MainChart({ ticker }: { ticker: string }) {
               <p className="text-xs font-semibold text-ink">
                 {tf === "MAX"
                   ? "Depuis le début de l’historique disponible"
+                  : tf === "1D"
+                    ? "Variation de la dernière séance officielle"
                   : `Performance du cours sur ${TIMEFRAME_OPTIONS.find((item) => item.value === tf)?.label ?? tf}`}
               </p>
               <p className="mt-0.5 text-[10px] text-ink-3">
-                Du {fmtPeriodDate(rangeStats.startDate)} au {fmtPeriodDate(rangeStats.endDate)} · calculé par WARIBA sur données BRVM vérifiées
+                {tf === "1D"
+                  ? `Séance du ${fmtPeriodDate(rangeStats.endDate)}`
+                  : `Du ${fmtPeriodDate(rangeStats.startDate)} au ${fmtPeriodDate(rangeStats.endDate)}`} · calculé par WARIBA sur données BRVM vérifiées
               </p>
             </div>
             <span
@@ -878,7 +897,7 @@ export function MainChart({ ticker }: { ticker: string }) {
           </div>
           <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-[11px] sm:grid-cols-4 lg:grid-cols-6">
             <div>
-              <dt className="text-ink-3">Cours initial</dt>
+              <dt className="text-ink-3">{tf === "1D" ? "Clôture précédente" : "Cours initial"}</dt>
               <dd className="num mt-0.5 font-semibold text-ink">{fmtPrice(rangeStats.initialClose)} FCFA</dd>
             </div>
             <div>
@@ -898,11 +917,11 @@ export function MainChart({ ticker }: { ticker: string }) {
               </dd>
             </div>
             <div>
-              <dt className="text-ink-3">Plus haut de la période</dt>
+              <dt className="text-ink-3">{tf === "1D" ? "Plus haut de séance" : "Plus haut de la période"}</dt>
               <dd className="num mt-0.5 font-semibold text-ink">{fmtPrice(rangeStats.high)} FCFA</dd>
             </div>
             <div>
-              <dt className="text-ink-3">Plus bas de la période</dt>
+              <dt className="text-ink-3">{tf === "1D" ? "Plus bas de séance" : "Plus bas de la période"}</dt>
               <dd className="num mt-0.5 font-semibold text-ink">{fmtPrice(rangeStats.low)} FCFA</dd>
             </div>
           </dl>
@@ -939,14 +958,6 @@ export function MainChart({ ticker }: { ticker: string }) {
                 Réessayer
               </button>
             </div>
-          </div>
-        ) : ready && noIntraday ? (
-          <div className="absolute inset-0 flex items-center justify-center px-6 text-center">
-            <p className="text-sm text-ink-3">
-              Historique intraday non disponible sur les données réelles BRVM
-              (le bulletin quotidien ne publie qu&apos;ouverture/clôture).
-              Choisissez 1M ou plus.
-            </p>
           </div>
         ) : null}
         <div

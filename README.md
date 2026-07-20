@@ -106,7 +106,8 @@ components/
                      volume, SMA/EMA/Bollinger, RSI, MACD, comparaison %,
                      ajustement dividendes, événements, périodes calendaires
                      1J/1S/1M/3M/6M/YTD/1A/3A/5A/MAX), toolbar, sparkline
-  stocks/           table, badges, historique dividendes, profil de
+  stocks/           table, badges, historique financier 5 ans, capital et
+                    actionnariat, dividendes, performance par période,
                     risque (volatilité/bêta/perte max), comparables
   portfolio/        transactions, courbe de patrimoine, revenus passifs
   operations/       publications, avis et opérations officielles réunis
@@ -185,6 +186,9 @@ bornes calendaires exactes, dernier cours synchronisé avec le snapshot,
 performance, rendement annualisé, haut/bas, volumes, séances sans échange,
 meilleure/pire séance, dividendes cumulés et rendement total. Les mêmes règles
 sont consommées par le web responsive et l'application Expo iOS/Android.
+En 1J, une série intraday différée est utilisée lorsqu'elle existe ; sinon la
+dernière séance officielle reste visible et sa variation est calculée contre
+la clôture précédente, sans écran bloquant.
 
 **Volontairement indisponible quand la donnée n'est pas vérifiée** : les
 fondamentaux couvrent 48/48 sociétés. Les capitaux propres ne sont affichés
@@ -193,9 +197,12 @@ récent faute de bilan complet dans la publication annuelle correspondante.
 Capitalisation/BPA demandent un nombre d'actions doublement recoupé
 (12/48), P/B/ROE demandent en plus les capitaux propres. Partout ailleurs :
 masqué avec une explication, jamais rempli avec un chiffre inventé. Le moteur
-`WARIBA Factuel v1.0` calcule pour les 48 actions Qualité, Valorisation,
-Momentum et Risque, puis publie la couverture, le niveau de confiance,
-les raisons et le benchmark. Il ne produit aucun verdict d'achat/vente.
+`WARIBA Factuel v1.1` calcule pour les 48 actions les quatre piliers Qualité,
+Valorisation, Momentum et Risque, ainsi que deux scores complémentaires
+Dividende et Liquidité. Chaque métrique distingue Vérifié, Calculé, Estimé ou
+N/D ; la grille financière garde cinq exercices visibles et n'invente jamais
+les trois années antérieures quand seules N/N-1 sont normalisées. Le moteur
+publie couverture, confiance, raisons et benchmark, sans verdict d'achat/vente.
 
 **Mis à jour (2026-07-08)** : `lib/data.ts` centralise le remplacement
 prix/volume/PER/dividende réel pour toute l'app via `StockSnapshot.real`.
