@@ -8,15 +8,19 @@ publié sur le web et les apps mobiles.
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 import json
 from pathlib import Path
+import sys
 import unittest
 
 
 ROOT = Path(__file__).resolve().parents[2]
 REAL = ROOT / "data" / "real"
 SERIES = ROOT / "data" / "boc" / "series"
+sys.path.insert(0, str(ROOT / "scripts" / "boc"))
+
+from build_app_data import clean_series
 
 
 def load(path: Path):
@@ -63,14 +67,18 @@ class CommittedDataQualityTest(unittest.TestCase):
 
     def test_snapshot_fields_match_source_series(self) -> None:
         for ticker, snapshot in self.snapshot.items():
-            rows = load(SERIES / f"{ticker}.json")
+            rows, rejected = clean_series(load(SERIES / f"{ticker}.json"), ticker)
             last = rows[-1]
             previous = rows[-2]
             prior_volumes = [row["volume"] for row in rows[-31:-1]]
             average = sum(prior_volumes) / len(prior_volumes)
-            window = rows[-252:]
+            cutoff = (date.fromisoformat(last["time"]) - timedelta(days=364)).isoformat()
+            window = [row for row in rows if row["time"] >= cutoff]
 
             with self.subTest(ticker=ticker):
+                self.assertFalse(
+                    any(row["time"] in {item.split()[1] for item in rejected} for row in rows)
+                )
                 self.assertEqual(snapshot["asOfDate"], last["time"])
                 self.assertEqual(snapshot["lastClose"], last["close"])
                 self.assertEqual(snapshot["prevClose"], last["prev_close"])

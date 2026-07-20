@@ -95,7 +95,17 @@ export function StockView({ ticker }: { ticker: string }) {
 
   const lastPrice = real?.lastClose ?? stock.lastPrice;
   const dayChange = real?.dayChangePct ?? stock.dayChange;
+  const dayChangeAmount = real
+    ? real.lastClose - real.prevClose
+    : lastPrice - lastPrice / (1 + dayChange / 100);
   const staleQuote = !!real && real.asOfDate !== LATEST_TRADING_DATE;
+  const quoteTime = real?.asOfTimestamp
+    ? new Date(real.asOfTimestamp).toLocaleTimeString("fr-FR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Africa/Abidjan",
+      })
+    : null;
   const annualDisclosure = realFund
     ? annualMetricDisclosure({
         fiscalYear: realFund.fiscalYear,
@@ -145,13 +155,17 @@ export function StockView({ ticker }: { ticker: string }) {
               {stock.name}
             </h1>
             <p className="flex flex-wrap items-center gap-1.5 text-[11px] text-ink-3">
-              BRVM · {stock.sector} · {stock.country}
+              {stock.ticker} · BRVM · {stock.sector} · {stock.country} · FCFA
               {real ? (
                 <Badge
                   tone={staleQuote ? "warning" : "positive"}
-                  title={`Données réelles BRVM au ${dateFr(real.asOfDate)}`}
+                  title={`Source BRVM · confiance élevée · ${real.quoteStatus === "delayed-live" ? "cours différé de 15 minutes" : "clôture officielle"}`}
                 >
-                  {staleQuote ? "Cotation suspendue" : "Données réelles"}
+                  {staleQuote
+                    ? `Cotation suspendue · ${dateFr(real.asOfDate)}`
+                    : real.quoteStatus === "delayed-live"
+                      ? `Cours différé 15 min · ${quoteTime ?? dateFr(real.asOfDate)}`
+                      : `Clôture officielle · ${dateFr(real.asOfDate)}`}
                 </Badge>
               ) : (
                 <Badge tone="gold">Scénario illustratif</Badge>
@@ -162,9 +176,16 @@ export function StockView({ ticker }: { ticker: string }) {
             <p className="num text-xl font-bold text-ink sm:text-2xl">
               {fcfa(lastPrice)}
             </p>
-            <PriceChange value={dayChange} className="text-sm" />
+            <p className="num text-xs font-semibold">
+              <span className={dayChangeAmount >= 0 ? "text-up" : "text-down"}>
+                {dayChangeAmount > 0 ? "+" : ""}{fcfa(dayChangeAmount)}
+              </span>
+              {" · "}
+              <PriceChange value={dayChange} className="text-xs" /> aujourd&apos;hui
+            </p>
+            <p className="mt-0.5 text-[9px] text-ink-3">par rapport à la clôture précédente</p>
           </div>
-          <div className="flex w-full items-center gap-2 sm:w-auto">
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
             <WatchlistButton ticker={stock.ticker} />
             <Button
               variant="outline"
@@ -179,6 +200,12 @@ export function StockView({ ticker }: { ticker: string }) {
                 </span>
               ) : null}
             </Button>
+            <Link
+              href={`/sgi?ticker=${stock.ticker}`}
+              className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-accent/30 bg-accent/15 px-3 text-xs font-medium text-accent transition-colors hover:bg-accent/25"
+            >
+              <Landmark className="h-3.5 w-3.5" /> Acheter via une SGI
+            </Link>
           </div>
         </div>
       </div>
@@ -278,7 +305,7 @@ export function StockView({ ticker }: { ticker: string }) {
                   <dt className="text-ink-3">Volume du jour</dt>
                   <dd className={`num font-medium ${(real?.volumeRatio ?? stock.volumeRatio) >= 3 ? "text-warn" : "text-ink"}`}>
                     {real?.quoteStatus === "delayed-live" ? (
-                      <span className="text-ink-3">— · volume officiel après clôture</span>
+                      <span className="text-ink-3">N/D · volume officiel après clôture</span>
                     ) : (
                       <>{compactVolume(real?.dayVolume ?? stock.dayVolume)}{" "}
                       <span className="text-ink-3">({(real?.volumeRatio ?? stock.volumeRatio).toFixed(1)}×)</span></>
@@ -342,6 +369,29 @@ export function StockView({ ticker }: { ticker: string }) {
               ) : null}
             </CardBody>
           </Card>
+
+          <Card>
+            <CardHeader
+              title={`Acheter ${stock.ticker}`}
+              subtitle="WARIBA vous aide à choisir un intermédiaire agréé"
+            />
+            <CardBody className="space-y-3">
+              <ol className="space-y-1.5 text-[11px] text-ink-2">
+                <li><strong className="text-ink">1.</strong> Comparez les SGI selon votre pays, leurs frais et l&apos;ouverture à distance.</li>
+                <li><strong className="text-ink">2.</strong> Ouvrez un compte-titres et déposez les fonds auprès de la SGI choisie.</li>
+                <li><strong className="text-ink">3.</strong> Passez votre ordre sur {stock.ticker}, puis suivez-le dans votre portefeuille.</li>
+              </ol>
+              <Link
+                href={`/sgi?ticker=${stock.ticker}`}
+                className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-accent/30 bg-accent/15 px-4 text-xs font-semibold text-accent transition-colors hover:bg-accent/25"
+              >
+                <Landmark className="h-4 w-4" /> Comparer les SGI
+              </Link>
+              <p className="text-[10px] leading-4 text-ink-3">
+                WARIBA ne reçoit ni n&apos;exécute votre ordre : la transaction est réalisée par la SGI que vous choisissez.
+              </p>
+            </CardBody>
+          </Card>
         </div>
       </div>
 
@@ -388,7 +438,7 @@ export function StockView({ ticker }: { ticker: string }) {
               <MetricCard
                 label="PER BRVM"
                 term="per"
-                value={real.per && (!realFund || realFund.netIncomeM > 0) ? ratio(real.per) : "—"}
+                value={real.per && (!realFund || realFund.netIncomeM > 0) ? ratio(real.per) : "N/D"}
                 hint={
                   realFund?.netIncomeM && realFund.netIncomeM < 0
                     ? `Non significatif : résultat net ${realFund.fiscalYear} négatif`
@@ -399,7 +449,7 @@ export function StockView({ ticker }: { ticker: string }) {
               <MetricCard
                 label="Rendement net"
                 term="rendement-net"
-                value={real.netYieldPct ? pct(real.netYieldPct, { signed: false, digits: 2 }) : "—"}
+                value={real.netYieldPct !== null ? pct(real.netYieldPct, { signed: false, digits: 2 }) : "N/D"}
                 tone={real.netYieldPct && real.netYieldPct >= 6 ? "up" : undefined}
                 disclosure={brvmDisclosure}
               />
@@ -407,7 +457,7 @@ export function StockView({ ticker }: { ticker: string }) {
               <MetricCard
                 label="Dernier dividende net"
                 term="dividende-net"
-                value={real.lastDividendNet ? fcfa(real.lastDividendNet) : "—"}
+                value={real.lastDividendNet !== null ? fcfa(real.lastDividendNet) : "N/D"}
                 hint={real.lastDividendDate ? `Payé le ${dateFr(real.lastDividendDate)}` : undefined}
                 disclosure={brvmDisclosure}
               />
@@ -585,7 +635,7 @@ export function StockView({ ticker }: { ticker: string }) {
             <MetricCard
               label="PER"
               term="per"
-              value={stock.per > 0 ? ratio(stock.per) : "—"}
+              value={stock.per > 0 ? ratio(stock.per) : "N/D"}
               hint={realPerComparison
                 ? `Médiane ${realAnalysis?.benchmark.scope === "sector" ? "secteur" : "marché"} : ${ratio(realPerComparison.median)}`
                 : sectorStats
@@ -700,7 +750,7 @@ export function StockView({ ticker }: { ticker: string }) {
                   <p className="mt-0.5 truncate text-xs font-medium text-ink">{s.name}</p>
                   <p className="mt-1 flex items-center justify-between text-[11px] text-ink-3">
                     <span className="num text-ink-2">{fcfa(s.lastPrice)}</span>
-                    <span className="num">PER {s.per > 0 ? ratio(s.per) : "—"}</span>
+                    <span className="num">PER {s.per > 0 ? ratio(s.per) : "N/D"}</span>
                   </p>
                 </Link>
               ))}

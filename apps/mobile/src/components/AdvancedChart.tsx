@@ -2,7 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, findNodeHandle, Modal, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import type { ChartType, IndicatorId, OHLCV } from "@wariba/core/types";
+import type { ChartType, IndicatorId, OHLCV, Timeframe } from "@wariba/core/types";
+import {
+  sliceSeriesByTimeframe,
+  summarizePeriod,
+  TIMEFRAME_OPTIONS,
+} from "@wariba/core/market-series";
+import { compactVolume, dateFr, fcfa, pct } from "@wariba/core/format";
 import type { TimeValue } from "@wariba/core/indicators";
 import {
   calculateATR, calculateBollingerBands, calculateEMA, calculateHeikinAshi,
@@ -15,29 +21,6 @@ import { colors, type } from "../theme";
 
 /** Référence stable : un sélecteur zustand ne doit jamais fabriquer un nouveau tableau. */
 const EMPTY_LEVELS: number[] = [];
-
-const RANGES: { id: string; label: string; bars: number }[] = [
-  { id: "1d", label: "1D", bars: 1 },
-  { id: "1w", label: "1W", bars: 6 },
-  { id: "1m", label: "1M", bars: 22 },
-  { id: "3m", label: "3M", bars: 66 },
-  { id: "6m", label: "6M", bars: 132 },
-  { id: "ytd", label: "YTD", bars: 0 },
-  { id: "1y", label: "1A", bars: 264 },
-  { id: "3y", label: "3A", bars: 792 },
-  { id: "5y", label: "5A", bars: 1320 },
-  { id: "all", label: "Tout", bars: Number.POSITIVE_INFINITY },
-];
-
-function sliceRange(data: OHLCV[], rangeId: string): OHLCV[] {
-  if (rangeId === "ytd") {
-    const lastTime = String(data[data.length - 1]?.time ?? "");
-    const january = `${lastTime.slice(0, 4)}-01-01`;
-    return data.filter((bar) => String(bar.time) >= january);
-  }
-  const bars = RANGES.find((item) => item.id === rangeId)?.bars ?? Number.POSITIVE_INFINITY;
-  return Number.isFinite(bars) ? data.slice(-bars) : data;
-}
 
 const TYPES: { id: ChartType; label: string }[] = [
   { id: "candlestick", label: "Bougies" }, { id: "line", label: "Ligne" },
@@ -65,7 +48,7 @@ function toPoints(points: TimeValue[], since: string): { time: string; value: nu
 }
 
 export function AdvancedChart({
-  ticker, data, previousClose, week52High, week52Low, events = [],
+  ticker, data, previousClose, week52High, week52Low, events = [], dividends = [],
 }: {
   ticker: string;
   data: OHLCV[];
@@ -73,13 +56,15 @@ export function AdvancedChart({
   week52High?: number;
   week52Low?: number;
   events?: WebChartMarker[];
+  dividends?: { date: string; net: number }[];
 }) {
   const chartRef = useRef<WebChartHandle>(null);
   const closeRef = useRef<View>(null);
   const [showIndicators, setShowIndicators] = useState(false);
+  const [showEvents, setShowEvents] = useState(true);
   const [levelMode, setLevelMode] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
-  const [range, setRange] = useState("3m");
+  const [range, setRange] = useState<Timeframe>("3M");
   const window_ = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const chartType = useChartStore((state) => state.type);
@@ -93,7 +78,7 @@ export function AdvancedChart({
   const levels = useChartLevelStore((state) => state.byTicker[ticker]) ?? EMPTY_LEVELS;
   const toggleLevel = useChartLevelStore((state) => state.toggle);
 
-  const visible = useMemo(() => sliceRange(data, range), [data, range]);
+  const visible = useMemo(() => sliceSeriesByTimeframe(data, range), [data, range]);
   const since = String(visible[0]?.time ?? "");
 
   // fitContent uniquement quand l'instrument, la période ou le type change —
@@ -140,32 +125,18 @@ export function AdvancedChart({
 
     return {
       ticker, chartType, bars, overlays, panes, referenceLines,
-      levels, markers: events, logarithmic, percentMode, levelMode, fit,
+      levels, markers: showEvents ? events : [], logarithmic, percentMode, levelMode, fit,
     };
-  }, [chartType, data, events, fit, indicators, levelMode, levels, logarithmic, percentMode, previousClose, since, ticker, visible, week52High, week52Low]);
+  }, [chartType, data, events, fit, indicators, levelMode, levels, logarithmic, percentMode, previousClose, showEvents, since, ticker, visible, week52High, week52Low]);
 
   const paneCount = ["rsi", "macd", "atr", "stoch"].filter((id) => indicators.includes(id as IndicatorId)).length;
   const height = 400 + paneCount * 90;
-  const rangeStats = useMemo(() => {
-    if (!visible.length) return null;
-    const first = visible[0];
-    const last = visible[visible.length - 1];
-    let high = first.high;
-    let low = first.low;
-    for (const bar of visible) {
-      high = Math.max(high, bar.high);
-      low = Math.min(low, bar.low);
-    }
-    return {
-      change: first.close > 0 ? ((last.close - first.close) / first.close) * 100 : 0,
-      high,
-      low,
-      last: last.close,
-      count: visible.length,
-    };
-  }, [visible]);
+  const rangeStats = useMemo(
+    () => summarizePeriod(visible, range, dividends),
+    [dividends, range, visible]
+  );
   const chartSummary = rangeStats
-    ? `Graphique ${ticker}, ${rangeStats.count} séances. Dernière clôture ${rangeStats.last.toLocaleString("fr-FR")} FCFA, variation ${rangeStats.change.toLocaleString("fr-FR", { maximumFractionDigits: 2 })} %, plus haut ${rangeStats.high.toLocaleString("fr-FR")}, plus bas ${rangeStats.low.toLocaleString("fr-FR")}.`
+    ? `Graphique ${ticker}, ${rangeStats.sessions} séances. Cours initial ${rangeStats.initialClose.toLocaleString("fr-FR")} FCFA, cours final ${rangeStats.finalClose.toLocaleString("fr-FR")} FCFA, performance ${rangeStats.priceReturnPct.toLocaleString("fr-FR", { maximumFractionDigits: 2 })} %, plus haut ${rangeStats.high.toLocaleString("fr-FR")}, plus bas ${rangeStats.low.toLocaleString("fr-FR")}.`
     : `Graphique ${ticker}, aucune donnée sur la période.`;
 
   const rangeChips = (
@@ -175,8 +146,8 @@ export function AdvancedChart({
       contentContainerStyle={styles.toolbar}
       accessibilityLabel="Choisir la période du graphique"
     >
-      {RANGES.map((item) => (
-        <ActionButton key={item.id} label={item.label} active={range === item.id} onPress={() => setRange(item.id)} />
+      {TIMEFRAME_OPTIONS.map((item) => (
+        <ActionButton key={item.value} label={item.label} active={range === item.value} onPress={() => setRange(item.value)} />
       ))}
     </ScrollView>
   );
@@ -198,11 +169,28 @@ export function AdvancedChart({
       {rangeChips}
       <Text accessibilityRole="summary" style={styles.srSummary}>{chartSummary}</Text>
       {rangeStats ? (
-        <View style={styles.summaryStrip}>
-          <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Variation</Text><Text style={[styles.summaryValue, { color: rangeStats.change >= 0 ? colors.up : colors.down }]}>{rangeStats.change >= 0 ? "+" : ""}{rangeStats.change.toLocaleString("fr-FR", { maximumFractionDigits: 2 })} %</Text></View>
-          <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Haut</Text><Text style={styles.summaryValue}>{rangeStats.high.toLocaleString("fr-FR")}</Text></View>
-          <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Bas</Text><Text style={styles.summaryValue}>{rangeStats.low.toLocaleString("fr-FR")}</Text></View>
-          <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Points</Text><Text style={styles.summaryValue}>{rangeStats.count}</Text></View>
+        <View style={styles.periodSummary}>
+          <Text style={styles.periodTitle}>
+            {range === "MAX"
+              ? "Depuis le début de l’historique disponible"
+              : `Performance du cours sur ${TIMEFRAME_OPTIONS.find((item) => item.value === range)?.label ?? range}`}
+          </Text>
+          <Text style={styles.periodDates}>
+            Du {dateFr(rangeStats.startDate)} au {dateFr(rangeStats.endDate)} · calcul WARIBA sur clôtures officielles
+          </Text>
+          <View style={styles.summaryStrip}>
+            <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Cours initial</Text><Text style={styles.summaryValue}>{fcfa(rangeStats.initialClose)}</Text></View>
+            <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Cours final</Text><Text style={styles.summaryValue}>{fcfa(rangeStats.finalClose)}</Text></View>
+            <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Performance</Text><Text style={[styles.summaryValue, { color: rangeStats.priceReturnPct >= 0 ? colors.up : colors.down }]}>{pct(rangeStats.priceReturnPct, { signed: true, digits: 2 })}</Text></View>
+          </View>
+          <View style={styles.summaryStrip}>
+            <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Annualisée</Text><Text style={styles.summaryValue}>{rangeStats.annualizedReturnPct === null ? "N/D" : `${pct(rangeStats.annualizedReturnPct, { signed: true, digits: 1 })}/an`}</Text></View>
+            <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Plus haut</Text><Text style={styles.summaryValue}>{fcfa(rangeStats.high)}</Text></View>
+            <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Plus bas</Text><Text style={styles.summaryValue}>{fcfa(rangeStats.low)}</Text></View>
+          </View>
+          <Text style={styles.periodFootnote}>
+            Dividendes nets {fcfa(rangeStats.cumulativeDividends)}/action · rendement total hors réinvestissement {pct(rangeStats.totalReturnPct, { signed: true, digits: 2 })} · {rangeStats.sessions} séances · {rangeStats.sessionsWithoutTrade} sans transaction{rangeStats.bestSessionPct === null ? "" : ` · meilleure ${pct(rangeStats.bestSessionPct, { signed: true, digits: 1 })}`}{rangeStats.worstSessionPct === null ? "" : ` · pire ${pct(rangeStats.worstSessionPct, { signed: true, digits: 1 })}`} · vol. {compactVolume(rangeStats.totalVolume)}
+          </Text>
         </View>
       ) : null}
       <View style={styles.selectorBlock}>
@@ -213,6 +201,7 @@ export function AdvancedChart({
       {levelMode ? <Text style={styles.levelHint}>Touchez le graphique pour poser ou retirer un niveau de prix.</Text> : null}
       <View style={styles.actions}>
         <ActionButton label="Indicateurs" icon="options-outline" active={showIndicators} onPress={() => setShowIndicators((value) => !value)} />
+        <ActionButton label="Événements" icon="calendar-outline" active={showEvents} onPress={() => setShowEvents((value) => !value)} />
         <ActionButton label="Log" active={logarithmic} onPress={toggleLog} />
         <ActionButton label="%" active={percentMode} onPress={togglePercent} />
         <ActionButton label="Niveau" icon="remove-outline" active={levelMode} onPress={() => setLevelMode((value) => !value)} />
@@ -223,6 +212,9 @@ export function AdvancedChart({
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.toolbar}>
           {INDICATORS.map((item) => <ActionButton key={item.id} label={item.label} active={indicators.includes(item.id)} onPress={() => toggleIndicator(item.id)} />)}
         </ScrollView>
+      ) : null}
+      {showEvents && events.length ? (
+        <Text style={styles.eventLegend}>D = dividende · R = résultats · S = opération sur capital</Text>
       ) : null}
 
       <Modal
@@ -265,13 +257,15 @@ const styles = StyleSheet.create({
   actions: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
   levelHint: { ...type.caption, color: colors.accent },
   srSummary: { position: "absolute", width: 1, height: 1, opacity: 0 },
-  summaryStrip: {
-    flexDirection: "row", borderTopColor: colors.line, borderBottomColor: colors.line,
-    borderTopWidth: 1, borderBottomWidth: 1, paddingVertical: 9,
-  },
-  summaryCell: { flex: 1, gap: 3 },
+  periodSummary: { gap: 7, borderTopColor: colors.line, borderBottomColor: colors.line, borderTopWidth: 1, borderBottomWidth: 1, paddingVertical: 11 },
+  periodTitle: { color: colors.ink, fontSize: 12.5, fontWeight: "800" },
+  periodDates: { ...type.caption, fontSize: 10 },
+  periodFootnote: { ...type.caption, fontSize: 9.5, lineHeight: 14 },
+  summaryStrip: { flexDirection: "row", paddingVertical: 3 },
+  summaryCell: { flex: 1, gap: 3, paddingRight: 6 },
   summaryLabel: { ...type.label, fontSize: 9 },
   summaryValue: { color: colors.ink, fontSize: 11.5, fontWeight: "700", fontVariant: ["tabular-nums"] },
+  eventLegend: { ...type.caption, fontSize: 10, color: colors.ink2 },
   fullscreen: { flex: 1, backgroundColor: colors.background, paddingHorizontal: 12, gap: 10 },
   fullscreenHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   fullscreenTitle: { ...type.title, fontSize: 17 },

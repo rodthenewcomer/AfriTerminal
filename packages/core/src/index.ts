@@ -21,3 +21,4 @@ export * from "./real-analysis";
 export * from "./financial-language";
 export * from "./sgi";
 export * from "./news-region";
+export * from "./market-series";

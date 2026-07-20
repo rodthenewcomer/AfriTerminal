@@ -102,6 +102,29 @@ def fr_number(raw: str) -> float | None:
         return None
 
 
+def equity_integer(raw: str) -> float | None:
+    """Prix, volume ou valeur entière, même si le PDF utilise `1,900`.
+
+    Les pourcentages et ratios continuent d'utiliser ``fr_number`` car leur
+    virgule est décimale. Les cours BRVM et quantités sont publiés en unités
+    entières ; trois chiffres après une virgule sont donc un séparateur de
+    milliers provenant de certains anciens bulletins.
+    """
+    if raw is None:
+        return None
+    value = raw.strip().replace("\xa0", " ").replace(" ", "").replace("%", "")
+    if value == "":
+        return None
+    if re.fullmatch(r"-?\d{1,3}(,\d{3})+", value):
+        value = value.replace(",", "")
+    else:
+        value = value.replace(",", ".")
+    try:
+        return float(value)
+    except ValueError:
+        return None
+
+
 def fr_date(raw: str) -> str | None:
     """'18-août-25' -> '2025-08-18'. Returns None if unparsable."""
     if not raw or not raw.strip():
@@ -194,7 +217,7 @@ def parse_equity_row(row: list[str | None]) -> BocStock | None:
         per,
     ) = rest
 
-    close_v = fr_number(close)
+    close_v = equity_integer(close)
     if close_v is None:
         return None
 
@@ -202,13 +225,13 @@ def parse_equity_row(row: list[str | None]) -> BocStock | None:
         sector_code=(sector or "").strip(),
         ticker=ticker.strip(),
         name=" ".join((name or "").split()),
-        prev_close=fr_number(prev_close) or 0.0,
-        open=fr_number(open_),
+        prev_close=equity_integer(prev_close) or 0.0,
+        open=equity_integer(open_),
         close=close_v,
         day_change_pct=fr_number(day_change) or 0.0,
-        volume=int(fr_number(volume) or 0),
-        value=fr_number(value) or 0.0,
-        ref_price=fr_number(ref_price) or close_v,
+        volume=int(equity_integer(volume) or 0),
+        value=equity_integer(value) or 0.0,
+        ref_price=equity_integer(ref_price) or close_v,
         ytd_change_pct=fr_number(ytd_change) or 0.0,
         last_dividend_net=fr_number(div_amount),
         last_dividend_date=fr_date(div_date or ""),

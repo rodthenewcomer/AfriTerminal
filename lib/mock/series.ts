@@ -1,4 +1,5 @@
 import type { OHLCV, SeriesProfile, Timeframe } from "@wariba/core/types";
+import { sliceSeriesByTimeframe } from "@wariba/core/market-series";
 import { STOCK_MAP, TODAY } from "./stocks";
 
 /** PRNG déterministe (mulberry32) pour que SSR et client génèrent les mêmes séries. */
@@ -217,23 +218,13 @@ export function seriesForTimeframe(ticker: string, tf: Timeframe): TimeframeData
     case "1W":
       return { data: s.intraday1w, intraday: true };
     case "1M":
-      return { data: s.daily.slice(-22), intraday: false };
     case "3M":
-      return { data: s.daily.slice(-66), intraday: false };
     case "6M":
-      return { data: s.daily.slice(-130), intraday: false };
-    case "YTD": {
-      const year = TODAY.slice(0, 4);
-      return {
-        data: s.daily.filter((d) => typeof d.time === "string" && d.time >= `${year}-01-01`),
-        intraday: false,
-      };
-    }
+    case "YTD":
     case "1Y":
-      return { data: s.daily.slice(-252), intraday: false };
     case "3Y":
-      return { data: s.weekly.slice(-156), intraday: false };
     case "5Y":
-      return { data: s.monthly, intraday: false };
+    case "MAX":
+      return { data: sliceSeriesByTimeframe(s.daily, tf), intraday: false };
   }
 }

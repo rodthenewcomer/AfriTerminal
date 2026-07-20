@@ -33,8 +33,11 @@ Usage :
 from __future__ import annotations
 
 import argparse
+import calendar
+from datetime import date, timedelta
 import json
 from pathlib import Path
+import sys
 
 INDEX_NAMES = {
     "BRVMC": "BRVM Composite",
@@ -47,6 +50,21 @@ def pct_change(from_v: float, to_v: float) -> float:
     if not from_v:
         return 0.0
     return ((to_v - from_v) / from_v) * 100
+
+
+def subtract_months(iso_date: str, months: int) -> str:
+    """Soustrait des mois calendaires en bornant le jour au dernier jour du mois."""
+    end = date.fromisoformat(iso_date)
+    target_index = end.year * 12 + end.month - 1 - months
+    year, month_index = divmod(target_index, 12)
+    month = month_index + 1
+    day = min(end.day, calendar.monthrange(year, month)[1])
+    return date(year, month, day).isoformat()
+
+
+def first_close_on_or_after(records: list[dict], cutoff: str) -> float:
+    """Première clôture officielle disponible à partir de la borne calendaire."""
+    return next((r["close"] for r in records if r["time"] >= cutoff), records[0]["close"])
 
 
 def last_valid_dividend(records: list[dict]) -> tuple[float | None, str | None]:
@@ -91,9 +109,6 @@ def build_snapshot(records: list[dict]) -> dict:
     last = records[-1]
     n = len(records)
 
-    def close_at(back: int) -> float:
-        return records[max(0, n - 1 - back)]["close"]
-
     year = last["time"][:4]
     first_of_year = next(
         (r for r in records if r["time"] >= f"{year}-01-01"), records[0]
@@ -105,10 +120,14 @@ def build_snapshot(records: list[dict]) -> dict:
     )
     dividend_net, dividend_date = last_valid_dividend(records)
 
-    # Extrêmes réels : 52 semaines (~251 séances avant la dernière) et
+    end_date = date.fromisoformat(last["time"])
+    week_cutoff = (end_date - timedelta(days=7)).isoformat()
+    week52_cutoff = (end_date - timedelta(days=364)).isoformat()
+
+    # Extrêmes réels : 52 semaines calendaires et
     # record de toute la série (2019+) — dérivés du même historique BOC
     # que le chart, aucune estimation.
-    win52 = records[-252:]
+    win52 = [record for record in records if record["time"] >= week52_cutoff]
     week52_high = max(r["close"] for r in win52)
     week52_low = min(r["close"] for r in win52)
     record_bar = max(records, key=lambda r: r["close"])
@@ -121,15 +140,15 @@ def build_snapshot(records: list[dict]) -> dict:
         "lastClose": last["close"],
         "prevClose": last["prev_close"],
         "dayChangePct": last["day_change_pct"],
-        "weekChangePct": round(pct_change(close_at(5), last["close"]), 2),
-        "monthChangePct": round(pct_change(close_at(21), last["close"]), 2),
-        "quarterChangePct": round(pct_change(close_at(66), last["close"]), 2),
-        "halfYearChangePct": round(pct_change(close_at(130), last["close"]), 2),
+        "weekChangePct": round(pct_change(first_close_on_or_after(records, week_cutoff), last["close"]), 2),
+        "monthChangePct": round(pct_change(first_close_on_or_after(records, subtract_months(last["time"], 1)), last["close"]), 2),
+        "quarterChangePct": round(pct_change(first_close_on_or_after(records, subtract_months(last["time"], 3)), last["close"]), 2),
+        "halfYearChangePct": round(pct_change(first_close_on_or_after(records, subtract_months(last["time"], 6)), last["close"]), 2),
         "ytdChangePct": round(pct_change(first_of_year["close"], last["close"]), 2),
-        "yearChangePct": round(pct_change(close_at(252), last["close"]), 2),
-        # série plus courte que l'horizon : close_at borne au 1er point
-        # connu -> performance « depuis l'introduction », comme Finviz.
-        "fiveYearChangePct": round(pct_change(close_at(1260), last["close"]), 2),
+        "yearChangePct": round(pct_change(first_close_on_or_after(records, subtract_months(last["time"], 12)), last["close"]), 2),
+        # Série plus courte que l'horizon : la fonction borne au premier point
+        # connu, explicitement présenté comme historique disponible.
+        "fiveYearChangePct": round(pct_change(first_close_on_or_after(records, subtract_months(last["time"], 60)), last["close"]), 2),
         "dayVolume": last["volume"],
         "avgVolume30d": round(avg30, 1),
         "volumeRatio": round(last["volume"] / avg30, 2) if avg30 else 1.0,
@@ -239,6 +258,92 @@ class DataQualityError(Exception):
     bruyamment (workflow rouge, e-mail) à un site qui publie du faux."""
 
 
+def clean_series(records: list[dict], ticker: str) -> tuple[list[dict], list[str]]:
+    """Écarte uniquement une séance isolée dont tous les prix ont été divisés
+    ou multipliés par une puissance de dix lors de l'extraction PDF.
+
+    Une vraie opération sur titre reste au nouveau niveau les séances suivantes.
+    Ici, le cours retrouve dès la séance suivante le niveau antérieur (±20 %),
+    ce qui caractérise une erreur ponctuelle de séparateur décimal.
+    """
+    if len(records) < 3:
+        return records, []
+
+    cleaned: list[dict] = []
+    rejected: list[str] = []
+    for index, record in enumerate(records):
+        if index == 0 or index == len(records) - 1:
+            cleaned.append(record)
+            continue
+
+        previous_close = records[index - 1]["close"]
+        current_close = record["close"]
+        next_close = records[index + 1]["close"]
+        if min(previous_close, current_close, next_close) <= 0:
+            cleaned.append(record)
+            continue
+
+        current_vs_previous = current_close / previous_close
+        current_vs_next = current_close / next_close
+        next_vs_previous = next_close / previous_close
+        isolated_scale_shift = (
+            current_vs_previous < 0.02 and current_vs_next < 0.02
+        ) or (
+            current_vs_previous > 50 and current_vs_next > 50
+        )
+        returns_to_prior_level = 0.8 <= next_vs_previous <= 1.2
+
+        if isolated_scale_shift and returns_to_prior_level:
+            rejected.append(
+                f"{ticker} {record['time']}: séance exclue — "
+                f"cours {current_close:g} incohérent entre "
+                f"{previous_close:g} et {next_close:g}"
+            )
+            continue
+        cleaned.append(record)
+
+    return cleaned, rejected
+
+
+def validate_series(records: list[dict], ticker: str) -> list[str]:
+    """Valide chaque OHLCV avant publication et remonte les sauts > 50 %."""
+    errors: list[str] = []
+    warnings: list[str] = []
+    seen: set[str] = set()
+    previous_time: str | None = None
+    previous_close: float | None = None
+    for index, record in enumerate(records):
+        stamp = record["time"]
+        prices = [record["open"], record["high"], record["low"], record["close"]]
+        if stamp in seen:
+            errors.append(f"{ticker} {stamp}: date dupliquée")
+        seen.add(stamp)
+        if previous_time is not None and stamp <= previous_time:
+            errors.append(f"{ticker} {stamp}: ordre chronologique invalide")
+        if any(not isinstance(value, (int, float)) or value <= 0 for value in prices):
+            errors.append(f"{ticker} {stamp}: prix nul, négatif ou invalide")
+        if record["high"] < max(record["open"], record["close"], record["low"]):
+            errors.append(f"{ticker} {stamp}: plus haut incohérent")
+        if record["low"] > min(record["open"], record["close"], record["high"]):
+            errors.append(f"{ticker} {stamp}: plus bas incohérent")
+        if record["volume"] < 0:
+            errors.append(f"{ticker} {stamp}: volume négatif")
+        if previous_close and previous_close > 0:
+            change = abs((record["close"] - previous_close) / previous_close)
+            if change > 0.5:
+                warnings.append(
+                    f"{ticker} {stamp}: variation {change * 100:.1f} % — "
+                    "vérifier dividende, split, attribution, capital ou décimales"
+                )
+        previous_time = stamp
+        previous_close = record["close"]
+    if errors:
+        raise DataQualityError(
+            "Série refusée :\n- " + "\n- ".join(errors[:20])
+        )
+    return warnings
+
+
 def validate_snapshots(snapshots: dict) -> None:
     """Garde-fous contre un bulletin corrompu ou un format qui a changé
     silencieusement : effectif de la cote, prix/volumes plausibles,
@@ -263,6 +368,12 @@ def validate_snapshots(snapshots: dict) -> None:
                 )
         if s["dayLow"] > s["dayHigh"]:
             errors.append(f"{ticker}: low {s['dayLow']} > high {s['dayHigh']}")
+        if s["dayLow"] <= 0:
+            errors.append(f"{ticker}: plus bas nul ou négatif {s['dayLow']}")
+        if s["dayHigh"] < max(s["dayOpen"], s["lastClose"]):
+            errors.append(f"{ticker}: plus haut inférieur à ouverture/clôture")
+        if s["dayLow"] > min(s["dayOpen"], s["lastClose"]):
+            errors.append(f"{ticker}: plus bas supérieur à ouverture/clôture")
     if errors:
         raise DataQualityError(
             "Qualité des données refusée :\n- " + "\n- ".join(errors[:20])
@@ -285,12 +396,17 @@ def main() -> None:
     snapshots = {}
     dividends = {}
     missing = []
+    quality_warnings: list[str] = []
+    rejected_rows: list[str] = []
     tickers = sorted(f.stem for f in series_dir.glob("*.json"))
     for ticker in tickers:
         records = json.loads((series_dir / f"{ticker}.json").read_text(encoding="utf-8"))
         if not records:
             missing.append(ticker)
             continue
+        records, rejected = clean_series(records, ticker)
+        rejected_rows.extend(rejected)
+        quality_warnings.extend(validate_series(records, ticker))
 
         snap = build_snapshot(records)
         snap["ticker"] = ticker
@@ -321,6 +437,23 @@ def main() -> None:
         (series_out / f"{ticker}.json").write_text(
             json.dumps(ohlcv, ensure_ascii=False), encoding="utf-8"
         )
+
+    if rejected_rows:
+        print(
+            f"QUALITÉ DONNÉES — {len(rejected_rows)} séance(s) corrompue(s) "
+            "exclue(s) des séries publiées",
+            file=sys.stderr,
+        )
+        for rejection in rejected_rows[:20]:
+            print(f"- {rejection}", file=sys.stderr)
+
+    if quality_warnings:
+        print(
+            f"ALERTE INTERNE QUALITÉ — {len(quality_warnings)} variation(s) > 50 % à contrôler",
+            file=sys.stderr,
+        )
+        for warning in quality_warnings[:20]:
+            print(f"- {warning}", file=sys.stderr)
 
     validate_snapshots(snapshots)
 

@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { ChevronDown, GitCompareArrows, Maximize2, Minimize2, Ruler, SlidersHorizontal, Trash2 } from "lucide-react";
+import { CalendarDays, ChevronDown, GitCompareArrows, Maximize2, Minimize2, Ruler, SlidersHorizontal, Trash2 } from "lucide-react";
 import type { ChartType, IndicatorId, Timeframe } from "@wariba/core/types";
+import { TIMEFRAME_OPTIONS } from "@wariba/core/market-series";
 import type { MaId } from "@/hooks/use-chart-prefs";
 import { cn } from "@wariba/core/utils";
 import { PillTabs } from "@/components/ui/tabs";
-
-const TIMEFRAMES: Timeframe[] = ["1D", "1W", "1M", "3M", "6M", "YTD", "1Y", "3Y", "5Y"];
 
 const CHART_TYPES: { value: ChartType; label: string }[] = [
   { value: "candlestick", label: "Bougies" },
@@ -129,6 +128,8 @@ export interface ChartToolbarProps {
   onIndicators: (ids: IndicatorId[]) => void;
   showVolume: boolean;
   onShowVolume: (v: boolean) => void;
+  showEvents: boolean;
+  onShowEvents: (v: boolean) => void;
   adjusted: boolean;
   onAdjusted: (v: boolean) => void;
   logScale: boolean;
@@ -179,7 +180,7 @@ export function ChartToolbar(props: ChartToolbarProps) {
     <div className="flex min-w-0 flex-col gap-2">
       <div className="flex min-w-0 items-center gap-2">
         <PillTabs
-          options={TIMEFRAMES.map((t) => ({ value: t, label: t }))}
+          options={[...TIMEFRAME_OPTIONS]}
           value={props.tf}
           onChange={props.onTf}
           label="Période du graphique"
@@ -224,6 +225,19 @@ export function ChartToolbar(props: ChartToolbarProps) {
           )}
         >
           Vol
+        </button>
+        <button
+          onClick={() => props.onShowEvents(!props.showEvents)}
+          title="Afficher ou masquer dividendes, résultats et opérations sur le graphique"
+          className={cn(
+            "inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium cursor-pointer transition-colors",
+            props.showEvents
+              ? "border-accent/30 bg-accent/10 text-accent"
+              : "border-line bg-surface/60 text-ink-3 hover:bg-surface-2"
+          )}
+        >
+          <CalendarDays className="h-3.5 w-3.5" />
+          Évén.
         </button>
         <button
           onClick={() => props.onAdjusted(!props.adjusted)}

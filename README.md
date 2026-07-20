@@ -103,8 +103,9 @@ app/                pages (dashboard/accueil, map, screener, charts —
                     status, settings) + opengraph-image par ticker (build)
 components/
   charts/           MainChart (bougies, ligne, aire, OHLC, Heikin Ashi,
-                    volume, SMA/EMA/Bollinger, RSI, MACD, comparaison %,
-                    ajustement dividendes), toolbar, sparkline
+                     volume, SMA/EMA/Bollinger, RSI, MACD, comparaison %,
+                     ajustement dividendes, événements, périodes calendaires
+                     1J/1S/1M/3M/6M/YTD/1A/3A/5A/MAX), toolbar, sparkline
   stocks/           table, badges, historique dividendes, profil de
                     risque (volatilité/bêta/perte max), comparables
   portfolio/        transactions, courbe de patrimoine, revenus passifs
@@ -151,6 +152,9 @@ artefacts JSON committés dans `data/real/`, `data/news/`, `data/live/` et
 - **`build_app_data.py`** — génère `data/real/` (snapshot 48 valeurs
   avec extrêmes 52 sem/record/séance du jour, séries OHLCV, indices,
   historique des dividendes nets par ticker) depuis `data/boc/series/`.
+  Il refuse les OHLCV invalides, exclut les séances isolées affectées par
+  une erreur de séparateur décimal et signale toute rupture durable de cours
+  supérieure à 50 % pour contrôle d'une opération sur titre.
 - **`fundamentals.py`** — états financiers curés société par société
   (REGISTRY : PDF épinglé, unité vérifiée, extracteur ou saisie manuelle
   recoupée ; nombre d'actions uniquement sur deux preuves concordantes)
@@ -175,6 +179,12 @@ rendement, dernier dividende) et `data/real/series/{TICKER}.json`
 jamais tous en même temps) alimentent `lib/real-data.ts`, consommé par
 les fiches actions, le dashboard, les marchés, le screener, la watchlist
 et la recherche.
+
+Chaque fiche utilise le moteur partagé `packages/core/src/market-series.ts` :
+bornes calendaires exactes, dernier cours synchronisé avec le snapshot,
+performance, rendement annualisé, haut/bas, volumes, séances sans échange,
+meilleure/pire séance, dividendes cumulés et rendement total. Les mêmes règles
+sont consommées par le web responsive et l'application Expo iOS/Android.
 
 **Volontairement indisponible quand la donnée n'est pas vérifiée** : les
 fondamentaux couvrent 48/48 sociétés. Les capitaux propres ne sont affichés

@@ -27,6 +27,11 @@ import {
   type Time,
 } from "lightweight-charts";
 import type { ChartType, IndicatorId, OHLCV, Timeframe } from "@wariba/core/types";
+import {
+  summarizePeriod,
+  TIMEFRAME_OPTIONS,
+  type PeriodSummary,
+} from "@wariba/core/market-series";
 import { seriesForTimeframe } from "@/lib/mock/series";
 import {
   getRealQuote,
@@ -55,7 +60,7 @@ import {
 import { dividendHistoryFor } from "@/lib/real-dividends";
 import { operationsForTicker } from "@/lib/real-operations";
 import { realDocsForTicker } from "@/lib/real-documents";
-import { compactVolume, pct } from "@wariba/core/format";
+import { compactVolume, dateFr, pct } from "@wariba/core/format";
 import { useChartPrefs, useChartPrefsHydrated } from "@/hooks/use-chart-prefs";
 import { rehydrateChartLevels, useChartLevels } from "@/hooks/use-chart-levels";
 import { cn } from "@wariba/core/utils";
@@ -72,16 +77,20 @@ function fmtPrice(p: number): string {
   return p < 100 ? PRICE_FMT2.format(p) : PRICE_FMT.format(p);
 }
 
-const NO_LEVELS: number[] = [];
-
-interface RangeStats {
-  count: number;
-  start: string;
-  end: string;
-  change: number;
-  high: number;
-  low: number;
+function fmtPeriodDate(value: string): string {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return dateFr(value);
+  const timestamp = Number(value);
+  if (!Number.isFinite(timestamp)) return value;
+  return new Date(timestamp * 1000).toLocaleString("fr-FR", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Africa/Abidjan",
+  });
 }
+
+const NO_LEVELS: number[] = [];
 
 const OVERLAYS: { id: "sma20" | "sma50" | "sma100" | "sma200"; period: number }[] = [
   { id: "sma20", period: 20 },
@@ -112,6 +121,7 @@ export function MainChart({ ticker }: { ticker: string }) {
   const [chartType, setChartType] = useState<ChartType>("candlestick");
   const [indicators, setIndicators] = useState<IndicatorId[]>([]);
   const [showVolume, setShowVolume] = useState(true);
+  const [showEvents, setShowEvents] = useState(true);
   const [adjusted, setAdjusted] = useState(false);
   const [logScale, setLogScale] = useState(false);
   const [compare, setCompare] = useState<string[]>([]);
@@ -150,8 +160,8 @@ export function MainChart({ ticker }: { ticker: string }) {
   const { resolvedTheme } = useTheme();
 
   const [hasMarkers, setHasMarkers] = useState(false);
-  const [rangeStats, setRangeStats] = useState<RangeStats | null>(null);
-  const intraday = tf === "1D" || tf === "1W";
+  const [rangeStats, setRangeStats] = useState<PeriodSummary | null>(null);
+  const intraday = tf === "1D";
   const comparing = compare.length > 0 && !intraday;
   const indKey = [...indicators].sort().join(",");
   const cmpKey = compare.join(",");
@@ -349,22 +359,13 @@ export function MainChart({ ticker }: { ticker: string }) {
         ? await Promise.all(compare.map((code) => compareSeriesData(code, tf)))
         : [];
       if (cancelled || chartRef.current !== chart) return;
-      const firstBar = bars[0];
-      const lastBar = bars[bars.length - 1];
-      let high = firstBar.high;
-      let low = firstBar.low;
-      for (const bar of bars) {
-        high = Math.max(high, bar.high);
-        low = Math.min(low, bar.low);
-      }
-      setRangeStats({
-        count: bars.length,
-        start: String(firstBar.time),
-        end: String(lastBar.time),
-        change: firstBar.close > 0 ? ((lastBar.close - firstBar.close) / firstBar.close) * 100 : 0,
-        high,
-        low,
-      });
+      setRangeStats(
+        summarizePeriod(
+          raw,
+          tf,
+          isReal && !intraday ? dividendHistoryFor(ticker) : []
+        )
+      );
 
       const track = <T extends ISeriesApi<SeriesType>>(s: T): T => {
         seriesRef.current.push(s);
@@ -637,7 +638,7 @@ export function MainChart({ ticker }: { ticker: string }) {
       }
 
       // Marqueurs d'événements : dividendes (D + montant) et opérations (S)
-      if (isReal && !intraday && !comparing && typeof bars[0]?.time === "string") {
+      if (showEvents && isReal && !intraday && !comparing && typeof bars[0]?.time === "string") {
         const first = bars[0].time as string;
         const last = bars[bars.length - 1].time as string;
         const snap = (d: string) => {
@@ -731,7 +732,7 @@ export function MainChart({ ticker }: { ticker: string }) {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [epoch, tf, chartType, indKey, showVolume, adjusted, cmpKey, comparing, maKey, levels.join(",")]);
+  }, [epoch, tf, chartType, indKey, showVolume, showEvents, adjusted, cmpKey, comparing, maKey, levels.join(",")]);
 
   useEffect(() => {
     if (!fullscreen) return;
@@ -814,6 +815,8 @@ export function MainChart({ ticker }: { ticker: string }) {
         onIndicators={setIndicators}
         showVolume={showVolume}
         onShowVolume={setShowVolume}
+        showEvents={showEvents}
+        onShowEvents={setShowEvents}
         adjusted={adjusted}
         onAdjusted={setAdjusted}
         logScale={logScale}
@@ -854,19 +857,65 @@ export function MainChart({ ticker }: { ticker: string }) {
         </div>
       ) : null}
       {rangeStats && !comparing ? (
-        <div className="grid grid-cols-2 gap-x-5 gap-y-1 border-y border-line/70 py-2 text-[11px] sm:flex sm:items-center sm:gap-5">
-          <span className="text-ink-3">
-            Période <strong className="font-semibold text-ink">{rangeStats.start} → {rangeStats.end}</strong>
-          </span>
-          <span className="text-ink-3">
-            Variation <strong className={cn("num font-semibold", rangeStats.change >= 0 ? "text-up" : "text-down")}>{pct(rangeStats.change)}</strong>
-          </span>
-          <span className="text-ink-3">
-            Haut / bas <strong className="num font-semibold text-ink">{fmtPrice(rangeStats.high)} / {fmtPrice(rangeStats.low)}</strong>
-          </span>
-          <span className="text-ink-3">
-            Points <strong className="num font-semibold text-ink">{rangeStats.count}</strong>
-          </span>
+        <div className={cn("border-y border-line/70 py-3", fullscreen && "hidden")}>
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <p className="text-xs font-semibold text-ink">
+                {tf === "MAX"
+                  ? "Depuis le début de l’historique disponible"
+                  : `Performance du cours sur ${TIMEFRAME_OPTIONS.find((item) => item.value === tf)?.label ?? tf}`}
+              </p>
+              <p className="mt-0.5 text-[10px] text-ink-3">
+                Du {fmtPeriodDate(rangeStats.startDate)} au {fmtPeriodDate(rangeStats.endDate)} · calculé par WARIBA sur données BRVM vérifiées
+              </p>
+            </div>
+            <span
+              className="text-[10px] text-ink-3"
+              title="Performance = ((cours final / cours initial) − 1) × 100"
+            >
+              ⓘ Formule du rendement
+            </span>
+          </div>
+          <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-[11px] sm:grid-cols-4 lg:grid-cols-6">
+            <div>
+              <dt className="text-ink-3">Cours initial</dt>
+              <dd className="num mt-0.5 font-semibold text-ink">{fmtPrice(rangeStats.initialClose)} FCFA</dd>
+            </div>
+            <div>
+              <dt className="text-ink-3">Cours final</dt>
+              <dd className="num mt-0.5 font-semibold text-ink">{fmtPrice(rangeStats.finalClose)} FCFA</dd>
+            </div>
+            <div>
+              <dt className="text-ink-3">Performance du cours</dt>
+              <dd className={cn("num mt-0.5 font-semibold", rangeStats.priceReturnPct >= 0 ? "text-up" : "text-down")}>
+                {pct(rangeStats.priceReturnPct)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-ink-3">Annualisée</dt>
+              <dd className="num mt-0.5 font-semibold text-ink">
+                {rangeStats.annualizedReturnPct === null ? "N/D" : `${pct(rangeStats.annualizedReturnPct)} / an`}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-ink-3">Plus haut de la période</dt>
+              <dd className="num mt-0.5 font-semibold text-ink">{fmtPrice(rangeStats.high)} FCFA</dd>
+            </div>
+            <div>
+              <dt className="text-ink-3">Plus bas de la période</dt>
+              <dd className="num mt-0.5 font-semibold text-ink">{fmtPrice(rangeStats.low)} FCFA</dd>
+            </div>
+          </dl>
+          <p className="mt-2 text-[10px] text-ink-3">
+            Dividendes nets cumulés : <strong className="num text-ink-2">{fmtPrice(rangeStats.cumulativeDividends)} FCFA/action</strong>
+            {" · "}Rendement total hors réinvestissement :{" "}
+            <strong className={cn("num", rangeStats.totalReturnPct >= 0 ? "text-up" : "text-down")}>{pct(rangeStats.totalReturnPct)}</strong>
+            {" · "}{rangeStats.sessions.toLocaleString("fr-FR")} séances
+            {" · "}{rangeStats.sessionsWithoutTrade.toLocaleString("fr-FR")} sans transaction
+            {rangeStats.bestSessionPct === null ? "" : ` · meilleure séance ${pct(rangeStats.bestSessionPct)}`}
+            {rangeStats.worstSessionPct === null ? "" : ` · plus forte baisse ${pct(rangeStats.worstSessionPct)}`}
+            {" · "}volume cumulé {compactVolume(rangeStats.totalVolume)}
+          </p>
         </div>
       ) : null}
       <div

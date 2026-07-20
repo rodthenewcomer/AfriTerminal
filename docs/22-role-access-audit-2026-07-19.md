@@ -35,7 +35,7 @@ avancés, jamais sur l'accès aux faits essentiels.
 | Financial Analyst | Une perte réduite reste une perte ; aucun « bénéfice en hausse » possible |
 | Market Data QA | PER neutralisé si les derniers comptes vérifiés sont déficitaires |
 | Quant | Perte/retournement exclus des rangs trompeurs de croissance bénéficiaire |
-| QA Automation | Régression 48 tickers × 8 périodes + scénarios perte/retournement |
+| QA Automation | Régression 48 tickers × 10 périodes + scénarios perte/retournement |
 | Security | Les instructions d'exploitation quittent la surface publique ; `/launch` redirige |
 | Privacy | Les fournisseurs restent cités uniquement dans la politique légale nécessaire |
 | Revenue / Pricing | 3 000 FCFA/mois ; cible annuelle 30 000 FCFA |
@@ -68,7 +68,7 @@ avancés, jamais sur l'accès aux faits essentiels.
   ticker.
 - Une erreur affiche le ticker et la période concernés avec une action
   Réessayer.
-- Test automatisé : 48 tickers × 8 périodes quotidiennes, OHLC valides,
+- Test automatisé : 48 tickers × 10 périodes quotidiennes, OHLC valides,
   chronologie stricte, dernier cours du bon ticker.
 
 ## Ce qui reste externe

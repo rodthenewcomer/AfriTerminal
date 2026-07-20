@@ -1,9 +1,12 @@
 import type { IndexInfo, LiveMarketPayload, OHLCV, RealQuote, Timeframe } from "@wariba/core/types";
 import { mergeLiveQuoteMap } from "@wariba/core/live-market";
+import {
+  sliceSeriesByTimeframe,
+  validateMarketSeries,
+} from "@wariba/core/market-series";
 import snapshotJson from "@/data/real/snapshot.json";
 import indicesJson from "@/data/real/indices.json";
 import liveJson from "@/data/real/live.json";
-import { aggregate } from "./mock/series";
 
 const BASE_SNAPSHOTS = snapshotJson as Record<string, RealQuote>;
 const LIVE_MARKET = liveJson as LiveMarketPayload;
@@ -87,9 +90,18 @@ const dailyCache = new Map<string, Promise<OHLCV[]>>();
 async function loadRealDaily(ticker: string): Promise<OHLCV[]> {
   const cached = dailyCache.get(ticker);
   if (cached) return cached;
-  const promise = import(`../data/real/series/${ticker}.json`).then(
-    (mod) => mod.default as OHLCV[]
-  );
+  const promise = import(`../data/real/series/${ticker}.json`).then((mod) => {
+    const data = mod.default as OHLCV[];
+    const errors = validateMarketSeries(data, BASE_SNAPSHOTS[ticker]?.lastClose).filter(
+      (issue) => issue.severity === "error"
+    );
+    if (errors.length > 0) {
+      throw new Error(
+        `Série ${ticker} rejetée: ${errors.map((issue) => issue.code).join(", ")}`
+      );
+    }
+    return data;
+  });
   dailyCache.set(ticker, promise);
   return promise;
 }
@@ -100,33 +112,6 @@ export interface RealTimeframeData {
 }
 
 /** Équivalent réel de seriesForTimeframe (lib/mock/series.ts). */
-function sliceByTimeframe(daily: OHLCV[], tf: Timeframe): OHLCV[] {
-  switch (tf) {
-    case "1D":
-      return []; // pas de données intraday réelles
-    case "1W":
-      return daily.slice(-6);
-    case "1M":
-      return daily.slice(-22);
-    case "3M":
-      return daily.slice(-66);
-    case "6M":
-      return daily.slice(-130);
-    case "YTD": {
-      const year = (daily[daily.length - 1]?.time as string)?.slice(0, 4);
-      return daily.filter(
-        (d) => typeof d.time === "string" && d.time >= `${year}-01-01`
-      );
-    }
-    case "1Y":
-      return daily.slice(-252);
-    case "3Y":
-      return aggregate(daily, 5).slice(-156);
-    case "5Y":
-      return aggregate(daily, 21).slice(-60);
-  }
-}
-
 /** Clôtures quotidiennes complètes d'un ticker depuis une date (incluse) —
  * pour la reconstruction de la valeur d'un portefeuille dans le temps. */
 export async function realDailyClosesSince(
@@ -185,7 +170,7 @@ export async function realSeriesForTimeframe(
         },
       ]
     : official;
-  return { data: sliceByTimeframe(daily, tf), intradayAvailable: hasLive };
+  return { data: sliceSeriesByTimeframe(daily, tf), intradayAvailable: hasLive };
 }
 
 const indexSeriesCache = new Map<string, Promise<OHLCV[]>>();
@@ -217,5 +202,5 @@ export async function realIndexSeriesForTimeframe(
   code: string,
   tf: Timeframe
 ): Promise<OHLCV[]> {
-  return sliceByTimeframe(await loadIndexDaily(code), tf);
+  return sliceSeriesByTimeframe(await loadIndexDaily(code), tf);
 }

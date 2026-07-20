@@ -15,6 +15,7 @@ import {
   explainOfficialPer,
 } from "@wariba/core/financial-language";
 import type { OHLCV } from "@wariba/core/types";
+import { validateMarketSeries } from "@wariba/core/market-series";
 import { AdvancedChart } from "../../src/components/AdvancedChart";
 import { YearComparison } from "../../src/components/YearComparison";
 import type { WebChartMarker } from "../../src/components/chart/WebChart";
@@ -265,6 +266,11 @@ export default function StockScreen() {
     }];
   }, [quote, series]);
   const riskSeries = useMemo(() => chartSeries.map((bar) => ({ time: String(bar.time), close: bar.close })), [chartSeries]);
+  const seriesIntegrityErrors = useMemo(
+    () => validateMarketSeries(chartSeries, quote?.lastClose)
+      .filter((issue) => issue.severity === "error"),
+    [chartSeries, quote?.lastClose]
+  );
   const risk = useMemo(() => ({ volatility: annualizedVolatility(riskSeries), drawdown: maxDrawdown(riskSeries) }), [riskSeries]);
   const documents = useMemo(() => market.documents.filter((document) => document.ticker === ticker).slice(0, 15), [market.documents, ticker]);
   const latestFinancialDocument = useMemo(
@@ -284,8 +290,38 @@ export default function StockScreen() {
       .filter((item) => item.type === "Résultats" || item.type === "États financiers")
       .map((item) => ({ time: item.date, kind: "result" as const, label: "R" })),
   ], [documents, market.dividends, operations, ticker]);
+  const annualDividends = useMemo(() => {
+    const byYear = new Map<number, { year: number; net: number; lastDate: string }>();
+    for (const event of market.dividends[ticker] ?? []) {
+      const year = Number(event.date.slice(0, 4));
+      const current = byYear.get(year);
+      byYear.set(year, {
+        year,
+        net: (current?.net ?? 0) + event.net,
+        lastDate: current && current.lastDate > event.date ? current.lastDate : event.date,
+      });
+    }
+    return [...byYear.values()]
+      .sort((a, b) => b.year - a.year)
+      .map((item) => {
+        const close = chartSeries.find((bar) => String(bar.time) >= item.lastDate)?.close;
+        return { ...item, yieldPct: close && close > 0 ? (item.net / close) * 100 : null };
+      });
+  }, [chartSeries, market.dividends, ticker]);
+  const dividendHistoryMeta = useMemo(() => {
+    if (!annualDividends.length) return null;
+    const newest = annualDividends[0];
+    const oldest = annualDividends[annualDividends.length - 1];
+    const span = newest.year - oldest.year;
+    const covered = span + 1;
+    const growth = span > 0 && oldest.net > 0
+      ? ((newest.net / oldest.net) ** (1 / span) - 1) * 100
+      : null;
+    return { covered, growth };
+  }, [annualDividends]);
 
   if (!quote) return market.loading ? <LoadingState /> : <EmptyState title="Valeur introuvable" detail={`Aucune cotation pour ${ticker}.`} />;
+  const dailyChangeAmount = quote.lastClose - quote.prevClose;
   const description = companyProfile(ticker);
   const country = countryFromTicker(ticker);
   const capitalisation = fundamental?.sharesOutstanding ? fundamental.sharesOutstanding * quote.lastClose : null;
@@ -358,8 +394,9 @@ export default function StockScreen() {
       <Animated.View entering={reduceMotion ? undefined : FadeInDown.duration(280)} style={styles.hero}>
         <View style={styles.heroCopy}>
           <Text numberOfLines={2} style={styles.name}>
-            {quote.name} · {sectorLabel(quote.sectorCode)}{country ? ` · ${country}` : ""}
+            {quote.name}
           </Text>
+          <Text style={styles.identity}>{ticker} · BRVM · {sectorLabel(quote.sectorCode)}{country ? ` · ${country}` : ""} · FCFA</Text>
           <View style={styles.priceRow}>
             <Text style={styles.price}>{fcfa(quote.lastClose)}</Text>
             <ChangePill value={quote.dayChangePct} label={pct(quote.dayChangePct, { signed: true, digits: 2 })} />
@@ -368,6 +405,9 @@ export default function StockScreen() {
             {quote.quoteStatus === "delayed-live"
               ? `Cours BRVM différé de 15 min · ${quote.asOfTimestamp ? new Date(quote.asOfTimestamp).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Abidjan" }) : dateFr(quote.asOfDate)}`
               : `Clôture officielle du ${dateFr(quote.asOfDate)}`}
+          </Text>
+          <Text style={[styles.dayBasis, { color: dailyChangeAmount >= 0 ? colors.up : colors.down }]}>
+            {dailyChangeAmount > 0 ? "+" : ""}{fcfa(dailyChangeAmount)} aujourd&apos;hui · base : clôture précédente {fcfa(quote.prevClose)}
           </Text>
           <View style={styles.infoChips}>
             {quote.per !== null ? (
@@ -383,7 +423,7 @@ export default function StockScreen() {
         </View>
         <View style={styles.heroStats}>
           <View style={styles.heroStatRow}><Text style={styles.heroStatLabel}>H/B jour</Text><Text style={styles.heroStatValue}>{num(quote.dayHigh)}·{num(quote.dayLow)}</Text></View>
-          <View style={styles.heroStatRow}><Text style={styles.heroStatLabel}>Vol</Text><Text style={styles.heroStatValue}>{quote.quoteStatus === "delayed-live" ? "—" : compactVolume(quote.dayVolume)}</Text></View>
+          <View style={styles.heroStatRow}><Text style={styles.heroStatLabel}>Vol</Text><Text style={styles.heroStatValue}>{quote.quoteStatus === "delayed-live" ? "N/D" : compactVolume(quote.dayVolume)}</Text></View>
           <View style={styles.heroStatRow}><Text style={styles.heroStatLabel}>52 s</Text><Text style={styles.heroStatValue}>{num(quote.week52High)}·{num(quote.week52Low)}</Text></View>
         </View>
       </Animated.View>
@@ -396,9 +436,23 @@ export default function StockScreen() {
             <EmptyState icon="cloud-offline-outline" title="Historique indisponible" detail="La série n'a pas pu être validée ou téléchargée. Les autres données restent accessibles." />
             <ActionButton label="Réessayer" icon="refresh-outline" onPress={() => void retrySeries()} />
           </View>
-        ) : chartSeries.length ? (
-          <AdvancedChart ticker={ticker} data={chartSeries} previousClose={quote.prevClose} week52High={quote.week52High} week52Low={quote.week52Low} events={events} />
-        ) : <EmptyState icon="analytics-outline" title="Aucun historique" detail={`Aucune séance exploitable n'est disponible pour ${ticker}.`} />}
+        ) : chartSeries.length && seriesIntegrityErrors.length === 0 ? (
+          <AdvancedChart
+            ticker={ticker}
+            data={chartSeries}
+            previousClose={quote.prevClose}
+            week52High={quote.week52High}
+            week52Low={quote.week52Low}
+            events={events}
+            dividends={market.dividends[ticker] ?? []}
+          />
+        ) : <EmptyState
+          icon="analytics-outline"
+          title={seriesIntegrityErrors.length ? "Historique en contrôle" : "Aucun historique"}
+          detail={seriesIntegrityErrors.length
+            ? "Une incohérence entre la cotation et la série a été détectée. WARIBA masque le graphique plutôt que d’afficher un chiffre faux."
+            : `Aucune séance exploitable n'est disponible pour ${ticker}.`}
+        />}
 
         <Section title="Résumé" detail="Séance et variations">
           <View style={styles.statsGrid}>
@@ -406,11 +460,11 @@ export default function StockScreen() {
             <StatCell label="+ Haut" value={fcfa(quote.dayHigh)} />
             <StatCell label="+ Bas" value={fcfa(quote.dayLow)} />
             <StatCell label="Veille" value={fcfa(quote.prevClose)} />
-            <StatCell label="Volume" value={quote.quoteStatus === "delayed-live" ? "—" : compactVolume(quote.dayVolume)} tone={quote.volumeRatio >= 3 ? "warn" : undefined} />
-            <StatCell label="Val. échangée" value={quote.dayValueFcfa ? compactFcfa(quote.dayValueFcfa) : "—"} />
+            <StatCell label="Volume" value={quote.quoteStatus === "delayed-live" ? "N/D" : compactVolume(quote.dayVolume)} tone={quote.volumeRatio >= 3 ? "warn" : undefined} />
+            <StatCell label="Val. échangée" value={quote.dayValueFcfa ? compactFcfa(quote.dayValueFcfa) : "N/D"} />
             <StatCell label="52 s haut" value={fcfa(quote.week52High)} />
             <StatCell label="52 s bas" value={fcfa(quote.week52Low)} />
-            <StatCell label="Ratio vol." value={quote.quoteStatus === "delayed-live" ? "—" : `${quote.volumeRatio.toFixed(1)}×`} tone={quote.volumeRatio >= 3 ? "warn" : undefined} />
+            <StatCell label="Ratio vol." value={quote.quoteStatus === "delayed-live" ? "N/D" : `${quote.volumeRatio.toFixed(1)}×`} tone={quote.volumeRatio >= 3 ? "warn" : undefined} />
           </View>
           <View style={styles.factCard}>
             <FactRow label="Variation 1 semaine" value={pct(quote.weekChangePct, { signed: true, digits: 2 })} tone={quote.weekChangePct >= 0 ? "up" : "down"} />
@@ -438,6 +492,15 @@ export default function StockScreen() {
             </Text>
             <FactRow label="Record de clôture (depuis 2019)" value={`${fcfa(quote.allTimeHigh)} le ${dateFr(quote.allTimeHighDate)}`} />
           </View>
+        </Section>
+        <Section title={`Acheter ${ticker}`} detail="Choisir un intermédiaire agréé">
+          <View style={styles.buySteps}>
+            <Text style={styles.buyStep}><Text style={styles.buyStepNumber}>1. </Text>Comparez les SGI selon votre pays, leurs frais et l&apos;ouverture à distance.</Text>
+            <Text style={styles.buyStep}><Text style={styles.buyStepNumber}>2. </Text>Ouvrez un compte-titres et déposez les fonds auprès de la SGI.</Text>
+            <Text style={styles.buyStep}><Text style={styles.buyStepNumber}>3. </Text>Passez votre ordre sur {ticker}, puis suivez-le dans le portefeuille.</Text>
+          </View>
+          <ActionButton label="Comparer les SGI" icon="business-outline" onPress={() => router.push("/sgi")} />
+          <Text style={styles.disclaimer}>WARIBA ne reçoit ni n&apos;exécute l&apos;ordre. La transaction est réalisée par la SGI choisie.</Text>
         </Section>
       </Animated.View> : null}
 
@@ -474,7 +537,7 @@ export default function StockScreen() {
           <View style={styles.metrics}>
             <Metric
               label="PER BRVM"
-              value={quote.per !== null && (!fundamental || fundamental.netIncomeM > 0) ? ratio(quote.per) : "—"}
+              value={quote.per !== null && (!fundamental || fundamental.netIncomeM > 0) ? ratio(quote.per) : "N/D"}
               detail={
                 fundamental?.netIncomeM && fundamental.netIncomeM < 0
                   ? `Non significatif : résultat net ${fundamental.fiscalYear} négatif`
@@ -483,9 +546,9 @@ export default function StockScreen() {
               explanation={GLOSSARY.per.def}
               disclosure={perDisclosure}
             />
-            <Metric label="Rendement net" value={quote.netYieldPct !== null ? pct(quote.netYieldPct, { signed: false, digits: 2 }) : "—"} tone={quote.netYieldPct !== null && quote.netYieldPct >= 6 ? "up" : "default"} explanation={GLOSSARY["rendement-net"].def} disclosure={brvmDisclosure} />
+            <Metric label="Rendement net" value={quote.netYieldPct !== null ? pct(quote.netYieldPct, { signed: false, digits: 2 }) : "N/D"} tone={quote.netYieldPct !== null && quote.netYieldPct >= 6 ? "up" : "default"} explanation={GLOSSARY["rendement-net"].def} disclosure={brvmDisclosure} />
             <Metric label="Vol. moyen 30 j" value={compactVolume(quote.avgVolume30d)} explanation={GLOSSARY["vol-moyen"].def} disclosure={brvmDisclosure} />
-            <Metric label="Dernier dividende net" value={quote.lastDividendNet !== null ? fcfa(quote.lastDividendNet) : "—"} detail={quote.lastDividendDate ? `Payé le ${dateFr(quote.lastDividendDate)}` : undefined} explanation={GLOSSARY["dividende-net"].def} disclosure={brvmDisclosure} />
+            <Metric label="Dernier dividende net" value={quote.lastDividendNet !== null ? fcfa(quote.lastDividendNet) : "N/D"} detail={quote.lastDividendDate ? `Payé le ${dateFr(quote.lastDividendDate)}` : undefined} explanation={GLOSSARY["dividende-net"].def} disclosure={brvmDisclosure} />
             {fundamental?.sharesOutstanding ? <>
               <Metric label="Capitalisation" value={compactFcfa(fundamental.sharesOutstanding * quote.lastClose)} detail={`${(fundamental.sharesOutstanding / 1e6).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} M d'actions`} explanation={GLOSSARY.capitalisation.def} disclosure={mixedDisclosure} />
               {bpa !== null ? <Metric label={`BPA ${fundamental.fiscalYear}`} value={fcfa(bpa)} detail="Bénéfice net par action" explanation={GLOSSARY.bpa.def} disclosure={annualDisclosure} /> : null}
@@ -529,12 +592,30 @@ export default function StockScreen() {
         {realAnalysis ? (
           <QuantitativeAnalysis analysis={realAnalysis} sector={sectorLabel(quote.sectorCode)} />
         ) : null}
-        <Section title="Historique des dividendes" detail="Montants nets par action, bulletins officiels">
-          {(market.dividends[ticker] ?? []).length
-            ? [...(market.dividends[ticker] ?? [])].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8).map((item, index) => (
-              <Row key={`${item.date}-${index}`} icon="cash-outline" title={`Dividende net`} detail={`Payé le ${dateFr(item.date)}`} value={fcfa(item.net)} valueDetail="par action" />
+        <Section
+          title="Historique des dividendes"
+          detail={dividendHistoryMeta
+            ? `${annualDividends.length}/${dividendHistoryMeta.covered} années avec versement${dividendHistoryMeta.growth === null ? "" : ` · croissance ${pct(dividendHistoryMeta.growth, { signed: true, digits: 1 })}/an`}`
+            : "Montants nets par action, bulletins officiels"}
+        >
+          {annualDividends.length
+            ? annualDividends.slice(0, 10).map((item) => (
+              <Row
+                key={item.year}
+                icon="cash-outline"
+                title={`Dividende net ${item.year}`}
+                detail={`Dernier paiement ${dateFr(item.lastDate)} · rendement au paiement ${item.yieldPct === null ? "N/D" : pct(item.yieldPct, { signed: false, digits: 2 })}`}
+                value={fcfa(item.net)}
+                valueDetail="par action"
+              />
             ))
             : <EmptyState icon="cash-outline" title="Aucun versement" detail={`Aucun dividende enregistré pour ${ticker} depuis 2019.`} />}
+          <View style={styles.factCard}>
+            <FactRow label="Prochaine assemblée générale" value="N/D · aucune date officielle" />
+            <FactRow label="Prochain détachement" value="N/D · aucune date officielle" />
+            <FactRow label="Prochain paiement" value="N/D · aucune date officielle" />
+          </View>
+          <Text style={styles.disclaimer}>Rendement calculé par WARIBA au premier cours de clôture disponible à la date de paiement.</Text>
         </Section>
         {beginner ? (
           <Section title="Lexique express" detail="Explications sans jargon">
@@ -551,8 +632,8 @@ export default function StockScreen() {
       {tab === "risk" ? <Animated.View key="risk" entering={reduceMotion ? undefined : FadeIn.duration(200)} style={styles.tabContent}>
         <Section title="Risque historique" detail="Calculé sur l'historique complet des clôtures">
           <View style={styles.metrics}>
-            <Metric label="Volatilité annualisée" value={risk.volatility === null ? "—" : pct(risk.volatility, { signed: false, digits: 1 })} />
-            <Metric label="Max drawdown" value={risk.drawdown ? pct(risk.drawdown.pct, { signed: true, digits: 1 }) : "—"} tone="down" detail={risk.drawdown ? `${dateFr(risk.drawdown.peakDate)} → ${dateFr(risk.drawdown.troughDate)}` : undefined} />
+            <Metric label="Volatilité annualisée" value={risk.volatility === null ? "N/D" : pct(risk.volatility, { signed: false, digits: 1 })} />
+            <Metric label="Max drawdown" value={risk.drawdown ? pct(risk.drawdown.pct, { signed: true, digits: 1 }) : "N/D"} tone="down" detail={risk.drawdown ? `${dateFr(risk.drawdown.peakDate)} → ${dateFr(risk.drawdown.troughDate)}` : undefined} />
             <Metric label="Plus haut 52s" value={fcfa(quote.week52High)} />
             <Metric label="Plus bas 52s" value={fcfa(quote.week52Low)} />
           </View>
@@ -656,9 +737,11 @@ const styles = StyleSheet.create({
   infoChipValue: { color: colors.ink, fontSize: 11.5, fontWeight: "700", fontVariant: tabular },
   heroCopy: { flex: 1, gap: 6 },
   name: { ...type.sub },
+  identity: { ...type.caption, fontSize: 9.5 },
   priceRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   price: { color: colors.ink, fontSize: 30, fontWeight: "800", letterSpacing: -0.6, fontVariant: tabular },
   asOf: { ...type.caption },
+  dayBasis: { ...type.caption, fontSize: 9.5, lineHeight: 14 },
   metrics: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   metricHelp: { ...type.caption, color: colors.ink2, marginBottom: 8 },
   factCard: {
@@ -669,6 +752,9 @@ const styles = StyleSheet.create({
   factLabel: { ...type.caption },
   factValue: { color: colors.ink, fontSize: 12.5, fontWeight: "600", fontVariant: tabular },
   description: { ...type.sub, lineHeight: 19, marginBottom: 10 },
+  buySteps: { gap: 8, marginBottom: 10 },
+  buyStep: { ...type.caption, color: colors.ink2, lineHeight: 17 },
+  buyStepNumber: { color: colors.ink, fontWeight: "800" },
   rangeBlock: {
     padding: 14, gap: 8,
     backgroundColor: colors.surface, borderColor: colors.line, borderWidth: 1, borderRadius: radius.lg,

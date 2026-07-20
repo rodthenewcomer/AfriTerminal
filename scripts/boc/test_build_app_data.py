@@ -13,7 +13,15 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from build_app_data import build_snapshot, last_valid_dividend, load_live_bounds, with_live_bounds
+from build_app_data import (
+    build_snapshot,
+    clean_series,
+    last_valid_dividend,
+    load_live_bounds,
+    subtract_months,
+    validate_series,
+    with_live_bounds,
+)
 
 
 def row(**overrides) -> dict:
@@ -117,6 +125,55 @@ class DividendDateGuardTest(unittest.TestCase):
         self.assertEqual(last_valid_dividend(records), (200.0, "2026-07-06"))
 
 
+class CalendarPerformanceTest(unittest.TestCase):
+    def test_soustraction_calendaire_borne_les_fins_de_mois(self) -> None:
+        self.assertEqual(subtract_months("2024-03-31", 1), "2024-02-29")
+        self.assertEqual(subtract_months("2026-07-17", 60), "2021-07-17")
+
+    def test_cinq_ans_ne_prend_jamais_le_debut_de_l_historique_max(self) -> None:
+        records = [
+            snapshot_row(time="2020-04-21", close=560.0),
+            snapshot_row(time="2021-07-16", close=3000.0),
+            snapshot_row(time="2021-07-19", close=3350.0),
+            snapshot_row(time="2026-07-17", close=23900.0),
+        ]
+        out = build_snapshot(records)
+        self.assertAlmostEqual(out["fiveYearChangePct"], 613.43, places=2)
+
+    def test_controle_ohlc_et_alerte_variation_anormale(self) -> None:
+        records = [
+            snapshot_row(time="2026-07-16", open=100, high=100, low=100, close=100),
+            snapshot_row(time="2026-07-17", open=200, high=200, low=200, close=200),
+        ]
+        warnings = validate_series(records, "TEST")
+        self.assertEqual(len(warnings), 1)
+        with self.assertRaises(Exception):
+            validate_series(
+                [snapshot_row(time="2026-07-17", open=100, high=90, low=95, close=100)],
+                "TEST",
+            )
+
+    def test_exclut_une_erreur_decimale_isolee(self) -> None:
+        records = [
+            snapshot_row(time="2025-01-01", close=1900, open=1900, high=1900, low=1900),
+            snapshot_row(time="2025-01-02", close=1.905, open=1.9, high=1.905, low=1.9),
+            snapshot_row(time="2025-01-03", close=1900, open=1905, high=1905, low=1900),
+        ]
+        cleaned, rejected = clean_series(records, "TEST")
+        self.assertEqual([record["time"] for record in cleaned], ["2025-01-01", "2025-01-03"])
+        self.assertEqual(len(rejected), 1)
+
+    def test_preserve_une_operation_sur_titre_durable(self) -> None:
+        records = [
+            snapshot_row(time="2024-11-13", close=7100, open=7100, high=7100, low=7100),
+            snapshot_row(time="2024-11-14", close=3540, open=3540, high=3540, low=3540),
+            snapshot_row(time="2024-11-15", close=3525, open=3525, high=3525, low=3525),
+        ]
+        cleaned, rejected = clean_series(records, "TEST")
+        self.assertEqual(cleaned, records)
+        self.assertEqual(rejected, [])
+
+
 if __name__ == "__main__":
     unittest.main()
 
@@ -160,7 +217,8 @@ class TestValidateSnapshots(unittest.TestCase):
     def snap(self, **over):
         base = {
             "lastClose": 1000.0, "prevClose": 990.0, "dayChangePct": 1.01,
-            "dayVolume": 100, "dayLow": 995.0, "dayHigh": 1005.0,
+            "dayVolume": 100, "dayOpen": 995.0,
+            "dayLow": 995.0, "dayHigh": 1005.0,
         }
         base.update(over)
         return base

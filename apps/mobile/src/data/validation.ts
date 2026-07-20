@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { validateMarketSeries } from "@wariba/core/market-series";
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const finiteNumber = z.number().finite();
@@ -158,7 +159,16 @@ export const seriesSchema = z.array(z.object({
   low: finiteNumber.nonnegative(),
   close: finiteNumber.nonnegative(),
   volume: finiteNumber.nonnegative(),
-}));
+})).superRefine((series, context) => {
+  for (const issue of validateMarketSeries(series)) {
+    if (issue.severity !== "error") continue;
+    context.addIssue({
+      code: "custom",
+      message: issue.detail,
+      path: [issue.index],
+    });
+  }
+});
 
 export const indexSeriesSchema = z.array(z.object({
   time: isoDate,

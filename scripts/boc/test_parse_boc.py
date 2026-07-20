@@ -20,7 +20,7 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 
-from parse_boc import fr_date, parse_bulletin, to_payload
+from parse_boc import equity_integer, fr_date, parse_bulletin, to_payload
 
 FIXTURE = Path(__file__).parent / "fixtures" / "boc_20230605_2.pdf"
 
@@ -77,6 +77,11 @@ class ParseBocGoldenTest(unittest.TestCase):
     def test_annee_de_dividende_1999_ne_devient_pas_2099(self) -> None:
         self.assertEqual(fr_date("05-juil-99"), "1999-07-05")
         self.assertEqual(fr_date("30-mai-23"), "2023-05-30")
+
+    def test_anciens_separateurs_de_milliers_ne_deviennent_pas_decimaux(self) -> None:
+        self.assertEqual(equity_integer("1,900"), 1900.0)
+        self.assertEqual(equity_integer("503,755"), 503755.0)
+        self.assertEqual(equity_integer("18"), 18.0)
 
 
 if __name__ == "__main__":
