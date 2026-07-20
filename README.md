@@ -12,6 +12,9 @@ dividendes, portefeuille, documents, alertes et synchronisation privée.
 - Monétisation : frontière Public / Compte / Pro visible ; Stripe/RevenueCat restent désactivés tant que les produits stores ne sont pas validés
 - Données : pipeline BRVM officiel, aucune valeur inventée
 - Décision Pro et audit du classeur : [Laboratoire 48 et revue 22 rôles](docs/pro-research-workspace.md)
+- Système produit complet : [neuf chantiers, 22 rôles et quatre surfaces](docs/22-role-product-system-2026-07-20.md)
+- QA Côte d’Ivoire : [Android milieu de gamme et réseaux mobiles lents](docs/mobile-slow-network-test-plan.md)
+- Droits BRVM : [questions, message prêt et preuves attendues](docs/brvm-data-rights-contact.md)
 
 Depuis le 2026-07-08, **toute l'app** tourne sur les données réelles
 BRVM : les **48 sociétés cotées** (cours, variations, volumes, PER,
