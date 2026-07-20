@@ -54,13 +54,31 @@ function ComparisonCard({ pair, year }: { pair: MetricPair; year: number }) {
       ? `${financialTrend.label} · ${pct(Math.abs(growth), { signed: false, digits: 1 })}`
       : financialTrend.label
     : pct(growth, { digits: 1 });
+  const trendTone = needsSemanticTrend
+    ? financialTrend?.tone
+    : growth > 0
+      ? "positive"
+      : growth < 0
+        ? "negative"
+        : "neutral";
+  const cardTone = trendTone === "positive"
+    ? "border-up/30 bg-gradient-to-br from-up/10 via-surface to-surface shadow-[0_10px_30px_-24px_rgba(34,197,94,0.9)]"
+    : trendTone === "negative"
+      ? "border-down/30 bg-gradient-to-br from-down/10 via-surface to-surface shadow-[0_10px_30px_-24px_rgba(239,68,68,0.9)]"
+      : "border-line bg-surface";
+  const accentTone = trendTone === "positive"
+    ? "bg-up"
+    : trendTone === "negative"
+      ? "bg-down"
+      : "bg-ink-3/40";
 
   return (
     <article
-      className="rounded-xl border border-line bg-surface/70 p-4"
+      className={cn("relative overflow-hidden rounded-xl border p-4", cardTone)}
       role="img"
       aria-label={`${pair.label} : ${millions(pair.previous)} en ${year - 1}, ${millions(pair.current)} en ${year}, ${changeLabel}`}
     >
+      <span aria-hidden className={cn("absolute inset-y-0 left-0 w-1", accentTone)} />
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-xs font-bold text-ink">{pair.label}</h3>
@@ -74,17 +92,20 @@ function ComparisonCard({ pair, year }: { pair: MetricPair; year: number }) {
         </span>
       </div>
 
-      <div className="mt-4 space-y-3">
-        <div className="grid grid-cols-[2.6rem_minmax(0,1fr)_auto] items-center gap-2">
+      <div className="mt-4 grid gap-2">
+        <div className="grid grid-cols-[2.6rem_minmax(0,1fr)_auto] items-center gap-2 rounded-lg border border-line/70 bg-surface/80 p-2.5">
           <span className="num text-[10px] font-semibold text-ink-3">{year - 1}</span>
-          <span className="h-2 overflow-hidden rounded-full bg-surface-2">
+          <span className="h-2.5 overflow-hidden rounded-full bg-surface-2">
             <span className="block h-full rounded-full bg-ink-3/35" style={{ width: `${previousWidth}%` }} />
           </span>
           <span className="num min-w-24 text-right text-[11px] font-semibold text-ink-2">{millions(pair.previous)}</span>
         </div>
-        <div className="grid grid-cols-[2.6rem_minmax(0,1fr)_auto] items-center gap-2">
+        <div className={cn(
+          "grid grid-cols-[2.6rem_minmax(0,1fr)_auto] items-center gap-2 rounded-lg border p-2.5",
+          trendTone === "negative" ? "border-down/25 bg-down/[0.08]" : "border-up/25 bg-up/[0.08]",
+        )}>
           <span className="num text-[10px] font-bold text-accent">{year}</span>
-          <span className="h-2 overflow-hidden rounded-full bg-surface-2">
+          <span className="h-2.5 overflow-hidden rounded-full bg-surface-2">
             <span className={cn("block h-full rounded-full", pair.current < 0 ? "bg-down" : "bg-accent")} style={{ width: `${currentWidth}%` }} />
           </span>
           <span className={cn("num min-w-24 text-right text-[11px] font-bold", pair.current < 0 ? "text-down" : "text-ink")}>{millions(pair.current)}</span>
@@ -103,7 +124,7 @@ export function FinancialYearComparison({ fundamental }: { fundamental: RealFund
       <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
         <div>
           <h2 id="year-comparison-title" className="text-sm font-bold text-ink">Comparaison {fundamental.fiscalYear - 1} / {fundamental.fiscalYear}</h2>
-          <p className="mt-1 text-xs text-ink-3">Longueur des barres relative aux deux exercices · variation calculée sur la valeur publiée N-1.</p>
+          <p className="mt-1 text-xs text-ink-3">Chaque carte compare les deux exercices publiés ; vert = progression, rouge = recul.</p>
         </div>
         <span className="rounded-full border border-line bg-surface px-2.5 py-1 text-[10px] font-semibold text-ink-3">N-1 vs N</span>
       </div>

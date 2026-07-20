@@ -153,15 +153,17 @@ class CalendarPerformanceTest(unittest.TestCase):
                 "TEST",
             )
 
-    def test_exclut_une_erreur_decimale_isolee(self) -> None:
+    def test_repare_et_conserve_une_erreur_de_separateur_isolee(self) -> None:
         records = [
             snapshot_row(time="2025-01-01", close=1900, open=1900, high=1900, low=1900),
             snapshot_row(time="2025-01-02", close=1.905, open=1.9, high=1.905, low=1.9),
             snapshot_row(time="2025-01-03", close=1900, open=1905, high=1905, low=1900),
         ]
-        cleaned, rejected = clean_series(records, "TEST")
-        self.assertEqual([record["time"] for record in cleaned], ["2025-01-01", "2025-01-03"])
-        self.assertEqual(len(rejected), 1)
+        cleaned, repairs = clean_series(records, "TEST")
+        self.assertEqual([record["time"] for record in cleaned], ["2025-01-01", "2025-01-02", "2025-01-03"])
+        self.assertEqual(cleaned[1]["close"], 1905)
+        self.assertEqual(cleaned[1]["open"], 1900)
+        self.assertEqual(len(repairs), 1)
 
     def test_preserve_une_operation_sur_titre_durable(self) -> None:
         records = [
@@ -169,9 +171,9 @@ class CalendarPerformanceTest(unittest.TestCase):
             snapshot_row(time="2024-11-14", close=3540, open=3540, high=3540, low=3540),
             snapshot_row(time="2024-11-15", close=3525, open=3525, high=3525, low=3525),
         ]
-        cleaned, rejected = clean_series(records, "TEST")
+        cleaned, repairs = clean_series(records, "TEST")
         self.assertEqual(cleaned, records)
-        self.assertEqual(rejected, [])
+        self.assertEqual(repairs, [])
 
 
 if __name__ == "__main__":

@@ -385,14 +385,59 @@ export default function StockScreen() {
     evidenceStatus: "calculated" as const,
     basisNote: "Calcul WARIBA à partir des séances officielles disponibles.",
   };
+  const ownership = fundamental?.ownership ?? null;
+  const dividendPerShare = fundamental?.proposedGrossDividend ?? quote.lastDividendNet;
   const payout =
     fundamental?.sharesOutstanding &&
-    fundamental.proposedGrossDividend !== null &&
+    dividendPerShare !== null &&
     fundamental.netIncomeM > 0
-      ? (fundamental.proposedGrossDividend * fundamental.sharesOutstanding) /
+      ? (dividendPerShare * fundamental.sharesOutstanding) /
         (fundamental.netIncomeM * 1e6) *
         100
       : null;
+  const ownershipFacts = fundamental && (fundamental.sharesOutstanding || ownership)
+    ? [
+        fundamental.sharesOutstanding
+          ? { label: "Actions en circulation", value: fundamental.sharesOutstanding.toLocaleString("fr-FR") }
+          : null,
+        capitalisation !== null
+          ? { label: "Capitalisation", value: compactFcfa(capitalisation) }
+          : null,
+        ownership
+          ? { label: "Capital social", value: compactFcfa(ownership.capitalSocialFcfa) }
+          : null,
+        ownership
+          ? { label: "Flottant", value: pct(ownership.freeFloatPct, { signed: false, digits: 1 }) }
+          : null,
+        ownership?.principalShareholders.length
+          ? {
+              label: "Principaux actionnaires",
+              value: ownership.principalShareholders
+                .map((holder) => `${holder.name} ${pct(holder.pct, { signed: false, digits: 1 })}`)
+                .join(" · "),
+            }
+          : null,
+        ownership?.change
+          ? { label: "Évolution de l'actionnariat", value: ownership.change }
+          : null,
+        dividendPerShare !== null
+          ? {
+              label: fundamental.proposedGrossDividend !== null
+                ? "Dividende brut proposé"
+                : "Dernier dividende net",
+              value: fcfa(dividendPerShare),
+            }
+          : null,
+        payout !== null
+          ? {
+              label: fundamental.proposedGrossDividend !== null
+                ? "Distribution brute indicative"
+                : "Distribution nette indicative",
+              value: pct(payout, { signed: false, digits: 1 }),
+            }
+          : null,
+      ].filter((item): item is { label: string; value: string } => item !== null)
+    : [];
 
   const refreshAll = async () => {
     setSeriesError(false);
@@ -630,17 +675,24 @@ export default function StockScreen() {
               <YearComparison fundamental={fundamental} />
             </View>
             <FinancialHistoryTable fundamental={fundamental} />
-            <Section title="Capital & actionnariat" detail="Aucune donnée manquante n'est estimée">
-              <View style={styles.factCard}>
-                <FactRow label="Actions en circulation" value={fundamental.sharesOutstanding ? fundamental.sharesOutstanding.toLocaleString("fr-FR") : "N/D"} />
-                <FactRow label="Capitalisation" value={capitalisation !== null ? compactFcfa(capitalisation) : "N/D"} />
-                <FactRow label="Capital social" value="N/D" />
-                <FactRow label="Flottant" value="N/D" />
-                <FactRow label="Principaux actionnaires" value="N/D" />
-                <FactRow label="Évolution de l'actionnariat" value="N/D" />
-                <FactRow label="Taux de distribution indicatif" value={payout !== null ? pct(payout, { signed: false, digits: 1 }) : "N/D"} />
-              </View>
-            </Section>
+            {ownershipFacts.length ? (
+              <Section
+                title="Capital & actionnariat"
+                detail={ownership
+                  ? `Structure publiée au ${dateFr(ownership.asOfDate)}`
+                  : "Seules les données officielles disponibles sont affichées"}
+              >
+                <View style={styles.factCard}>
+                  {ownershipFacts.map((item) => <FactRow key={item.label} {...item} />)}
+                </View>
+                <Row
+                  icon="open-outline"
+                  title="Source de l'actionnariat"
+                  detail="Publication officielle ; les champs absents sont masqués"
+                  onPress={() => void openTrustedExternalUrl(ownership?.source ?? fundamental.source)}
+                />
+              </Section>
+            ) : null}
             <Row icon="open-outline" title="Document source BRVM" detail="États financiers officiels dont sont issus ces chiffres" onPress={() => void openTrustedExternalUrl(fundamental.source)} />
           </> : (
             <EmptyState title="Fondamentaux détaillés indisponibles" detail="Aucun état financier vérifié n'est encore curé pour cette société." />

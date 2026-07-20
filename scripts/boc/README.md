@@ -115,13 +115,14 @@ consommés par l'app (`data/real/` : snapshot 48 tickers, séries OHLCV,
 indices + historique par indice).
 
 Avant publication, `build_app_data.py` contrôle les dates, prix, OHLC et
-volumes. Certains anciens PDF ont extrait ponctuellement `1,900` comme
-`1,9` au lieu de `1 900` FCFA : une séance isolée qui revient dès le
-bulletin suivant au niveau antérieur est exclue des artefacts publics. Une
+volumes. Certains anciens PDF ont extrait ponctuellement `1,900` ou `1.900`
+comme `1,9` au lieu de `1 900` FCFA : une séance isolée qui revient dès le
+bulletin suivant au niveau antérieur est remise à l'échelle et conservée.
+Si le facteur ne peut pas être prouvé, la séance est bloquée explicitement. Une
 rupture durable n'est jamais supprimée automatiquement ; elle déclenche
 l'alerte interne `> 50 %` pour vérification d'un split, d'une attribution ou
 d'une autre opération sur capital. Le parseur traite désormais explicitement
-la virgule à trois chiffres comme séparateur de milliers pour les cours,
+la virgule ou le point suivis de trois chiffres comme séparateur de milliers pour les cours,
 quantités et valeurs, tout en conservant la virgule décimale des ratios.
 
 ### Limite importante : pas de vrai plus haut/plus bas intraday (atténuée depuis le 2026-07-08)

@@ -103,20 +103,20 @@ def fr_number(raw: str) -> float | None:
 
 
 def equity_integer(raw: str) -> float | None:
-    """Prix, volume ou valeur entière, même si le PDF utilise `1,900`.
+    """Prix, volume ou valeur entière, même si le PDF utilise `1,900` ou `1.900`.
 
     Les pourcentages et ratios continuent d'utiliser ``fr_number`` car leur
-    virgule est décimale. Les cours BRVM et quantités sont publiés en unités
-    entières ; trois chiffres après une virgule sont donc un séparateur de
-    milliers provenant de certains anciens bulletins.
+    séparateur est décimal. Les cours BRVM et quantités sont publiés en unités
+    entières ; trois chiffres après une virgule ou un point sont donc un
+    séparateur de milliers provenant de certains anciens bulletins.
     """
     if raw is None:
         return None
     value = raw.strip().replace("\xa0", " ").replace(" ", "").replace("%", "")
     if value == "":
         return None
-    if re.fullmatch(r"-?\d{1,3}(,\d{3})+", value):
-        value = value.replace(",", "")
+    if re.fullmatch(r"-?\d{1,3}([,.]\d{3})+", value):
+        value = value.replace(",", "").replace(".", "")
     else:
         value = value.replace(",", ".")
     try:

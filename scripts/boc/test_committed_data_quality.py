@@ -67,7 +67,7 @@ class CommittedDataQualityTest(unittest.TestCase):
 
     def test_snapshot_fields_match_source_series(self) -> None:
         for ticker, snapshot in self.snapshot.items():
-            rows, rejected = clean_series(load(SERIES / f"{ticker}.json"), ticker)
+            rows, repairs = clean_series(load(SERIES / f"{ticker}.json"), ticker)
             last = rows[-1]
             previous = rows[-2]
             prior_volumes = [row["volume"] for row in rows[-31:-1]]
@@ -76,9 +76,12 @@ class CommittedDataQualityTest(unittest.TestCase):
             window = [row for row in rows if row["time"] >= cutoff]
 
             with self.subTest(ticker=ticker):
-                self.assertFalse(
-                    any(row["time"] in {item.split()[1] for item in rejected} for row in rows)
-                )
+                repaired_dates = {
+                    item.split()[1].rstrip(":")
+                    for item in repairs
+                    if "non réparable" not in item
+                }
+                self.assertTrue(repaired_dates.issubset({row["time"] for row in rows}))
                 self.assertEqual(snapshot["asOfDate"], last["time"])
                 self.assertEqual(snapshot["lastClose"], last["close"])
                 self.assertEqual(snapshot["prevClose"], last["prev_close"])

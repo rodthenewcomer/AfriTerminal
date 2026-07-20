@@ -114,10 +114,10 @@ export default function DashboardPage() {
           </p>
         </div>
         <InfoHint
-          label="Données réelles · scénarios séparés"
-          text="Cours, variations, volumes, indices, alertes et documents réels (bulletins officiels BRVM et fiches sociétés) — seuls les cas pédagogiques de l'onglet Apprendre sont simulés."
+          label="Sources BRVM vérifiées"
+          text="Cours, variations, volumes, indices, alertes et documents proviennent des bulletins officiels BRVM et des publications des sociétés."
         >
-          <Badge tone="positive">Données réelles · scénarios séparés</Badge>
+          <Badge tone="positive">Sources BRVM vérifiées</Badge>
         </InfoHint>
       </div>
 

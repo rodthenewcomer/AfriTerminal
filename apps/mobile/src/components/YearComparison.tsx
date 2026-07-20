@@ -49,21 +49,30 @@ export function YearComparison({ fundamental }: { fundamental: FundamentalRecord
   const needsSemanticTrend = Boolean(financialTrend && (selected.current <= 0 || selected.previous <= 0));
   const maxValue = Math.max(Math.abs(selected.previous), Math.abs(selected.current), 1);
   const heightFor = (value: number) => Math.max(6, (Math.abs(value) / maxValue) * BAR_MAX_HEIGHT);
+  const trendTone = needsSemanticTrend
+    ? financialTrend?.tone
+    : growth > 0
+      ? "positive"
+      : growth < 0
+        ? "negative"
+        : "neutral";
+  const toneColor = trendTone === "positive" ? colors.up : trendTone === "negative" ? colors.down : colors.lineStrong;
+  const toneSoft = trendTone === "positive" ? colors.upSoft : trendTone === "negative" ? colors.downSoft : colors.surface;
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { borderColor: toneColor, backgroundColor: toneSoft }]}>
       <SegmentedTabs
         tabs={pairs.map((pair) => ({ id: pair.id, label: pair.label }))}
         active={selected.id}
         onChange={setSelectedId}
       />
       <View style={styles.chart}>
-        <View style={styles.barGroup}>
+        <View style={[styles.barGroup, styles.previousYear]}>
           <Text style={styles.barValue}>{millions(selected.previous)}</Text>
           <View style={[styles.bar, styles.barPrevious, { height: heightFor(selected.previous) }]} />
           <Text style={styles.barLabel}>{fundamental.fiscalYear - 1}</Text>
         </View>
-        <View style={styles.barGroup}>
+        <View style={[styles.barGroup, { borderColor: toneColor, backgroundColor: colors.surface }]}>
           <Text style={[styles.barValue, { color: colors.ink }]}>{millions(selected.current)}</Text>
           <View style={[
             styles.bar,
@@ -106,7 +115,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface, borderColor: colors.line, borderWidth: 1, borderRadius: radius.lg,
   },
   chart: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-evenly", gap: 12 },
-  barGroup: { alignItems: "center", gap: 7 },
+  barGroup: {
+    minWidth: 92, alignItems: "center", gap: 7, paddingHorizontal: 12, paddingTop: 12, paddingBottom: 9,
+    borderWidth: 1, borderRadius: radius.lg,
+  },
+  previousYear: { borderColor: colors.line, backgroundColor: colors.surface },
   bar: { width: 44, borderTopLeftRadius: 5, borderTopRightRadius: 5 },
   barPrevious: { backgroundColor: colors.surface2, borderColor: colors.lineStrong, borderWidth: 1 },
   barCurrent: { backgroundColor: colors.accent },

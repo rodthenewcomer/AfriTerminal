@@ -80,6 +80,17 @@ const fundamentalSchema = z.object({
   costOfRiskPrevM: nullableNumber,
   proposedGrossDividend: nullableNumber,
   sharesOutstanding: nullableNumber,
+  ownership: z.object({
+    asOfDate: isoDate,
+    capitalSocialFcfa: finiteNumber.positive(),
+    freeFloatPct: finiteNumber.min(0).max(100),
+    principalShareholders: z.array(z.object({
+      name: z.string().min(1),
+      pct: finiteNumber.min(0).max(100),
+    })),
+    change: z.string().min(1),
+    source: z.string().url(),
+  }).nullable().optional(),
   equityM: nullableNumber,
   equityPrevM: nullableNumber,
   source: z.string().url(),

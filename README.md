@@ -27,7 +27,7 @@ dashboard, le screener, la watchlist, le portefeuille, la recherche et
   résultat net, marges et agrégats bancaires) couvrent les **48 sociétés**
   à partir de PDF officiels vérifiés ; **47** ont des capitaux propres
   lisibles (SGBC ne publie pas le bilan complet dans son rapport 2025) et
-  **12** ont un nombre d'actions confirmé par deux recoupements, ce qui
+  **13** ont un nombre d'actions confirmé par deux recoupements, ce qui
   permet de calculer capitalisation, BPA, P/B et ROE sans estimation.
   Pour tout champ non prouvé : masqué (« — »), jamais inventé. Les documents officiels sont
 référencés depuis brvm.org, les alertes sont factuelles et dérivées des
@@ -153,8 +153,9 @@ artefacts JSON committés dans `data/real/`, `data/news/`, `data/live/` et
 - **`build_app_data.py`** — génère `data/real/` (snapshot 48 valeurs
   avec extrêmes 52 sem/record/séance du jour, séries OHLCV, indices,
   historique des dividendes nets par ticker) depuis `data/boc/series/`.
-  Il refuse les OHLCV invalides, exclut les séances isolées affectées par
-  une erreur de séparateur décimal et signale toute rupture durable de cours
+  Il refuse les OHLCV invalides, remet automatiquement à l'échelle les séances
+  isolées affectées par un séparateur de milliers mal interprété, les conserve
+  avec leur trace de réparation et signale toute rupture durable de cours
   supérieure à 50 % pour contrôle d'une opération sur titre.
 - **`fundamentals.py`** — états financiers curés société par société
   (REGISTRY : PDF épinglé, unité vérifiée, extracteur ou saisie manuelle
@@ -195,7 +196,9 @@ fondamentaux couvrent 48/48 sociétés. Les capitaux propres ne sont affichés
 que pour l'exercice qu'ils documentent : CFAO 2025 et SGBC restent sans ROE
 récent faute de bilan complet dans la publication annuelle correspondante.
 Capitalisation/BPA demandent un nombre d'actions doublement recoupé
-(12/48), P/B/ROE demandent en plus les capitaux propres. Partout ailleurs :
+(13/48), P/B/ROE demandent en plus les capitaux propres. Les rubriques
+Capital & actionnariat sans donnée officielle sont entièrement masquées au
+lieu d'afficher une succession de N/D. Partout ailleurs :
 masqué avec une explication, jamais rempli avec un chiffre inventé. Le moteur
 `WARIBA Factuel v1.1` calcule pour les 48 actions les quatre piliers Qualité,
 Valorisation, Momentum et Risque, ainsi que deux scores complémentaires
@@ -265,7 +268,8 @@ Six workflows GitHub Actions (`.github/workflows/`) :
   les cours différés de brvm.org dans `data/live/` pour reconstruire
   le plus haut/plus bas intraday que le bulletin ne publie pas, met à
   jour `data/real/live.json` ;
-- **news.yml** — toutes les 5 min en journée : agrège les actualités
+- **news.yml** — toutes les 5 min en journée : agrège uniquement les actualités
+  rattachées à au moins une action cotée à la BRVM depuis
   Sika Finance + Financial Afrik (`scripts/news/fetch_news.py`,
   rattachement aux tickers, liens vers les articles originaux) et
   et pousse la nouvelle version ;

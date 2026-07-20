@@ -245,11 +245,11 @@ export default function ProScreen() {
         <View style={styles.gate}>
           <View style={styles.proBadge}>
             <Ionicons name="lock-closed" size={13} color={colors.accent} />
-            <Text style={styles.proBadgeText}>WARIBA PRO · ACCÈS PROTÉGÉ</Text>
+            <Text style={styles.proBadgeText}>WARIBA PRO</Text>
           </View>
-          <Text style={styles.heroTitle}>Les faits restent publics. La recherche avancée devient Pro.</Text>
+          <Text style={styles.heroTitle}>Comparez les 48 actions en profondeur.</Text>
           <Text style={styles.heroDetail}>
-            Cours, fondamentaux, documents, actualités et graphiques essentiels restent accessibles. Laboratoire 48, comparaisons et alertes avancées nécessitent un compte Pro.
+            Classez les sociétés, confrontez leurs forces et leurs risques, puis retrouvez votre recherche sur tous vos appareils.
           </Text>
           <View style={styles.gateFeatures}>
             {["Laboratoire 48", "Comparaison multi-facteurs", "Exports et filtres illimités", "Alertes avancées"].map((feature) => (

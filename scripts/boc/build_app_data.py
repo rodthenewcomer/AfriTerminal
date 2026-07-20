@@ -36,6 +36,7 @@ import argparse
 import calendar
 from datetime import date, timedelta
 import json
+import math
 from pathlib import Path
 import sys
 
@@ -259,18 +260,19 @@ class DataQualityError(Exception):
 
 
 def clean_series(records: list[dict], ticker: str) -> tuple[list[dict], list[str]]:
-    """Écarte uniquement une séance isolée dont tous les prix ont été divisés
-    ou multipliés par une puissance de dix lors de l'extraction PDF.
+    """Répare une séance isolée dont tous les prix ont été divisés ou
+    multipliés par une puissance de dix lors de l'extraction PDF.
 
     Une vraie opération sur titre reste au nouveau niveau les séances suivantes.
     Ici, le cours retrouve dès la séance suivante le niveau antérieur (±20 %),
-    ce qui caractérise une erreur ponctuelle de séparateur décimal.
+    ce qui caractérise une erreur ponctuelle de séparateur de milliers. La
+    séance est conservée : seules ses valeurs de prix sont remises à l'échelle.
     """
     if len(records) < 3:
         return records, []
 
     cleaned: list[dict] = []
-    rejected: list[str] = []
+    repairs: list[str] = []
     for index, record in enumerate(records):
         if index == 0 or index == len(records) - 1:
             cleaned.append(record)
@@ -294,15 +296,38 @@ def clean_series(records: list[dict], ticker: str) -> tuple[list[dict], list[str
         returns_to_prior_level = 0.8 <= next_vs_previous <= 1.2
 
         if isolated_scale_shift and returns_to_prior_level:
-            rejected.append(
-                f"{ticker} {record['time']}: séance exclue — "
-                f"cours {current_close:g} incohérent entre "
-                f"{previous_close:g} et {next_close:g}"
+            target = (previous_close + next_close) / 2
+            exponent = round(math.log10(target / current_close))
+            factor = 10 ** exponent
+            corrected_close = current_close * factor
+            can_repair = (
+                -6 <= exponent <= 6
+                and 0.8 <= corrected_close / previous_close <= 1.2
+                and 0.8 <= corrected_close / next_close <= 1.2
+            )
+            if can_repair:
+                repaired = dict(record)
+                for field in ("open", "high", "low", "close", "prev_close", "ref_price"):
+                    value = repaired.get(field)
+                    if isinstance(value, (int, float)) and value > 0:
+                        repaired[field] = value * factor
+                cleaned.append(repaired)
+                repairs.append(
+                    f"{ticker} {record['time']}: séparateur réparé — "
+                    f"{current_close:g} → {repaired['close']:g}"
+                )
+                continue
+            # La détection est certaine mais le facteur ne l'est pas : publier
+            # la ligne brute serait plus dangereux qu'un trou explicitement
+            # signalé dans l'historique.
+            repairs.append(
+                f"{ticker} {record['time']}: séance non réparable exclue — "
+                f"cours {current_close:g} entre {previous_close:g} et {next_close:g}"
             )
             continue
         cleaned.append(record)
 
-    return cleaned, rejected
+    return cleaned, repairs
 
 
 def validate_series(records: list[dict], ticker: str) -> list[str]:
@@ -397,15 +422,15 @@ def main() -> None:
     dividends = {}
     missing = []
     quality_warnings: list[str] = []
-    rejected_rows: list[str] = []
+    repaired_rows: list[str] = []
     tickers = sorted(f.stem for f in series_dir.glob("*.json"))
     for ticker in tickers:
         records = json.loads((series_dir / f"{ticker}.json").read_text(encoding="utf-8"))
         if not records:
             missing.append(ticker)
             continue
-        records, rejected = clean_series(records, ticker)
-        rejected_rows.extend(rejected)
+        records, repairs = clean_series(records, ticker)
+        repaired_rows.extend(repairs)
         quality_warnings.extend(validate_series(records, ticker))
 
         snap = build_snapshot(records)
@@ -438,14 +463,14 @@ def main() -> None:
             json.dumps(ohlcv, ensure_ascii=False), encoding="utf-8"
         )
 
-    if rejected_rows:
+    if repaired_rows:
         print(
-            f"QUALITÉ DONNÉES — {len(rejected_rows)} séance(s) corrompue(s) "
-            "exclue(s) des séries publiées",
+            f"QUALITÉ DONNÉES — {len(repaired_rows)} séance(s) remise(s) "
+            "à l'échelle et conservée(s)",
             file=sys.stderr,
         )
-        for rejection in rejected_rows[:20]:
-            print(f"- {rejection}", file=sys.stderr)
+        for repair in repaired_rows[:20]:
+            print(f"- {repair}", file=sys.stderr)
 
     if quality_warnings:
         print(

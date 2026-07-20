@@ -3,9 +3,8 @@
 Pipeline actualités : agrège les flux RSS de Sika Finance (BRVM) et
 Financial Afrik dans data/news/news.json, avec rattachement aux tickers.
 
-- Sika Finance (rss/actualites_bourse_brvm) : dédié BRVM, tout est gardé.
-- Financial Afrik (feed pan-africain) : filtré — gardé seulement si
-  l'article mentionne l'écosystème UEMOA/BRVM ou une société cotée.
+- Seuls les articles rattachés sans ambiguïté à au moins une action BRVM
+  sont conservés, quelle que soit la source.
 - Fusion incrémentale : dédoublonné par lien, trié du plus récent au
   plus ancien, plafonné à MAX_ITEMS. Le fichier committé est l'état.
 - Rattachement ticker par motif sur le titre (prudent : motifs à faible
@@ -148,7 +147,7 @@ def parse_feed(xml_text: str, source: str, relevance_filter: bool) -> list[dict]
         summary = clean_text(item.findtext("description"))[:SUMMARY_LEN]
         haystack = f"{title} {summary}"
         tickers = match_tickers(haystack)
-        if relevance_filter and not tickers and not RELEVANCE.search(haystack):
+        if not tickers:
             continue
         items.append(
             {
@@ -178,7 +177,7 @@ def main() -> None:
     existing: list[dict] = (
         json.loads(out_path.read_text(encoding="utf-8")) if out_path.exists() else []
     )
-    by_link = {item["link"]: item for item in existing}
+    by_link = {item["link"]: item for item in existing if item.get("tickers")}
 
     fetched = 0
     for feed in FEEDS:
@@ -191,7 +190,11 @@ def main() -> None:
         for item in items:
             by_link[item["link"]] = item  # le plus récent remplace
 
-    merged = sorted(by_link.values(), key=lambda x: x["publishedAt"], reverse=True)[
+    merged = sorted(
+        (item for item in by_link.values() if item.get("tickers")),
+        key=lambda x: x["publishedAt"],
+        reverse=True,
+    )[
         :MAX_ITEMS
     ]
     out_path.parent.mkdir(parents=True, exist_ok=True)

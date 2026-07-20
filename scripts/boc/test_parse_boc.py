@@ -80,7 +80,9 @@ class ParseBocGoldenTest(unittest.TestCase):
 
     def test_anciens_separateurs_de_milliers_ne_deviennent_pas_decimaux(self) -> None:
         self.assertEqual(equity_integer("1,900"), 1900.0)
+        self.assertEqual(equity_integer("1.900"), 1900.0)
         self.assertEqual(equity_integer("503,755"), 503755.0)
+        self.assertEqual(equity_integer("503.755"), 503755.0)
         self.assertEqual(equity_integer("18"), 18.0)
 
 

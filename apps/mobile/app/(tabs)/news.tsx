@@ -6,22 +6,13 @@ import { ActionButton, EmptyState, Page, Section, SegmentedTabs } from "../../sr
 import { useMarketData } from "../../src/providers/MarketDataProvider";
 import { colors, radius, tabular, type } from "../../src/theme";
 import { openTrustedExternalUrl } from "../../src/lib/external-links";
-import { classifyNewsRegion, type NewsRegion } from "@wariba/core/news-region";
 
-type NewsFilter = NewsRegion | "results";
+type NewsFilter = "all" | "results";
 
 const FILTERS: readonly { id: NewsFilter; label: string }[] = [
-  { id: "brvm", label: "BRVM" },
-  { id: "uemoa", label: "UEMOA" },
-  { id: "international", label: "International" },
-  { id: "results", label: "Résultats" },
+  { id: "all", label: "Toutes les actions" },
+  { id: "results", label: "Résultats & dividendes" },
 ];
-
-const REGION_LABELS: Record<NewsRegion, string> = {
-  brvm: "BRVM",
-  uemoa: "UEMOA",
-  international: "International",
-};
 
 const DATE_FORMAT = new Intl.DateTimeFormat("fr-FR", {
   day: "numeric",
@@ -39,13 +30,13 @@ export default function NewsScreen() {
   const market = useMarketData();
   const router = useRouter();
   const [limit, setLimit] = useState(30);
-  const [filter, setFilter] = useState<NewsFilter>("brvm");
+  const [filter, setFilter] = useState<NewsFilter>("all");
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query.trim().toLocaleLowerCase("fr"));
 
   const news = useMemo(() => market.news.filter((item) => {
+    if (!item.tickers.length) return false;
     if (filter === "results" && !/résultat|rapport annuel|chiffre d.affaires|bénéfice|dividende|publication financière/i.test(`${item.title} ${item.summary}`)) return false;
-    if (filter !== "results" && classifyNewsRegion(item) !== filter) return false;
     if (!deferredQuery) return true;
     return `${item.title} ${item.summary} ${item.source} ${item.tickers.join(" ")}`
       .toLocaleLowerCase("fr")
@@ -56,7 +47,7 @@ export default function NewsScreen() {
   const stream = news.filter((item) => item.link !== lead?.link);
 
   return (
-    <Page title="Actualités" subtitle="Résultats, communiqués et contexte UEMOA — toujours reliés à leur source.">
+    <Page title="Actualités" subtitle="Informations directement reliées aux sociétés cotées à la BRVM.">
       <View style={styles.tools}>
         <View style={styles.searchBox}>
           <Ionicons name="search" size={17} color={colors.ink3} />
@@ -83,7 +74,6 @@ export default function NewsScreen() {
             <View style={styles.leadMeta}>
               <View style={styles.liveDot} />
               <Text style={styles.leadSource}>{lead.source}</Text>
-              <Text style={styles.regionBadge}>{REGION_LABELS[classifyNewsRegion(lead)]}</Text>
               <Text style={styles.leadDate}>· {displayDate(lead.publishedAt)}</Text>
             </View>
             <Pressable
@@ -113,7 +103,7 @@ export default function NewsScreen() {
                   </Pressable>
                 ))}
               </View>
-            ) : <Text style={styles.regionalLabel}>{REGION_LABELS[classifyNewsRegion(lead)]} · contexte économique</Text>}
+            ) : null}
           </View>
         </Section>
       ) : null}
@@ -125,7 +115,6 @@ export default function NewsScreen() {
               <View style={styles.articleHeader}>
                 <Text style={styles.articleIndex}>{String(index + 2).padStart(2, "0")}</Text>
                 <Text style={styles.source}>{item.source}</Text>
-                <Text style={styles.regionBadge}>{REGION_LABELS[classifyNewsRegion(item)]}</Text>
                 <Text style={styles.date}>· {displayDate(item.publishedAt)}</Text>
               </View>
               <Pressable

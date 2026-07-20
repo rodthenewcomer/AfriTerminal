@@ -5,7 +5,7 @@ import { NewsDesk } from "@/components/news/news-desk";
 export const metadata: Metadata = {
   title: "Actualités",
   description:
-    "Toute l'actualité des marchés BRVM/UEMOA agrégée depuis Sika Finance et Financial Afrik, rattachée aux sociétés cotées. Liens vers les articles originaux.",
+    "Actualités directement rattachées aux sociétés cotées à la BRVM, avec liens vers les articles originaux.",
 };
 
 export default function NewsPage() {

@@ -792,6 +792,17 @@ REGISTRY: dict[str, dict] = {
         "extractor": "manual",
         "bank": True,
         "unit": 1_000_000,
+        "sharesOutstanding": 36_000_000,
+        "ownership": {
+            "asOfDate": "2025-03-31",
+            "capitalSocialFcfa": 36_000_000_000,
+            "freeFloatPct": 38.3,
+            "principalShareholders": [
+                {"name": "BOA West Africa", "pct": 61.7},
+            ],
+            "change": "Structure stable",
+            "source": "https://www.boasenegal.com/wp-content/uploads/2025/05/BRVM_Senegal.pdf",
+        },
         "raw": {
             "pnb": 51_926,
             "pnb_prev": 49_666,
@@ -1125,6 +1136,7 @@ def normalize(ticker: str, raw: dict, meta: dict) -> dict:
         # part, capital social ÷ valeur nominale d'autre part) — sinon
         # absent. Capitaux propres : lus au bilan quand la ligne est nette.
         "sharesOutstanding": meta.get("sharesOutstanding"),
+        "ownership": meta.get("ownership"),
         "equityM": to_millions(raw.get("equity"), unit),
         "equityPrevM": to_millions(raw.get("equity_prev"), unit),
         "source": meta["pdf"],

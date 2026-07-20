@@ -3,16 +3,13 @@
 import { useDeferredValue, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Building2, Clock3, Newspaper, Search } from "lucide-react";
-import { classifyNewsRegion, type NewsItem, type NewsRegion } from "@/lib/news";
+import { type NewsItem } from "@/lib/news";
 import { cn } from "@wariba/core/utils";
 
-type NewsFilter = "all" | "results" | NewsRegion;
+type NewsFilter = "all" | "results";
 
 const FILTERS: { id: NewsFilter; label: string }[] = [
-  { id: "all", label: "Tout le fil" },
-  { id: "brvm", label: "BRVM" },
-  { id: "uemoa", label: "UEMOA" },
-  { id: "international", label: "International / hors UEMOA" },
+  { id: "all", label: "Toutes les actions" },
   { id: "results", label: "Résultats & dividendes" },
 ];
 
@@ -31,9 +28,6 @@ function formatDate(value: string) {
 function matchesFilter(item: NewsItem, filter: NewsFilter) {
   if (filter === "results") {
     return /résultat|rapport annuel|chiffre d.affaires|bénéfice|dividende|publication financière/i.test(`${item.title} ${item.summary}`);
-  }
-  if (filter === "brvm" || filter === "uemoa" || filter === "international") {
-    return classifyNewsRegion(item) === filter;
   }
   return true;
 }
@@ -61,25 +55,28 @@ export function NewsDesk({ news }: { news: NewsItem[] }) {
   const [query, setQuery] = useState("");
   const [limit, setLimit] = useState(24);
   const deferredQuery = useDeferredValue(query.trim().toLocaleLowerCase("fr"));
+  const companyNews = useMemo(
+    () => news.filter((item) => item.tickers.length > 0),
+    [news],
+  );
 
   const sources = useMemo(
-    () => [...new Set(news.map((item) => item.source))].sort((a, b) => a.localeCompare(b, "fr")),
-    [news],
+    () => [...new Set(companyNews.map((item) => item.source))].sort((a, b) => a.localeCompare(b, "fr")),
+    [companyNews],
   );
   const linkedTickers = useMemo(
-    () => new Set(news.flatMap((item) => item.tickers)).size,
-    [news],
+    () => new Set(companyNews.flatMap((item) => item.tickers)).size,
+    [companyNews],
   );
-  const filtered = useMemo(() => news.filter((item) => {
+  const filtered = useMemo(() => companyNews.filter((item) => {
     if (!matchesFilter(item, filter)) return false;
     if (source !== "all" && item.source !== source) return false;
     if (!deferredQuery) return true;
     const haystack = `${item.title} ${item.summary} ${item.source} ${item.tickers.join(" ")}`.toLocaleLowerCase("fr");
     return haystack.includes(deferredQuery);
-  }), [deferredQuery, filter, news, source]);
+  }), [companyNews, deferredQuery, filter, source]);
 
-  const linkedLeadIndex = filter === "international" || filter === "uemoa" ? 0 : filtered.findIndex((item) => item.tickers.length > 0);
-  const lead = filtered[Math.max(0, linkedLeadIndex)];
+  const lead = filtered[0];
   const stream = filtered.filter((item) => item.link !== lead?.link).slice(0, Math.max(0, limit - 1));
 
   const selectFilter = (next: NewsFilter) => {
@@ -94,11 +91,11 @@ export function NewsDesk({ news }: { news: NewsItem[] }) {
           <div>
             <div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-accent">
               <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-              Fil marchés BRVM · heure d&apos;Abidjan
+              Sociétés cotées BRVM · heure d&apos;Abidjan
             </div>
             <h1 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">Actualités</h1>
             <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-ink-3">
-              Résultats, communiqués, contrats et contexte UEMOA, reliés aux actions concernées et à leur source originale.
+              Résultats, communiqués, contrats et dividendes directement reliés aux actions concernées.
             </p>
           </div>
           <Link
@@ -112,7 +109,7 @@ export function NewsDesk({ news }: { news: NewsItem[] }) {
         <div className="mt-5 grid grid-cols-3 divide-x divide-line rounded-xl border border-line bg-surface/55 py-3">
           <div className="px-3 sm:px-4">
             <p className="text-[10px] uppercase tracking-wide text-ink-3">Articles</p>
-            <p className="num mt-1 text-base font-bold text-ink">{news.length}</p>
+            <p className="num mt-1 text-base font-bold text-ink">{companyNews.length}</p>
           </div>
           <div className="px-3 sm:px-4">
             <p className="text-[10px] uppercase tracking-wide text-ink-3">Valeurs liées</p>
@@ -180,8 +177,6 @@ export function NewsDesk({ news }: { news: NewsItem[] }) {
                 <span>·</span>
                 <span>{lead.source}</span>
                 <span>·</span>
-                <span>{classifyNewsRegion(lead) === "brvm" ? "BRVM" : classifyNewsRegion(lead) === "uemoa" ? "UEMOA" : "International"}</span>
-                <span>·</span>
                 <time dateTime={lead.publishedAt}>{formatDate(lead.publishedAt)}</time>
               </div>
               <a href={lead.link} target="_blank" rel="noopener noreferrer" className="group mt-3 block">
@@ -203,9 +198,8 @@ export function NewsDesk({ news }: { news: NewsItem[] }) {
                   <div>
                     <div className="mb-1.5 flex flex-wrap items-center gap-1.5 text-[10px] uppercase tracking-wide text-ink-3">
                       <span className="font-bold text-ink-2">{item.source}</span><span>·</span>
-                      <span className="font-semibold text-accent">{classifyNewsRegion(item) === "brvm" ? "BRVM" : classifyNewsRegion(item) === "uemoa" ? "UEMOA" : "International"}</span><span>·</span>
+                      <span className="font-semibold text-accent">{item.tickers.join(" · ")}</span><span>·</span>
                       <time dateTime={item.publishedAt}>{formatDate(item.publishedAt)}</time>
-                      {item.tickers.length ? <><span>·</span><span className="text-accent">{item.tickers.length} valeur{item.tickers.length > 1 ? "s" : ""}</span></> : null}
                     </div>
                     <a href={item.link} target="_blank" rel="noopener noreferrer" className="group inline-flex items-start gap-2">
                       <h3 className="text-sm font-bold leading-5 text-ink transition-colors group-hover:text-accent sm:text-[15px]">{item.title}</h3>
@@ -232,7 +226,7 @@ export function NewsDesk({ news }: { news: NewsItem[] }) {
           <aside className="space-y-3 lg:sticky lg:top-20 lg:self-start">
             <div className="rounded-xl border border-line bg-surface/55 p-4">
               <div className="flex items-center gap-2 text-xs font-bold text-ink"><Building2 className="h-4 w-4 text-accent" /> Couverture sociétés</div>
-              <p className="mt-2 text-xs leading-5 text-ink-3">Les badges ouvrent directement la fiche de l&apos;action concernée. Un article sans badge relève du contexte régional.</p>
+              <p className="mt-2 text-xs leading-5 text-ink-3">Chaque article possède au moins un ticker vérifié. Les badges ouvrent directement la fiche concernée.</p>
             </div>
             <div className="rounded-xl border border-line bg-surface/55 p-4">
               <div className="flex items-center gap-2 text-xs font-bold text-ink"><Clock3 className="h-4 w-4 text-accent" /> Mise à jour</div>

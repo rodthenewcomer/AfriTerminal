@@ -120,7 +120,9 @@ export async function fetchMarketPayload(): Promise<{ payload: MarketPayload; of
       dividends: dividends.data,
       documents: documents.data,
       operations: operations.data,
-      news: news.data,
+      news: news.data.filter((item) =>
+        item.tickers.some((ticker) => Object.prototype.hasOwnProperty.call(mergedQuotes, ticker))
+      ),
     },
     offline: quotes.fromCache || secondary.some((result) => result.fromCache),
     missing: secondary.filter((result) => result.failed).map((result) => result.label),

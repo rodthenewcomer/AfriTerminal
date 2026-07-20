@@ -58,14 +58,14 @@ class MatchTickersTest(unittest.TestCase):
 class ParseFeedTest(unittest.TestCase):
     def test_flux_complet_sans_filtre(self) -> None:
         items = parse_feed(FEED, "Sika Finance", relevance_filter=False)
-        self.assertEqual(len(items), 2)
+        self.assertEqual(len(items), 1)
         self.assertEqual(items[0]["title"], "BRVM : Ecobank Côte d'Ivoire s'envole")
         self.assertEqual(items[0]["tickers"], ["ECOC", "ETIT"])
         self.assertTrue(items[0]["publishedAt"].startswith("2026-07-08T07:35"))
 
     def test_filtre_de_pertinence(self) -> None:
         items = parse_feed(FEED, "Financial Afrik", relevance_filter=True)
-        self.assertEqual(len(items), 1)  # l'article Nigeria est écarté
+        self.assertEqual(len(items), 1)  # l'article sans action BRVM est écarté
         self.assertIn("BRVM", items[0]["title"])
 
 

@@ -36,6 +36,16 @@ export interface RealFundamentals {
   /** Nombre d'actions — présent seulement si deux sources indépendantes
    * convergent (PER BOC × RN / cours vs capital ÷ nominal). */
   sharesOutstanding: number | null;
+  /** Structure du capital seulement lorsqu'une publication officielle
+   * datée fournit explicitement les pourcentages. */
+  ownership?: {
+    asOfDate: string;
+    capitalSocialFcfa: number;
+    freeFloatPct: number;
+    principalShareholders: { name: string; pct: number }[];
+    change: string;
+    source: string;
+  } | null;
   /** Capitaux propres au bilan, millions de FCFA */
   equityM: number | null;
   equityPrevM: number | null;

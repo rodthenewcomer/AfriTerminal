@@ -20,7 +20,7 @@ export interface NewsItem {
   tickers: string[];
 }
 
-const ALL = newsJson as NewsItem[];
+const ALL = (newsJson as NewsItem[]).filter((item) => item.tickers.length > 0);
 
 export function latestNews(limit = 8): NewsItem[] {
   return ALL.slice(0, limit);

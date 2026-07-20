@@ -13,18 +13,18 @@ const PRO_FEATURES = [
 const ACCESS_LAYERS = [
   {
     layer: "Public",
-    price: "Sans compte",
-    items: "Accueil marché, 48 fiches actions, graphiques, fondamentaux sourcés, actualités, documents, dividendes et screener.",
+    price: "Accès libre",
+    items: "Explorez le marché, les 48 actions, leurs graphiques, fondamentaux, actualités, documents, dividendes et le screener.",
   },
   {
     layer: "Compte gratuit",
-    price: "0 FCFA",
-    items: "Watchlists, portefeuille, alertes personnelles, filtres enregistrés, questionnaire SGI et synchronisation web / iOS / Android.",
+    price: "Gratuit",
+    items: "Suivez vos actions, votre portefeuille et vos alertes sur tous vos appareils.",
   },
   {
     layer: "WARIBA Pro",
     price: "3 000 FCFA / mois",
-    items: "Laboratoire 48, comparaison multi-facteurs, filtres avancés, exports de recherche et quotas d'alertes étendus.",
+    items: "Comparez toute la cote, classez par facteurs, utilisez les filtres avancés et exportez vos recherches.",
   },
 ] as const;
 
@@ -42,13 +42,13 @@ export function ProAccessGate({
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <Badge tone="accent">WARIBA Pro</Badge>
-              <Badge tone="neutral"><LockKeyhole className="h-3 w-3" /> Accès protégé</Badge>
+              <Badge tone="neutral"><LockKeyhole className="h-3 w-3" /> Analyse avancée</Badge>
             </div>
             <h1 className="mt-4 max-w-2xl text-3xl font-bold tracking-[-0.04em] text-ink sm:text-4xl">
-              Les faits restent publics. La recherche avancée devient Pro.
+              Comparez les 48 actions en profondeur.
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-2">
-              Cours, fondamentaux sourcés, documents officiels, actualités et graphiques essentiels restent accessibles à tous. Pro protège les calculs comparatifs, exports et workflows intensifs.
+              Classez les sociétés, confrontez leurs forces et leurs risques, puis exportez votre travail dans un seul espace.
             </p>
           </div>
           <div className="rounded-xl border border-line bg-surface-2/55 p-4">
@@ -91,9 +91,9 @@ export function ProAccessGate({
 
       <section className="overflow-hidden rounded-2xl border border-line bg-surface">
         <div className="border-b border-line px-5 py-4">
-          <h2 className="text-base font-bold text-ink">Ce qui est public, personnel et Pro</h2>
+          <h2 className="text-base font-bold text-ink">Choisissez votre expérience</h2>
           <p className="mt-1 text-xs text-ink-3">
-            Pas de mur arbitraire : le compte protège vos données ; Pro finance les workflows de recherche intensifs.
+            Commencez librement, créez un compte pour suivre vos placements, puis passez à Pro lorsque vous avez besoin de comparer plus vite.
           </p>
         </div>
         <div className="divide-y divide-line">

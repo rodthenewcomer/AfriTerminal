@@ -18,6 +18,14 @@ export interface FundamentalRecord {
   costOfRiskM: number | null;
   costOfRiskPrevM: number | null;
   sharesOutstanding: number | null;
+  ownership?: {
+    asOfDate: string;
+    capitalSocialFcfa: number;
+    freeFloatPct: number;
+    principalShareholders: { name: string; pct: number }[];
+    change: string;
+    source: string;
+  } | null;
   equityM: number | null;
   equityPrevM: number | null;
   depositsPrevM: number | null;

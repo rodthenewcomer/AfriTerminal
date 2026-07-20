@@ -152,8 +152,10 @@ class RegistryContractTest(unittest.TestCase):
         self.assertEqual(missing_equity, ["SGBC"])
         self.assertEqual(
             sum("sharesOutstanding" in meta for meta in REGISTRY.values()),
-            12,
+            13,
         )
+        self.assertEqual(REGISTRY["BOAS"]["sharesOutstanding"], 36_000_000)
+        self.assertEqual(REGISTRY["BOAS"]["ownership"]["freeFloatPct"], 38.3)
 
 
 class AutomaticRefreshTest(unittest.TestCase):

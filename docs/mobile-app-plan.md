@@ -145,8 +145,9 @@ est le prix du rendu 100 % natif demandé.
   appareil en attente.
 - 🟡 **Phase 4 — implémentée et exportée.** Fiche action, portefeuille
   (performance totale, revenus, secteurs, concentration et risques),
-  screener public et filtres cloud, dividendes, actualités BRVM/UEMOA/
-  internationales, hub Opérations & documents, comparateur SGI Côte d'Ivoire,
+  screener public et filtres cloud, dividendes, actualités exclusivement
+  rattachées aux actions cotées BRVM, hub Opérations & documents,
+  comparateur SGI Côte d'Ivoire,
   carte, réglages et statut. Les longues collections sont
   rendues par lots pour protéger les appareils modestes.
 - 🟡 **Phase 5 — code et configuration terminés ; publication non exécutée.**

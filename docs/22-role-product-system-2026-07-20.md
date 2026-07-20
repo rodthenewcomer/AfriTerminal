@@ -14,7 +14,7 @@ Surfaces : web desktop, web mobile, iOS et Android.
 | 5. Moteur financier | Une source partagée impose le vocabulaire pertes, exceptions, trésorerie, PER, période, source, nature des comptes et confiance. |
 | 6. Alertes | Le flux par défaut répond à « ce qui compte pour mes actions » : watchlist, portefeuille, importance, raison, conséquence, source et masquage. |
 | 7. Portefeuille | Performance totale, revenus reçus/annoncés, concentration, secteur et risques factuels sont visibles sans conseil d'investissement. |
-| 8. Fiabilité | Actualités séparées BRVM/UEMOA/international/résultats, scores expliqués, accès Pro public et tests de données sur tout l'univers. |
+| 8. Fiabilité | Actualités limitées aux sociétés cotées BRVM, scores expliqués, accès Pro public et tests de données sur tout l'univers. |
 | 9. SGI et rétention | Questionnaire SGI sur faits officiels, fiches détaillées et sauvegarde de demande ; instructions stores et plan de suivi hebdomadaire documentés honnêtement. |
 
 ## Contrôle par 22 rôles
@@ -38,7 +38,7 @@ Surfaces : web desktop, web mobile, iOS et Android.
 | 15. Data QA | 48 tickers et toutes les périodes quotidiennes sont testés sans fuite inter-ticker. |
 | 16. Analyste financier | Pertes, exceptions, flux et PER sont formulés selon les comptes affichés. |
 | 17. Quant / Model Risk | Méthode, couverture, date et confiance accompagnent chaque score. |
-| 18. Éditorial | Sources et catégories distinguent BRVM, UEMOA et international. |
+| 18. Éditorial | Chaque actualité est rattachée à au moins un ticker BRVM et conserve sa source d'origine. |
 | 19. Juridique / conformité | Aucun ordre, conseil personnalisé, transmission SGI ou affiliation inventée. |
 | 20. Revenue | Les faits essentiels restent publics ; Pro vend recherche, comparaison et export. |
 | 21. QA / Release | TypeScript, lint, tests, build, audit, Expo Doctor, exports et tests physiques forment le gate. |
