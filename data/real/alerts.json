@@ -66,6 +66,18 @@
   "basis": "réel"
  },
  {
+  "id": "document-BOAB-2026-07-23-ad329c9da6",
+  "type": "document",
+  "ticker": "BOAB",
+  "title": "BOAB : nouvelle publication financière",
+  "detail": "BANK OF AFRICA BN a publié « Rapport dactivites — 1er semestre 2026 » le 2026-07-23. Source officielle à consulter avant toute décision.",
+  "time": "2026-07-23T09:05:00+00:00",
+  "severity": "critical",
+  "active": true,
+  "basis": "réel",
+  "sourceUrl": "https://www.brvm.org/sites/default/files/20260723_-_rapport_dactivites_-_1er_semestre_2026_-_boa_bn.pdf"
+ },
+ {
   "id": "prix-ABJC-2026-07-22-f19994ab63",
   "type": "prix",
   "ticker": "ABJC",
